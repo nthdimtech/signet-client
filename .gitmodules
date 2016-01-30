@@ -1,0 +1,9 @@
+[submodule "nettle"]
+	path = firmware/nettle
+	url = ../nettle.git
+[submodule "libaeabi-cortexm0"]
+	path = firmware/libaeabi-cortexm0
+	url = ../libaeabi-cortexm0
+[submodule "crosstool-ng"]
+	path = firmware/crosstool-ng
+	url = https://github.com/crosstool-ng/crosstool-ng.git

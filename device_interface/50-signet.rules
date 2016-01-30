@@ -1,0 +1,2 @@
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="0483", ENV{USB_HUB_TYPE}="16c0:0483"
+ENV{USB_HUB_TYPE}=="16c0:0483" SUBSYSTEM=="hidraw", ATTRS{bInterfaceProtocol}=="00", MODE="0666", SYMLINK+="signet"

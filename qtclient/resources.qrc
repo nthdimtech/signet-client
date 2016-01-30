@@ -1,0 +1,35 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/delete.png</file>
+        <file>images/edit.png</file>
+        <file>images/login.png</file>
+        <file>images/plus.png</file>
+        <file>images/search.png</file>
+        <file>images/button_press.png</file>
+        <file>images/clipboard.png</file>
+        <file>images/keyboard.png</file>
+        <file>images/browse.png</file>
+        <file>images/open.png</file>
+        <file>images/signet.png</file>
+        <file>images/logos/facebook.png</file>
+        <file>images/logos/kickstarter.png</file>
+        <file>images/logos/twitter.png</file>
+        <file>images/logos/linkedin.png</file>
+        <file>images/logos/patreon.png</file>
+        <file>images/logos/gmail.png</file>
+        <file>images/logos/github.png</file>
+        <file>images/logos/paypal.png</file>
+        <file>images/logos/apple.png</file>
+        <file>images/logos/macrofab.png</file>
+        <file>images/logos/fandango.png</file>
+        <file>images/logos/indiegogo.png</file>
+        <file>images/logos/slack.png</file>
+        <file>images/logos/qt.png</file>
+        <file>images/logos/instagram.png</file>
+        <file>images/password.png</file>
+        <file>images/user.png</file>
+        <file>images/logos/chase_bank.png</file>
+        <file>images/logos/dropbox.png</file>
+        <file>images/logos/crowdsupply.png</file>
+    </qresource>
+</RCC>
