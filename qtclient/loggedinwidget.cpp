@@ -164,16 +164,16 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, QWidget *parent) 
 	connect(app, SIGNAL(focusChanged(QWidget*,QWidget*)), this, SLOT(focusChanged(QWidget*,QWidget*)));
 
 	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)), this,
-	        SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
+		SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 
 	connect(app, SIGNAL(signetdevReadIdResp(signetdevCmdRespInfo, QByteArray, QByteArray)), this,
-	        SLOT(signetdevReadIdResp(signetdevCmdRespInfo, QByteArray, QByteArray)));
+		SLOT(signetdevReadIdResp(signetdevCmdRespInfo, QByteArray, QByteArray)));
 
 	m_filterEdit = new SearchFilterEdit();
 	QObject::connect(m_filterEdit, SIGNAL(textEdited(QString)),
-	                 this, SLOT(filterTextEdited(QString)));
+			 this, SLOT(filterTextEdited(QString)));
 	QObject::connect(m_filterEdit, SIGNAL(returnPressed()),
-	                 this, SLOT(filterEditPressed()));
+			 this, SLOT(filterEditPressed()));
 
 	QIcon plus_icn = QIcon(":/images/plus.png");
 
@@ -363,7 +363,7 @@ void LoggedInWidget::signetdevCmdResp(signetdevCmdRespInfo info)
 }
 
 void LoggedInWidget::signetdevReadIdResp(signetdevCmdRespInfo info,
-        QByteArray data,  QByteArray mask)
+	QByteArray data,  QByteArray mask)
 {
 	if (info.token != m_signetdevCmdToken) {
 		return;
@@ -699,9 +699,9 @@ void LoggedInWidget::newEntryUI()
 	}
 	if (id > MAX_ID) {
 		SignetApplication::messageBoxError(QMessageBox::Warning,
-		                                   "Account creation failed",
-		                                   "No space left on device",
-		                                   this);
+						   "Account creation failed",
+						   "No space left on device",
+						   this);
 		return;
 	}
 	QString entryName;

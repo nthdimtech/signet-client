@@ -161,8 +161,8 @@ void AccountActionBar::deleteAccountUI()
 		m_parent->selectEntry(NULL);
 		int id = acct->id;
 		m_buttonWaitDialog = new ButtonWaitDialog("Delete account",
-		        QString("delete account \"") + acct->acctName + QString("\""),
-		        m_parent);
+			QString("delete account \"") + acct->acctName + QString("\""),
+			m_parent);
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(deleteAccountFinished(int)));
 		m_buttonWaitDialog->show();
 		m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_DELETE, NONE);
@@ -273,10 +273,10 @@ void AccountActionBar::getEntryDone(esdbEntry *entry, int intent)
 		if (app->focusWidget()) {
 			m_buttonWaitDialog->stopTimer();
 			QMessageBox *box = SignetApplication::messageBoxError(
-			                       QMessageBox::Warning,
-			                       "Signet",
-			                       "A destination text area must be selected for typing to start\n\n"
-			                       "Close this window and try again.", m_buttonWaitDialog);
+					       QMessageBox::Warning,
+					       "Signet",
+					       "A destination text area must be selected for typing to start\n\n"
+					       "Close this window and try again.", m_buttonWaitDialog);
 			connect(box, SIGNAL(finished(int)), this, SLOT(retryTypeData()));
 			m_id = entry->id;
 			break;
@@ -299,7 +299,7 @@ void AccountActionBar::getEntryDone(esdbEntry *entry, int intent)
 			}
 		}
 		::signetdev_type_async(NULL, &m_signetdevCmdToken,
-		                       (u8 *)keys.data(), keys.length());
+				       (u8 *)keys.data(), keys.length());
 	}
 	break;
 	case COPY_DATA: {
@@ -345,5 +345,3 @@ void AccountActionBar::retryTypeData()
 {
 	m_parent->beginIDTask(m_id, LoggedInWidget::ID_TASK_READ, TYPE_DATA);
 }
-
-
