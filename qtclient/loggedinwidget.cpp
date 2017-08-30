@@ -795,7 +795,7 @@ void LoggedInWidget::populateEntryList(int index, QString filter)
 		int i = 0;
 		for (auto x : *filteredList) {
 			if (x == m_selectedEntry) {
-				match_idx = filteredList->size();
+				match_idx = i;
 				matched = true;
 			}
 			i++;
