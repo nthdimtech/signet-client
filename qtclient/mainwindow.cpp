@@ -83,31 +83,31 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	m_backupAction = m_deviceMenu->addAction("Backup device");
 	QObject::connect(m_backupAction, SIGNAL(triggered(bool)),
-	                 this, SLOT(backupDeviceUi()));
+			 this, SLOT(backupDeviceUi()));
 
 	m_restoreAction = m_deviceMenu->addAction("Restore device");
 	QObject::connect(m_restoreAction, SIGNAL(triggered(bool)),
-	                 this, SLOT(restoreDeviceUi()));
+			 this, SLOT(restoreDeviceUi()));
 
 	m_logoutAction = m_deviceMenu->addAction("Logout");
 	QObject::connect(m_logoutAction, SIGNAL(triggered(bool)),
-	                 this, SLOT(logoutUi()));
+			 this, SLOT(logoutUi()));
 
 	m_changePasswordAction = m_deviceMenu->addAction("Change master password");
 	QObject::connect(m_changePasswordAction, SIGNAL(triggered(bool)),
-	                 this, SLOT(changePasswordUi()));
+			 this, SLOT(changePasswordUi()));
 
 	m_eraseDeviceAction = m_deviceMenu->addAction("Reset");
 	QObject::connect(m_eraseDeviceAction, SIGNAL(triggered(bool)),
-	                 this, SLOT(eraseDeviceUi()));
+			 this, SLOT(eraseDeviceUi()));
 
 	m_wipeDeviceAction = m_deviceMenu->addAction("Wipe");
 	QObject::connect(m_wipeDeviceAction, SIGNAL(triggered(bool)),
-	                 this, SLOT(wipeDeviceUi()));
+			 this, SLOT(wipeDeviceUi()));
 
 	m_updateFirmwareAction = m_deviceMenu->addAction("Update firmware");
 	QObject::connect(m_updateFirmwareAction, SIGNAL(triggered(bool)),
-	                 this, SLOT(updateFirmwareUi()));
+			 this, SLOT(updateFirmwareUi()));
 
 	m_logoutAction->setVisible(false);
 	m_eraseDeviceAction->setVisible(false);
@@ -589,19 +589,19 @@ void MainWindow::enterDeviceState(int state)
 		layout->addWidget(loading_label);
 		layout->addWidget(loading_progress);
 
-		QWidget *loading_widget = new QWidget();
-		loading_widget->setLayout(layout);
+		QWidget *loadingWidget = new QWidget();
+		loadingWidget->setLayout(layout);
 
-		LoggedInWidget *logged_in_widget = new LoggedInWidget(loading_progress);
-		connect(logged_in_widget, SIGNAL(abort()), this, SLOT(abort()));
-		connect(logged_in_widget, SIGNAL(enterDeviceState(int)),
-		        this, SLOT(enterDeviceState(int)));
-		connect(SignetApplication::get(), SIGNAL(signetdevEvent(int)),
-		        logged_in_widget, SLOT(open()));
+		LoggedInWidget *loggedInWidget = new LoggedInWidget(this, loading_progress);
+		connect(loggedInWidget, SIGNAL(abort()), this, SLOT(abort()));
+		connect(loggedInWidget, SIGNAL(enterDeviceState(int)),
+			this, SLOT(enterDeviceState(int)));
+		connect(SignetApplication::get(), SIGNAL(signetdevEvent(int)), loggedInWidget, SLOT(signetDevEvent(int)));
+		connect(loggedInWidget, SIGNAL(background()), this, SLOT(background()));
 
 		m_loggedInStack = new QStackedWidget();
-		m_loggedInStack->addWidget(logged_in_widget);
-		m_loggedInStack->addWidget(loading_widget);
+		m_loggedInStack->addWidget(loggedInWidget);
+		m_loggedInStack->addWidget(loadingWidget);
 		m_loggedInStack->setCurrentIndex(1);
 		setCentralWidget(m_loggedInStack);
 	}
@@ -670,8 +670,8 @@ void MainWindow::enterDeviceState(int state)
 			}
 		}
 		::signetdev_erase_pages_async(NULL, &m_signetdevCmdToken,
-		                              erase_pages_.size(),
-		                              (u8 *)erase_pages_.data());
+					      erase_pages_.size(),
+					      (u8 *)erase_pages_.data());
 		setCentralWidget(m_firmwareUpdateWidget);
 	}
 	break;
@@ -737,7 +737,7 @@ void MainWindow::enterDeviceState(int state)
 
 		LoginWindow *login_window = new LoginWindow(this);
 		connect(login_window, SIGNAL(enterDeviceState(int)),
-		        this, SLOT(enterDeviceState(int)));
+			this, SLOT(enterDeviceState(int)));
 		connect(login_window, SIGNAL(abort()), this, SLOT(abort()));
 		setCentralWidget(login_window);
 	}
@@ -780,7 +780,7 @@ void MainWindow::eraseDeviceUi()
 {
 	ResetDevice *rd = new ResetDevice(m_deviceState != STATE_UNINITIALIZED,this);
 	connect(rd, SIGNAL(enterDeviceState(int)),
-	        this, SLOT(enterDeviceState(int)));
+		this, SLOT(enterDeviceState(int)));
 	connect(rd, SIGNAL(abort()), this, SLOT(abort()));
 	connect(rd, SIGNAL(finished(int)), rd, SLOT(deleteLater()));
 	rd->show();
@@ -924,10 +924,10 @@ void MainWindow::updateFirmwareUi()
 void MainWindow::wipeDeviceUi()
 {
 	m_wipeDeviceDialog = new QMessageBox(QMessageBox::Warning,
-	                                     "Wipe device",
-	                                     "This will permanently erase the contents of the device. Continue?",
-	                                     QMessageBox::Ok | QMessageBox::Cancel,
-	                                     this);
+					     "Wipe device",
+					     "This will permanently erase the contents of the device. Continue?",
+					     QMessageBox::Ok | QMessageBox::Cancel,
+					     this);
 	connect(m_wipeDeviceDialog, SIGNAL(finished(int)), this, SLOT(wipeDeviceDialogFinished(int)));
 	connect(m_wipeDeviceDialog, SIGNAL(finished(int)), m_wipeDeviceDialog, SLOT(deleteLater()));
 	m_wipeDeviceDialog->setWindowModality(Qt::WindowModal);
