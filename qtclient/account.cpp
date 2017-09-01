@@ -1,6 +1,6 @@
 #include "account.h"
 
-#define CROWD_SUPPLY_BIAS 0
+#define CROWD_SUPPLY_BIAS 1
 
 void account_0::fromBlock(block *blk)
 {
@@ -66,11 +66,11 @@ int account::matchQuality(const QString &search) const
 	if (quality && hasIcon()) {
 		quality++;
 	}
-#if CROWD_SUPPLY_BIAS
-	if (acct_name == QString("Crowd Supply") && search.size() == 0) {
-		quality += 100;
+	if (CROWD_SUPPLY_BIAS) {
+		if (acctName == QString("Crowd Supply") && search.size() == 0) {
+			quality += 100;
+		}
 	}
-#endif
 	return quality;
 }
 
