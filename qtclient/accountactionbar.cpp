@@ -9,9 +9,13 @@
 #include <QPushButton>
 #include <QDesktopServices>
 #include <QClipboard>
+#include <QMenu>
 
 AccountActionBar::AccountActionBar(LoggedInWidget *parent) :
-	m_parent(parent), m_buttonWaitDialog(NULL)
+	m_parent(parent),
+	m_buttonWaitDialog(NULL),
+	m_quickTypeState(QUICKTYPE_STATE_INITIAL),
+	m_quickTypeMode(false)
 {
 	QIcon delete_icn = QIcon(":/images/delete.png");
 	QHBoxLayout *l = new QHBoxLayout();
@@ -89,11 +93,51 @@ void AccountActionBar::newInstanceUI(int id, const QString &name)
 void AccountActionBar::defaultAction(esdbEntry *entry)
 {
 	Q_UNUSED(entry);
-	typeAccountUserPassUI();
+	QMenu *menu;
+	menu = new QMenu(this);
+	QAction *browseAction = menu->addAction("Browse");
+	menu->addSeparator();
+	QAction *loginAction = menu->addAction("Login");
+	QAction *usernameAction = menu->addAction("Username");
+	QAction *passwordAction = menu->addAction("Password");
+	menu->addSeparator();
+	QAction *openAction = menu->addAction("Open");
+	QAction *deleteAction = menu->addAction("Delete");
+
+	connect(browseAction, SIGNAL(triggered(bool)), this, SLOT(browseUrlUI()));
+	connect(loginAction, SIGNAL(triggered(bool)), this, SLOT(typeAccountUserPassUI()));
+	connect(usernameAction, SIGNAL(triggered(bool)), this, SLOT(typeAccountUserUI()));
+	connect(passwordAction, SIGNAL(triggered(bool)), this, SLOT(typeAccountPassUI()));
+	connect(openAction, SIGNAL(triggered(bool)), this, SLOT(openAccountUI()));
+	connect(deleteAction, SIGNAL(triggered(bool)), this, SLOT(deleteAccountUI()));
+	switch (m_quickTypeState) {
+	case QUICKTYPE_STATE_INITIAL:
+		menu->setActiveAction(browseAction);
+		break;
+	case QUICKTYPE_STATE_BROWSE:
+		menu->setActiveAction(loginAction);
+		break;
+	case QUICKTYPE_STATE_USERNAME:
+		menu->setActiveAction(passwordAction);
+		break;
+	default:
+		break;
+	}
+	QRect r;
+	m_parent->getSelectedAccountRect(r);
+	QPoint p = r.bottomLeft();
+	p.setX(p.x() + 15);
+	p.setY(p.y() + 3);
+	m_quickTypeMode = true;
+	menu->exec(p);
+	m_quickTypeMode = false;
 }
 
 void AccountActionBar::selectEntry(esdbEntry *entry)
 {
+	if (entry != m_selectedEntry) {
+		m_quickTypeState = QUICKTYPE_STATE_INITIAL;
+	}
 	m_selectedEntry = entry;
 	bool enable = entry != NULL;
 	bool browse_enable = enable;
@@ -119,31 +163,35 @@ void AccountActionBar::browseUrlUI()
 		if (!url.scheme().size()) {
 			url.setScheme("HTTP");
 		}
+		m_quickTypeState = QUICKTYPE_STATE_BROWSE;
+		if (m_quickTypeMode) {
+			background();
+		}
 		QDesktopServices::openUrl(url);
 	}
 }
 
-void AccountActionBar::accessAccountUI(bool copy_data, bool username, bool password)
+void AccountActionBar::accessAccountUI(bool username, bool password)
 {
 	account *acct = (account *)selectedEntry();
 	if (acct) {
-		accessAccount(acct, copy_data, username, password);
+		accessAccount(acct, username, password);
 	}
 }
 
 void AccountActionBar::typeAccountUserUI()
 {
-	accessAccountUI(false, true, false);
+	accessAccountUI(true, false);
 }
 
 void AccountActionBar::typeAccountPassUI()
 {
-	accessAccountUI(false, false, true);
+	accessAccountUI(false, true);
 }
 
 void AccountActionBar::typeAccountUserPassUI()
 {
-	accessAccountUI(false, true, true);
+	accessAccountUI(true, true);
 }
 
 void AccountActionBar::openAccountUI()
@@ -201,7 +249,7 @@ void AccountActionBar::openAccountFinished(int code)
 	m_parent->finishTask(true);
 }
 
-void AccountActionBar::accessAccount(account *acct, bool copy_data, bool username, bool password)
+void AccountActionBar::accessAccount(account *acct, bool username, bool password)
 {
 	int id = acct->id;
 	m_accessUsername = username;
@@ -209,47 +257,36 @@ void AccountActionBar::accessAccount(account *acct, bool copy_data, bool usernam
 	QString message;
 	QString title = acct->acctName;
 	if (username && password) {
-		if (!copy_data) {
-			message.append("to login to ");
-			message.append(acct->acctName);
-		} else {
-			message = QString("copy username and password");
-		}
+		message.append("to login to ");
+		message.append(acct->acctName);
 	} else {
-		if (copy_data) {
-			if (username) {
-				message.append("copy username ");
-			} else if (password) {
-				message.append("copy password ");
-			}
-		} else {
-			if (username) {
-				message.append("type username ");
-			} else if (password) {
-				message.append("type password ");
-			}
-		}
 		if (username) {
-			message.append("for ");
+			message.append("type username ");
+			m_quickTypeState = QUICKTYPE_STATE_USERNAME;
 		} else if (password) {
-			message.append("for ");
+			message.append("type password ");
+			m_quickTypeState = QUICKTYPE_STATE_PASSWORD;
 		}
+		message.append("for ");
 		message.append(acct->acctName);
 	}
-	m_buttonWaitDialog = new ButtonWaitDialog(title, message, m_parent);
-	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(accessAccountFinished(int)));
-	m_buttonWaitDialog->show();
-	if (copy_data) {
-		m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, COPY_DATA);
+	if (m_quickTypeMode) {
+		m_buttonWaitDialog = NULL;
+		background();
 	} else {
-		m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, TYPE_DATA);
+		m_buttonWaitDialog = new ButtonWaitDialog(title, message, m_parent);
+		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(accessAccountFinished(int)));
+		m_buttonWaitDialog->show();
 	}
+	m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, TYPE_DATA);
 }
 
 void AccountActionBar::accessAccountFinished(int code)
 {
-	m_buttonWaitDialog->deleteLater();
-	m_buttonWaitDialog = NULL;
+	if (m_buttonWaitDialog) {
+		m_buttonWaitDialog->deleteLater();
+		m_buttonWaitDialog = NULL;
+	}
 	if (code != QMessageBox::Ok) {
 		::signetdev_cancel_button_wait();
 	}
@@ -262,6 +299,8 @@ void AccountActionBar::idTaskComplete(int id, int intent)
 	Q_UNUSED(intent);
 	if (m_buttonWaitDialog)
 		m_buttonWaitDialog->done(QMessageBox::Ok);
+	else
+		accessAccountFinished(QMessageBox::Ok);
 }
 
 void AccountActionBar::getEntryDone(esdbEntry *entry, int intent)
@@ -271,7 +310,9 @@ void AccountActionBar::getEntryDone(esdbEntry *entry, int intent)
 		account *acct = static_cast<account *>(entry);
 		QApplication *app = static_cast<QApplication *>(QApplication::instance());
 		if (app->focusWidget()) {
-			m_buttonWaitDialog->stopTimer();
+			if (m_buttonWaitDialog) {
+				m_buttonWaitDialog->stopTimer();
+			}
 			QMessageBox *box = SignetApplication::messageBoxError(
 					       QMessageBox::Warning,
 					       "Signet",

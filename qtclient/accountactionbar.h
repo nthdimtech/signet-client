@@ -28,7 +28,7 @@ class AccountActionBar : public EsdbActionBar
 	bool m_accessPassword;
 	bool m_accessPending;
 
-	void accessAccount(account *acct, bool copy_data, bool username, bool password);
+	void accessAccount(account *acct, bool username, bool password);
 	void openAccount(account *acct);
 	void newInstanceUI(int id, const QString &name);
 
@@ -40,6 +40,17 @@ class AccountActionBar : public EsdbActionBar
 	};
 	int m_id;
 	int m_signetdevCmdToken;
+	enum quickTypeState {
+		QUICKTYPE_STATE_INITIAL,
+		QUICKTYPE_STATE_BROWSE,
+		QUICKTYPE_STATE_LOGIN,
+		QUICKTYPE_STATE_USERNAME,
+		QUICKTYPE_STATE_PASSWORD
+	} m_quickTypeState;
+
+	bool m_quickTypeMode;
+signals:
+	void background();
 public:
 	AccountActionBar(LoggedInWidget *parent);
 	void getEntryDone(esdbEntry *entry, int intent);
@@ -53,7 +64,7 @@ public slots:
 	void typeAccountUserUI();
 	void typeAccountUserPassUI();
 	void typeAccountPassUI();
-	void accessAccountUI(bool copy_data, bool username, bool password);
+	void accessAccountUI(bool username, bool password);
 	void browseUrlUI();
 	void accessAccountFinished(int);
 	void openAccountFinished(int);

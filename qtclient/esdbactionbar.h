@@ -45,7 +45,8 @@ public:
 		Q_UNUSED(id);
 		Q_UNUSED(name);
 	}
-public slots:
+signals:
+	void background();
 };
 
 #endif // ESDBACTIONBAR_H

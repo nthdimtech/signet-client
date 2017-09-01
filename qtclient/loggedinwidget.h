@@ -10,6 +10,7 @@
 #include <QMap>
 #include <QVector>
 
+class MainWindow;
 class CommThread;
 class QPushButton;
 class QDialog;
@@ -48,8 +49,8 @@ struct iconAccount {
 	QString iconName;
 	QUrl urlObj;
 	iconAccount(const QString &_name,
-	            const QString &_url,
-	            const QString &_icon_name) :
+		    const QString &_url,
+		    const QString &_icon_name) :
 		name(_name),
 		url(_url),
 		iconName(_icon_name),
@@ -151,13 +152,15 @@ public:
 		ID_TASK_READ,
 		ID_TASK_READ_POPULATE,
 	} m_idTask;
-	explicit LoggedInWidget(QProgressBar *loading_progress, QWidget *parent = 0);
+	explicit LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, QWidget *parent = 0);
 	~LoggedInWidget();
 	void finishTask(bool deselect = true);
 	void beginIDTask(int id, enum ID_TASK task, int intent);
+	void getSelectedAccountRect(QRect &r);
 signals:
 	void abort();
 	void enterDeviceState(int);
+	void background();
 public slots:
 	void open();
 	void entryChanged(int id);
@@ -176,6 +179,7 @@ public slots:
 	void filterTextChanged(QString text);
 	void newEntryUI();
 	void customContextMenuRequested(QPoint pt);
+	void signetDevEvent(int);
 };
 
 #endif // LOGGEDINWIDGET_H

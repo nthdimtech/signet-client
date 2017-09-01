@@ -50,9 +50,9 @@ void SignetApplication::generateScryptKey(const QString &password, QByteArray &k
 {
 	QByteArray password_utf8 = password.toUtf8();
 	crypto_scrypt((u8 *)password_utf8.data(), password_utf8.size(),
-	              (u8 *)salt.data(), salt.size(),
-	              N, r, s,
-	              (u8 *)key.data(), key.size());
+		      (u8 *)salt.data(), salt.size(),
+		      N, r, s,
+		      (u8 *)key.data(), key.size());
 
 }
 
@@ -161,21 +161,21 @@ void SignetApplication::init()
 	connect(this, SIGNAL(deviceOpened()), m_main_window, SLOT(deviceOpened()));
 	connect(this, SIGNAL(deviceClosed()), m_main_window, SLOT(deviceClosed()));
 	connect(this, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
-	        m_main_window, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
+		m_main_window, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 	connect(this, SIGNAL(signetdevGetProgressResp(signetdevCmdRespInfo, signetdev_get_progress_resp_data)),
-	        m_main_window, SLOT(signetdevGetProgressResp(signetdevCmdRespInfo, signetdev_get_progress_resp_data)));
+		m_main_window, SLOT(signetdevGetProgressResp(signetdevCmdRespInfo, signetdev_get_progress_resp_data)));
 	connect(this, SIGNAL(signetdevStartupResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)),
-	        m_main_window, SLOT(signetdevStartupResp(signetdevCmdRespInfo,int, QByteArray, QByteArray)));
+		m_main_window, SLOT(signetdevStartupResp(signetdevCmdRespInfo,int, QByteArray, QByteArray)));
 	connect(this, SIGNAL(signetdevReadBlockResp(signetdevCmdRespInfo, QByteArray)),
-	        m_main_window, SLOT(signetdevReadBlockResp(signetdevCmdRespInfo, QByteArray)));
+		m_main_window, SLOT(signetdevReadBlockResp(signetdevCmdRespInfo, QByteArray)));
 
 	connect(this, SIGNAL(connectionError()), m_main_window, SLOT(connectionError()));
 
 	QObject::connect(m_main_window, SIGNAL(destroyed(QObject*)), this, SLOT(mainDestroyed()));
 	QObject::connect(this, SIGNAL(messageReceived(QString)), m_main_window, SLOT(open()));
 	QObject::connect(&m_systray, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
-	                 this, SLOT(trayActivated(QSystemTrayIcon::ActivationReason)));
-	QObject::connect(this, SIGNAL(signetdevEvent(int)), m_main_window, SLOT(open()));
+			 this, SLOT(trayActivated(QSystemTrayIcon::ActivationReason)));
+	QObject::connect(this, SIGNAL(signetdevEvent(int)), m_main_window, SLOT(signetDevEvent(int)));
 
 	m_main_window->setWindowFlags(Qt::WindowStaysOnTopHint);
 	m_main_window->setWindowTitle("Signet");

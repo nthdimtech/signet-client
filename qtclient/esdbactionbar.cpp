@@ -6,4 +6,3 @@ EsdbActionBar::EsdbActionBar(QWidget *parent) : QWidget(parent),
 
 }
 
-

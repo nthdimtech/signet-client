@@ -505,11 +505,24 @@ void MainWindow::open()
 	raise();
 }
 
+void MainWindow::signetDevEvent(int code)
+{
+	Q_UNUSED(code);
+	open();
+}
+
+void MainWindow::background()
+{
+	showMinimized();
+}
+
 void MainWindow::enterDeviceState(int state)
 {
 	if (state == m_deviceState && (state != STATE_LOGGED_OUT))
 		return;
 	switch (m_deviceState) {
+	case STATE_LOGGED_IN:
+		break;
 	case STATE_BACKING_UP:
 		m_loggedInStack->setCurrentIndex(0);
 		m_loggedInStack->removeWidget(m_backupWidget);

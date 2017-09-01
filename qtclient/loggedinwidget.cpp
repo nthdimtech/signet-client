@@ -43,6 +43,7 @@ extern "C" {
 
 #include "bookmark.h"
 #include "generic.h"
+#include "mainwindow.h"
 
 int iconAccount::matchQuality(esdbEntry *entry)
 {
@@ -80,7 +81,7 @@ int iconAccount::matchQuality(esdbEntry *entry)
 	return quality;
 }
 
-LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, QWidget *parent) : QWidget(parent),
+LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, QWidget *parent) : QWidget(parent),
 	m_filterLabel(NULL),
 	m_newAcctButton(NULL),
 	m_populating(true),
@@ -191,6 +192,7 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, QWidget *parent) 
 		auto esdbModel = new EsdbModel(iter, filteredList);
 		m_esdbModel.push_back(esdbModel);
 		EsdbActionBar *actionBar = iter->newActionBar();
+		connect(actionBar, SIGNAL(background()), this, SIGNAL(background()));
 		m_actionBarStack->addWidget(actionBar);
 	}
 
@@ -271,6 +273,11 @@ void LoggedInWidget::open()
 	m_filterEdit->setFocus();
 }
 
+void LoggedInWidget::signetDevEvent(int code)
+{
+	open();
+}
+
 void LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent)
 {
 	m_id = id;
@@ -278,7 +285,6 @@ void LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent)
 	m_taskIntent = intent;
 	::signetdev_open_id_async(NULL, &m_signetdevCmdToken, m_id);
 }
-
 
 void LoggedInWidget::entryChanged(int id)
 {
@@ -407,12 +413,20 @@ void LoggedInWidget::signetdevReadIdResp(signetdevCmdRespInfo info,
 	}
 }
 
+void LoggedInWidget::getSelectedAccountRect(QRect &r)
+{
+	QRect s = m_searchListbox->visualRect(m_searchListbox->currentIndex());
+	r.setTopLeft(m_searchListbox->mapToGlobal(s.topLeft()));
+	r.setBottomRight(m_searchListbox->mapToGlobal(s.bottomRight()));
+}
+
 void LoggedInWidget::selectEntry(esdbEntry *entry)
 {
 	//TODO: make sure the entry type matches
 	m_selectedEntry = entry;
 	if (!entry) {
 		m_searchListbox->setCurrentIndex(QModelIndex());
+		getActiveActionBar()->selectEntry(NULL);
 	} else {
 		EsdbActionBar *bar = getActionBarByEntry(entry);
 		if (bar)
@@ -653,8 +667,6 @@ void LoggedInWidget::activated(QModelIndex idx)
 		int index = idx.row();
 		esdbEntry *entry = m_filteredLists.at(m_activeType)->at(index);
 		selectEntry(entry);
-		m_searchListbox->setFilterText(QString());
-		filterTextChanged(m_searchListbox->filterText());
 		getActiveActionBar()->defaultAction(entry);
 	}
 }

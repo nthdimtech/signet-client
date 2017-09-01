@@ -128,6 +128,7 @@ private slots:
 	void restoreError();
 	void backupError();
 public slots:
+	void signetDevEvent(int);
 	void deviceOpened();
 	void deviceClosed();
 	void signetdevCmdResp(signetdevCmdRespInfo info);
@@ -152,6 +153,7 @@ public slots:
 	void wipeDeviceUi();
 	void resetTimer();
 	void connectingTimer();
+	void background();
 };
 
 #endif // MAINWINDOW_H
