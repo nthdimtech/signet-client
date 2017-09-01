@@ -27,8 +27,8 @@ NewAccount::NewAccount(int id, const QString &name, QWidget *parent) : QDialog(p
 {
 	setWindowModality(Qt::WindowModal);
 	SignetApplication *app = SignetApplication::get();
-	connect(app, SIGNAL(signetdev_cmd_resp(signetdevCmdRespInfo)),
-	        this, SLOT(signetdev_cmd_resp(signetdevCmdRespInfo)));
+	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
+		this, SLOT(signetdev_cmd_resp(signetdevCmdRespInfo)));
 
 	setWindowTitle("New account");
 
@@ -48,7 +48,7 @@ NewAccount::NewAccount(int id, const QString &name, QWidget *parent) : QDialog(p
 
 	m_username_field = new DatabaseField("username", 140, NULL);
 	connect(m_username_field, SIGNAL(editingFinished()), this,
-	        SLOT(username_editing_finished()));
+		SLOT(username_editing_finished()));
 
 	m_url_field = new DatabaseField("URL", 140);
 
@@ -124,10 +124,10 @@ void NewAccount::signetdev_cmd_resp(signetdevCmdRespInfo info)
 
 			m_acct->toBlock(&blk);
 			::signetdev_write_id_async(NULL, &m_signetdev_cmd_token,
-			                           m_acct->id,
-			                           blk.data.size(),
-			                           (const u8 *)blk.data.data(),
-			                           (const u8 *)blk.mask.data());
+						   m_acct->id,
+						   blk.data.size(),
+						   (const u8 *)blk.data.data(),
+						   (const u8 *)blk.mask.data());
 		}
 		break;
 		case SIGNETDEV_CMD_WRITE_ID:
