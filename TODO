@@ -4,9 +4,10 @@ Features:
 	Automatic backup mode - Drop a session file and associate it as primary system optionally
 	Storage type for SSL certificates and related
 	Wireless connections SSID, PSK
-	Right arrow on text selection opens context menu when only once choice
 	Session based login that stays logged in after device connect/disconnect so long as the local *user* is logged in.
 		Must logout when laptop case is closed or device is put to sleep
+
+	# Right arrow on text selection opens context menu when only once choice
 
 Tasks:
 	Animated button press icon in button press dialog
