@@ -82,6 +82,8 @@ int iconAccount::matchQuality(esdbEntry *entry)
 }
 
  LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, QWidget *parent) : QWidget(parent),
+	m_activeType(0),
+	m_selectedEntry(NULL),
 	m_filterLabel(NULL),
 	m_newAcctButton(NULL),
 	m_populating(true),
@@ -89,8 +91,6 @@ int iconAccount::matchQuality(esdbEntry *entry)
 	m_loadingProgress(loading_progress),
 	m_filterEdit(NULL),
 	m_accountGroup(NULL),
-	m_activeType(0),
-	m_selectedEntry(NULL),
 	m_signetdevCmdToken(-1),
 	m_id(-1),
 	m_idTask(ID_TASK_NONE)

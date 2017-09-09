@@ -19,8 +19,8 @@ GenericActionBar::GenericActionBar(esdbTypeModule *module, genericTypeDesc *type
 	m_parent(parent),
 	m_buttonWaitDialog(NULL),
 	m_module(module),
-	m_newEntryDlg(NULL),
 	m_typeDesc(typeDesc),
+	m_newEntryDlg(NULL),
 	m_browseButton(NULL)
 {
 	QHBoxLayout *l = new QHBoxLayout();
