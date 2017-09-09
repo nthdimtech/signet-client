@@ -81,7 +81,7 @@ int iconAccount::matchQuality(esdbEntry *entry)
 	return quality;
 }
 
-LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, QWidget *parent) : QWidget(parent),
+ LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, QWidget *parent) : QWidget(parent),
 	m_filterLabel(NULL),
 	m_newAcctButton(NULL),
 	m_populating(true),
@@ -89,12 +89,13 @@ LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, Q
 	m_loadingProgress(loading_progress),
 	m_filterEdit(NULL),
 	m_accountGroup(NULL),
+	m_activeType(0),
+	m_selectedEntry(NULL),
 	m_signetdevCmdToken(-1),
 	m_id(-1),
-	m_idTask(ID_TASK_NONE),
-	m_activeType(0),
-	m_selectedEntry(NULL)
+	m_idTask(ID_TASK_NONE)
 {
+	Q_UNUSED(mw);
 	m_icon_accounts.append(
 	    iconAccount("facebook")
 	);
@@ -275,6 +276,7 @@ void LoggedInWidget::open()
 
 void LoggedInWidget::signetDevEvent(int code)
 {
+	Q_UNUSED(code);
 	open();
 }
 

@@ -12,8 +12,8 @@
 #include <QMenu>
 
 AccountActionBar::AccountActionBar(LoggedInWidget *parent) :
-	m_parent(parent),
 	m_buttonWaitDialog(NULL),
+	m_parent(parent),
 	m_quickTypeState(QUICKTYPE_STATE_INITIAL),
 	m_quickTypeMode(false)
 {

@@ -265,6 +265,7 @@ void rawhid_close(int num)
 
 HANDLE rawhid_win32_get_handle(int num)
 {
+	(void)(num);
 	hid_t *hid = get_hid(0);
 	return hid->handle;
 }

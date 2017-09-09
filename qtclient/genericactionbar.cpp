@@ -18,8 +18,8 @@
 GenericActionBar::GenericActionBar(esdbTypeModule *module, genericTypeDesc *typeDesc, LoggedInWidget *parent) :
 	m_parent(parent),
 	m_buttonWaitDialog(NULL),
-	m_newEntryDlg(NULL),
 	m_module(module),
+	m_newEntryDlg(NULL),
 	m_typeDesc(typeDesc),
 	m_browseButton(NULL)
 {
