@@ -5,3 +5,4 @@
 *.pm_backup
 client
 build-*/
+qtclient/qtclient.pro.user
