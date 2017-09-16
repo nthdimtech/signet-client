@@ -29,7 +29,7 @@ OpenGeneric::OpenGeneric(generic *generic, genericTypeDesc *typeDesc, QWidget *p
 	setWindowModality(Qt::WindowModal);
 	SignetApplication *app = SignetApplication::get();
 	connect(app, SIGNAL(signetdev_cmd_resp(signetdevCmdRespInfo)),
-	        this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
+		this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 
 	setWindowTitle(generic->name);
 	m_genericNameEdit = new QLineEdit();
@@ -38,10 +38,8 @@ OpenGeneric::OpenGeneric(generic *generic, genericTypeDesc *typeDesc, QWidget *p
 	nameLayout->addWidget(new QLabel("Name"));
 	nameLayout->addWidget(m_genericNameEdit);
 
-	//m_username_field = new DatabaseField("username", 120, NULL);
-
 	connect(m_genericNameEdit, SIGNAL(textEdited(QString)),
-	        this, SLOT(textEdited(QString)));
+		this, SLOT(textEdited(QString)));
 
 	for (auto typeField : typeDesc->fields) {
 		DatabaseField *field = new DatabaseField(typeField, 200);
@@ -71,11 +69,9 @@ OpenGeneric::OpenGeneric(generic *generic, genericTypeDesc *typeDesc, QWidget *p
 	for (auto dbField : m_typeFields) {
 		mainLayout->addWidget(dbField);
 	}
-	/*
 	for (auto dbField : m_extraFields) {
 		mainLayout->addWidget(dbField);
 	}
-	*/
 	mainLayout->addLayout(buttons);
 	setLayout(mainLayout);
 
@@ -110,10 +106,10 @@ void OpenGeneric::signetdevCmdResp(signetdevCmdRespInfo info)
 			block blk;
 			acct.to_block(&blk);
 			::signetdev_write_id_async(NULL, &m_signetdev_cmd_token,
-			                           m_acct->id,
-			                           blk.data.size(),
-			                           (const u8 *)blk.data.data(),
-			                           (const u8 *)blk.mask.data());
+						   m_acct->id,
+						   blk.data.size(),
+						   (const u8 *)blk.data.data(),
+						   (const u8 *)blk.mask.data());
 		}
 		break;
 		case SIGNETDEV_CMD_WRITE_ID:
@@ -153,7 +149,8 @@ OpenGeneric::~OpenGeneric()
 void OpenGeneric::setGenericValues()
 {
 	m_genericNameEdit->setText(m_generic->name);
-	for (auto genericField : m_generic->fields) {
+	for (int i = 0; i < m_generic->fields.fieldCount(); i++) {
+		genericField genericField = m_generic->fields.getField(i);
 		bool matched = false;
 		for (auto typeField : m_typeFields) {
 			if (typeField->name() == genericField.name) {
@@ -199,8 +196,8 @@ void OpenGeneric::closePressed()
 void OpenGeneric::savePressed()
 {
 	m_buttonWaitDialog = new ButtonWaitDialog( "Open " + m_typeDesc->name,
-	        QString("save changes to " + m_typeDesc->name.toLower() + " \"") + m_genericNameEdit->text() + QString("\""),
-	        this);
+		QString("save changes to " + m_typeDesc->name.toLower() + " \"") + m_genericNameEdit->text() + QString("\""),
+		this);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(saveGenericFinished(int)));
 	m_buttonWaitDialog->show();
 

@@ -4,6 +4,7 @@
 #include <QString>
 #include <QIcon>
 #include "esdb.h"
+#include "genericfields.h"
 
 struct block;
 
@@ -68,15 +69,40 @@ struct account_2 : public esdbEntry_1 {
 	~account_2() {}
 };
 
-struct account : public esdbEntry {
+struct account_3 : public esdbEntry {
 	QString acctName;
 	QString userName;
 	QString password;
 	QString url;
 	QString email;
 	void fromBlock(block *blk);
+	account_3(int id_) : esdbEntry(id_, ESDB_TYPE_ACCOUNT, 3, id_, 1)
+	{
+	}
+
+	void upgrade(account_2 &prev)
+	{
+		acctName = prev.acct_name;
+		userName = prev.user_name;
+		password = prev.password;
+		email = prev.email;
+		url = prev.url;
+		uid = id;
+	}
+
+	~account_3() {}
+};
+
+struct account : public esdbEntry {
+	QString acctName;
+	QString userName;
+	QString password;
+	QString url;
+	QString email;
+	genericFields fields;
+	void fromBlock(block *blk);
 	void toBlock(block *blk) const;
-	account(int id_) : esdbEntry(id_, ESDB_TYPE_ACCOUNT, 3, id_, 1)
+	account(int id_) : esdbEntry(id_, ESDB_TYPE_ACCOUNT, 4, id_, 1)
 	{
 	}
 
@@ -84,10 +110,10 @@ struct account : public esdbEntry {
 	QString getUrl() const;
 	int matchQuality(const QString &search) const;
 
-	void upgrade(account_2 &prev)
+	void upgrade(account_3 &prev)
 	{
-		acctName = prev.acct_name;
-		userName = prev.user_name;
+		acctName = prev.acctName;
+		userName = prev.userName;
 		password = prev.password;
 		email = prev.email;
 		url = prev.url;

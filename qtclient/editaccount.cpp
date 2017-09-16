@@ -28,7 +28,7 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 	setWindowModality(Qt::WindowModal);
 	SignetApplication *app = SignetApplication::get();
 	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
-	        this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
+		this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 
 	this->setWindowTitle(acct->acctName);
 	m_accountNameEdit = new QLineEdit();
@@ -47,15 +47,15 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 	m_urlField = new DatabaseField("URL", 140, m_browseUrlButton);
 
 	connect(m_accountNameEdit, SIGNAL(textEdited(QString)),
-	        this, SLOT(textEdited(QString)));
+		this, SLOT(textEdited(QString)));
 	connect(m_passwordEdit, SIGNAL(textEdited(QString)),
-	        this, SLOT(textEdited(QString)));
+		this, SLOT(textEdited(QString)));
 	connect(m_usernameField, SIGNAL(textEdited(QString)),
-	        this, SLOT(textEdited(QString)));
+		this, SLOT(textEdited(QString)));
 	connect(m_emailField, SIGNAL(textEdited(QString)),
-	        this, SLOT(textEdited(QString)));
+		this, SLOT(textEdited(QString)));
 	connect(m_urlField, SIGNAL(textEdited(QString)),
-	        this, SLOT(textEdited(QString)));
+		this, SLOT(textEdited(QString)));
 
 
 	setAccountValues();
@@ -116,10 +116,10 @@ void EditAccount::signetdevCmdResp(signetdevCmdRespInfo info)
 			block blk;
 			acct.toBlock(&blk);
 			::signetdev_write_id_async(NULL, &m_signetdevCmdToken,
-			                           m_acct->id,
-			                           blk.data.size(),
-			                           (const u8 *)blk.data.data(),
-			                           (const u8 *)blk.mask.data());
+						   m_acct->id,
+						   blk.data.size(),
+						   (const u8 *)blk.data.data(),
+						   (const u8 *)blk.mask.data());
 		}
 		break;
 		case SIGNETDEV_CMD_WRITE_ID:
@@ -195,9 +195,9 @@ void EditAccount::closePressed()
 
 void EditAccount::savePressed()
 {
-	m_buttonDialog = new ButtonWaitDialog( "Open account",
-	                                       QString("save changes to account \"") + m_accountNameEdit->text() + QString("\""),
-	                                       this);
+	m_buttonDialog = new ButtonWaitDialog( "Save account",
+					       QString("save changes to account \"") + m_accountNameEdit->text() + QString("\""),
+					       this);
 	connect(m_buttonDialog, SIGNAL(finished(int)), this, SLOT(editAccountFinished(int)));
 	m_buttonDialog->show();
 

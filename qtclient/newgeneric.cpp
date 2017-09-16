@@ -26,7 +26,7 @@ NewGeneric::NewGeneric(int id, genericTypeDesc *typeDesc, const QString &name, Q
 	setWindowModality(Qt::WindowModal);
 	SignetApplication *app = SignetApplication::get();
 	connect(app, SIGNAL(signetdev_cmd_resp(signetdevCmdRespInfo)),
-	        this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
+		this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 
 	QBoxLayout *nameLayout = new QBoxLayout(QBoxLayout::LeftToRight);
 	m_nameField = new QLineEdit(name);
@@ -88,20 +88,20 @@ void NewGeneric::signetdevCmdResp(signetdevCmdRespInfo info)
 				genericField field;
 				field.name = dbField->name();
 				field.value = dbField->text();
-				g->fields.push_back(field);
+				g->fields.addField(field);
 			}
 			for (auto dbField : m_extraFields) {
 				genericField field;
 				field.name = dbField->name();
 				field.value = dbField->text();
-				g->fields.push_back(field);
+				g->fields.addField(field);
 			}
 			g->toBlock(&blk);;
 			::signetdev_write_id_async(NULL, &m_signetdevCmdToken,
-			                           g->id,
-			                           blk.data.size(),
-			                           (const u8 *)blk.data.data(),
-			                           (const u8 *)blk.mask.data());
+						   g->id,
+						   blk.data.size(),
+						   (const u8 *)blk.data.data(),
+						   (const u8 *)blk.mask.data());
 		}
 		break;
 		case SIGNETDEV_CMD_WRITE_ID:

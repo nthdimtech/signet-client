@@ -65,7 +65,8 @@ SOURCES += main.cpp\
     generictypedesc.cpp \
     genericactionbar.cpp \
     newgeneric.cpp \
-    opengeneric.cpp
+    opengeneric.cpp \
+    genericfields.cpp
 
 win32 {
 SOURCES += ../device_interface/rawhid/hid_WINDOWS.c
@@ -133,7 +134,8 @@ HEADERS  += mainwindow.h \
     generictypedesc.h \
     genericactionbar.h \
     newgeneric.h \
-    opengeneric.h
+    opengeneric.h \
+    genericfields.h
 
 win32 {
 HEADERS += ../device_interface/rawhid/hid.h

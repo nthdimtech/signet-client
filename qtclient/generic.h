@@ -4,18 +4,14 @@
 #include <QString>
 #include <QList>
 #include "esdb.h"
+#include "genericfields.h"
 
 struct block;
-
-struct genericField {
-	QString name;
-	QString value;
-};
 
 struct generic : public esdbEntry {
 	QString typeName;
 	QString name;
-	QList<genericField> fields;
+	genericFields fields;
 
 	void fromBlock(block *blk);
 	void toBlock(block *blk);
