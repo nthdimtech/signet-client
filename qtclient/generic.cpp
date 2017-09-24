@@ -2,6 +2,14 @@
 
 #include "esdb.h"
 
+void generic_1::fromBlock(block *blk)
+{
+	esdbEntry::fromBlock(blk);
+	blk->readString(this->typeName);
+	blk->readString(this->name);
+	fields.fromBlock(blk);
+}
+
 void generic::fromBlock(block *blk)
 {
 	esdbEntry::fromBlock(blk);

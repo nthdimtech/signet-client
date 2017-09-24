@@ -8,7 +8,35 @@ struct block;
 
 struct genericField {
 	QString name;
+	QString type;
 	QString value;
+};
+
+class genericFields;
+
+class genericFields_1
+{
+	QList<genericField> m_fields;
+	friend class genericFields;
+public:
+	genericFields_1();
+	void fromBlock(block *blk);
+	void toBlock(block *blk) const;
+	int fieldCount() const {
+		return m_fields.count();
+	}
+	genericField getField(int i) const {
+		return m_fields.at(i);
+	}
+	void replaceField(int i, const genericField &f) {
+		m_fields.replace(i, f);
+	}
+	void removeField(int i) {
+		m_fields.removeAt(i);
+	}
+	void addField(const genericField &f) {
+		m_fields.push_back(f);
+	}
 };
 
 class genericFields
@@ -33,6 +61,8 @@ public:
 	void addField(const genericField &f) {
 		m_fields.push_back(f);
 	}
+
+	void upgrade(const genericFields_1 &f);
 };
 
 #endif // GENERICFIELDS_H

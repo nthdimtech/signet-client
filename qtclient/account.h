@@ -93,6 +93,30 @@ struct account_3 : public esdbEntry {
 	~account_3() {}
 };
 
+struct account_4 : public esdbEntry {
+	QString acctName;
+	QString userName;
+	QString password;
+	QString url;
+	QString email;
+	genericFields_1 fields;
+	void fromBlock(block *blk);
+	account_4(int id_) : esdbEntry(id_, ESDB_TYPE_ACCOUNT, 4, id_, 1)
+	{
+	}
+	void upgrade(account_3 &prev)
+	{
+		acctName = prev.acctName;
+		userName = prev.userName;
+		password = prev.password;
+		email = prev.email;
+		url = prev.url;
+		uid = id;
+	}
+
+	~account_4() {}
+};
+
 struct account : public esdbEntry {
 	QString acctName;
 	QString userName;
@@ -102,7 +126,7 @@ struct account : public esdbEntry {
 	genericFields fields;
 	void fromBlock(block *blk);
 	void toBlock(block *blk) const;
-	account(int id_) : esdbEntry(id_, ESDB_TYPE_ACCOUNT, 4, id_, 1)
+	account(int id_) : esdbEntry(id_, ESDB_TYPE_ACCOUNT, 5, id_, 1)
 	{
 	}
 
@@ -110,7 +134,7 @@ struct account : public esdbEntry {
 	QString getUrl() const;
 	int matchQuality(const QString &search) const;
 
-	void upgrade(account_3 &prev)
+	void upgrade(account_4 &prev)
 	{
 		acctName = prev.acctName;
 		userName = prev.userName;
@@ -118,6 +142,7 @@ struct account : public esdbEntry {
 		email = prev.email;
 		url = prev.url;
 		uid = id;
+		fields.upgrade(prev.fields);
 	}
 
 	~account() {}

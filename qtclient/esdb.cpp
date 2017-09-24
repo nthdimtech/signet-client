@@ -124,7 +124,6 @@ esdbEntry::esdbEntry(int id_) :
 
 }
 
-
 void esdbEntry::fromBlock(block *blk)
 {
 	blk->beginRead();

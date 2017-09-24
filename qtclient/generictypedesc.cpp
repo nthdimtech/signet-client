@@ -9,9 +9,11 @@ void genericTypeDesc::fromBlock(block *blk)
 	u8 numFields;
 	numFields = blk->readU8();
 	for (int i = 0; i < numFields; i++) {
+		fieldSpec field;
 		QString name;
-		blk->readString(name);
-		fields.push_back(name);
+		blk->readString(field.name);
+		blk->readString(field.type);
+		fields.push_back(field);
 	}
 }
 
@@ -21,6 +23,7 @@ void genericTypeDesc::toBlock(block *blk)
 	blk->writeString(this->name, false);
 	blk->writeU8(fields.count());
 	for (auto fld : fields) {
-		blk->writeString(fld, true);
+		blk->writeString(fld.name, false);
+		blk->writeString(fld.type, false);
 	}
 }

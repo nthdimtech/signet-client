@@ -15,6 +15,7 @@ struct account;
 struct block;
 
 struct signetdevCmdRespInfo;
+class GenericFieldsEditor;
 
 class EditAccount : public QDialog
 {
@@ -31,6 +32,8 @@ class EditAccount : public QDialog
 	ButtonWaitDialog *m_buttonDialog;
 	void setAccountValues();
 	int m_signetdevCmdToken;
+	GenericFieldsEditor *m_genericFieldsEditor;
+	bool m_settingFields;
 public:
 	EditAccount(account *acct, QWidget *parent = 0);
 	virtual ~EditAccount();
@@ -41,7 +44,7 @@ public slots:
 	void signetdevCmdResp(signetdevCmdRespInfo info);
 	void editAccountFinished(int);
 	void browseUrl();
-	void textEdited(QString);
+	void textEdited();
 	void closePressed();
 	void savePressed();
 	void undoChangesUi();

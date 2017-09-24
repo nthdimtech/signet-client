@@ -39,6 +39,17 @@ void account_3::fromBlock(block *blk)
 	blk->readString(this->email);
 }
 
+void account_4::fromBlock(block *blk)
+{
+	esdbEntry::fromBlock(blk);
+	blk->readString(this->acctName);
+	blk->readString(this->userName);
+	blk->readString(this->password);
+	blk->readString(this->url);
+	blk->readString(this->email);
+	fields.fromBlock(blk);
+}
+
 void account::fromBlock(block *blk)
 {
 	esdbEntry::fromBlock(blk);

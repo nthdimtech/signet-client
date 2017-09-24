@@ -16,6 +16,8 @@ extern "C" {
 #include "generictypedesc.h"
 
 #include "signetapplication.h"
+#include "genericfieldseditor.h"
+#include "typedesceditor.h"
 
 NewGeneric::NewGeneric(int id, genericTypeDesc *typeDesc, const QString &name, QWidget *parent) :
 	QDialog(parent),
@@ -25,7 +27,7 @@ NewGeneric::NewGeneric(int id, genericTypeDesc *typeDesc, const QString &name, Q
 {
 	setWindowModality(Qt::WindowModal);
 	SignetApplication *app = SignetApplication::get();
-	connect(app, SIGNAL(signetdev_cmd_resp(signetdevCmdRespInfo)),
+	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
 		this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 
 	QBoxLayout *nameLayout = new QBoxLayout(QBoxLayout::LeftToRight);
@@ -36,27 +38,29 @@ NewGeneric::NewGeneric(int id, genericTypeDesc *typeDesc, const QString &name, Q
 	QPushButton *createButton = new QPushButton("Create");
 	connect(createButton, SIGNAL(pressed()), this, SLOT(createButtonPressed()));
 	createButton->setDefault(true);
+	bool isUserType = !typeDesc->name.compare(QString("User type"), Qt::CaseInsensitive);
 
-	for (auto field : m_typeDesc->fields) {
-		DatabaseField *dbField = new DatabaseField(field, 250);
-		m_typeFields.push_back(dbField);
+	if (isUserType) {
+		m_genericFieldsEditor = new TypeDescEditor(m_genericFields,
+							m_typeDesc->fields);
+	} else {
+		m_genericFieldsEditor = new GenericFieldsEditor(m_genericFields,
+								m_typeDesc->fields);
 	}
 
 	setWindowTitle("New " + m_typeDesc->name);
 	QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
 	layout->setAlignment(Qt::AlignTop);
 	layout->addLayout(nameLayout);
-	for (auto dbField : m_typeFields) {
-		layout->addWidget(dbField);
-	}
+	layout->addWidget(m_genericFieldsEditor);
 	layout->addWidget(createButton);
 	setLayout(layout);
 }
 
 void NewGeneric::createButtonPressed()
 {
-	QString action = "add bookmark \"" + m_nameField->text() + "\"";
-	m_buttonWaitDialog = new ButtonWaitDialog("Add account", action, this);
+	QString action = "add " + this->m_typeDesc->name + " \"" + m_nameField->text() + "\"";
+	m_buttonWaitDialog = new ButtonWaitDialog("Add " + m_typeDesc->name, action, this);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(addEntryFinished(int)));
 	m_buttonWaitDialog->show();
 	::signetdev_open_id_async(NULL, &m_signetdevCmdToken, m_id);
@@ -80,22 +84,12 @@ void NewGeneric::signetdevCmdResp(signetdevCmdRespInfo info)
 		switch (info.cmd) {
 		case SIGNETDEV_CMD_OPEN_ID: {
 			block blk;
+			m_genericFieldsEditor->saveFields();
 			generic *g = new generic(m_id);
+			g->fields = m_genericFields;
 			g->name = m_nameField->text();
 			g->typeName = m_typeDesc->name;
 			m_entry = g;
-			for (auto dbField : m_typeFields) {
-				genericField field;
-				field.name = dbField->name();
-				field.value = dbField->text();
-				g->fields.addField(field);
-			}
-			for (auto dbField : m_extraFields) {
-				genericField field;
-				field.name = dbField->name();
-				field.value = dbField->text();
-				g->fields.addField(field);
-			}
 			g->toBlock(&blk);;
 			::signetdev_write_id_async(NULL, &m_signetdevCmdToken,
 						   g->id,

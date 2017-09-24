@@ -14,6 +14,7 @@
 #include "account.h"
 #include "buttonwaitdialog.h"
 #include "signetapplication.h"
+#include "genericfieldseditor.h"
 
 extern "C" {
 #include "signetdev.h"
@@ -23,7 +24,10 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 	QDialog(parent),
 	m_acct(acct),
 	m_buttonDialog(NULL),
-	m_signetdevCmdToken(-1)
+	m_signetdevCmdToken(-1),
+	m_saveButton(NULL),
+	m_undoChangesButton(NULL),
+	m_settingFields(false)
 {
 	setWindowModality(Qt::WindowModal);
 	SignetApplication *app = SignetApplication::get();
@@ -32,6 +36,9 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 
 	this->setWindowTitle(acct->acctName);
 	m_accountNameEdit = new QLineEdit();
+
+	m_genericFieldsEditor = new GenericFieldsEditor(m_acct->fields,
+					QList<fieldSpec>());
 
 	QBoxLayout *account_name_layout = new QBoxLayout(QBoxLayout::LeftToRight);
 	account_name_layout->addWidget(new QLabel("Account name"));
@@ -47,18 +54,22 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 	m_urlField = new DatabaseField("URL", 140, m_browseUrlButton);
 
 	connect(m_accountNameEdit, SIGNAL(textEdited(QString)),
-		this, SLOT(textEdited(QString)));
+		this, SLOT(textEdited()));
 	connect(m_passwordEdit, SIGNAL(textEdited(QString)),
-		this, SLOT(textEdited(QString)));
+		this, SLOT(textEdited()));
 	connect(m_usernameField, SIGNAL(textEdited(QString)),
-		this, SLOT(textEdited(QString)));
+		this, SLOT(textEdited()));
 	connect(m_emailField, SIGNAL(textEdited(QString)),
-		this, SLOT(textEdited(QString)));
+		this, SLOT(textEdited()));
 	connect(m_urlField, SIGNAL(textEdited(QString)),
-		this, SLOT(textEdited(QString)));
+		this, SLOT(textEdited()));
+	connect(m_genericFieldsEditor, SIGNAL(edited()),
+		this, SLOT(textEdited()));
 
-
+	m_settingFields = true;
 	setAccountValues();
+	m_genericFieldsEditor->loadFields();
+	m_settingFields = false;
 
 	m_undoChangesButton = new QPushButton("Undo");
 
@@ -83,6 +94,7 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 	main_layout->addWidget(m_emailField);
 	main_layout->addWidget(m_passwordEdit);
 	main_layout->addWidget(m_urlField);
+	main_layout->addWidget(m_genericFieldsEditor);
 	main_layout->addLayout(buttons);
 	setLayout(main_layout);
 
@@ -113,6 +125,8 @@ void EditAccount::signetdevCmdResp(signetdevCmdRespInfo info)
 			acct.password = m_passwordEdit->password();
 			acct.url = m_urlField->text();
 			acct.email = m_emailField->text();
+			m_genericFieldsEditor->saveFields();
+			acct.fields = m_acct->fields;
 			block blk;
 			acct.toBlock(&blk);
 			::signetdev_write_id_async(NULL, &m_signetdevCmdToken,
@@ -176,16 +190,20 @@ void EditAccount::setAccountValues()
 
 void EditAccount::undoChangesUi()
 {
+	m_settingFields = true;
 	setAccountValues();
+	m_genericFieldsEditor->loadFields();
+	m_settingFields = false;
 	m_saveButton->setDisabled(true);
 	m_undoChangesButton->setDisabled(true);
 }
 
-void EditAccount::textEdited(QString s)
+void EditAccount::textEdited()
 {
-	Q_UNUSED(s);
-	m_saveButton->setDisabled(false);
-	m_undoChangesButton->setDisabled(false);
+	if (!m_settingFields) {
+		m_saveButton->setDisabled(false);
+		m_undoChangesButton->setDisabled(false);
+	}
 }
 
 void EditAccount::closePressed()

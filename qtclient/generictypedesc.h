@@ -3,9 +3,21 @@
 
 #include "esdb.h"
 
+struct fieldSpec {
+	QString name;
+	QString type;
+	fieldSpec(QString name_, QString type_) :
+		name(name_),
+		type(type_)
+	{
+
+	}
+	fieldSpec() {}
+};
+
 struct genericTypeDesc : public esdbEntry {
 	QString name;
-	QList<QString> fields;
+	QList<fieldSpec> fields;
 
 	void fromBlock(block *blk);
 	void toBlock(block *blk);

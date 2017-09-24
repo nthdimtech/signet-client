@@ -66,7 +66,15 @@ SOURCES += main.cpp\
     genericactionbar.cpp \
     newgeneric.cpp \
     opengeneric.cpp \
-    genericfields.cpp
+    genericfields.cpp \
+    genericfieldedit.cpp \
+    genericfieldeditfactory.cpp \
+    genericfieldseditor.cpp \
+    linefieldedit.cpp \
+    integerfieldedit.cpp \
+    textblockfieldedit.cpp \
+    typedescedit.cpp \
+    typedesceditor.cpp
 
 win32 {
 SOURCES += ../device_interface/rawhid/hid_WINDOWS.c
@@ -135,7 +143,15 @@ HEADERS  += mainwindow.h \
     genericactionbar.h \
     newgeneric.h \
     opengeneric.h \
-    genericfields.h
+    genericfields.h \
+    genericfieldedit.h \
+    genericfieldeditfactory.h \
+    genericfieldseditor.h \
+    linefieldedit.h \
+    integerfieldedit.h \
+    textblockfieldedit.h \
+    typedescedit.h \
+    typedesceditor.h
 
 win32 {
 HEADERS += ../device_interface/rawhid/hid.h

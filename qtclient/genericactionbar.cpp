@@ -137,9 +137,9 @@ void GenericActionBar::deleteEntryUI()
 	if (entry) {
 		m_parent->selectEntry(NULL);
 		int id = entry->id;
-		m_buttonWaitDialog = new ButtonWaitDialog("Delete bookmark",
-		        QString("delete bookmark \"") + entry->getTitle() + QString("\""),
-		        m_parent);
+		m_buttonWaitDialog = new ButtonWaitDialog("Delete " + m_typeDesc->name,
+			QString("delete " + m_typeDesc->name + " \"") + entry->getTitle() + QString("\""),
+			m_parent);
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(deleteEntryFinished(int)));
 		m_buttonWaitDialog->show();
 		m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_DELETE, NONE);
@@ -166,7 +166,7 @@ void GenericActionBar::getEntryDone(esdbEntry *entry, int intent)
 				m_buttonWaitDialog->done(QMessageBox::Ok);
 			}
 			OpenGeneric *og = new OpenGeneric(g, m_typeDesc, m_parent);
-			connect(og, SIGNAL(abort()), this, SLOT(abort_proxy()));
+			connect(og, SIGNAL(abort()), this, SIGNAL(abort()));
 			connect(og, SIGNAL(accountChanged(int)), m_parent, SLOT(entryChanged(int)));
 			connect(og, SIGNAL(finished(int)), og, SLOT(deleteLater()));
 			og->show();

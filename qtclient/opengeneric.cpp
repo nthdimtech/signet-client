@@ -14,6 +14,8 @@
 #include "signetapplication.h"
 #include "generic.h"
 #include "generictypedesc.h"
+#include "genericfieldseditor.h"
+#include "typedesceditor.h"
 
 extern "C" {
 #include "signetdev.h"
@@ -24,11 +26,13 @@ OpenGeneric::OpenGeneric(generic *generic, genericTypeDesc *typeDesc, QWidget *p
 	m_generic(generic),
 	m_typeDesc(typeDesc),
 	m_buttonWaitDialog(NULL),
-	m_signetdevCmdToken(-1)
+	m_fields(generic->fields),
+	m_signetdevCmdToken(-1),
+	m_settingFields(false)
 {
 	setWindowModality(Qt::WindowModal);
 	SignetApplication *app = SignetApplication::get();
-	connect(app, SIGNAL(signetdev_cmd_resp(signetdevCmdRespInfo)),
+	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
 		this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 
 	setWindowTitle(generic->name);
@@ -38,14 +42,21 @@ OpenGeneric::OpenGeneric(generic *generic, genericTypeDesc *typeDesc, QWidget *p
 	nameLayout->addWidget(new QLabel("Name"));
 	nameLayout->addWidget(m_genericNameEdit);
 
-	connect(m_genericNameEdit, SIGNAL(textEdited(QString)),
-		this, SLOT(textEdited(QString)));
-
-	for (auto typeField : typeDesc->fields) {
-		DatabaseField *field = new DatabaseField(typeField, 200);
-		m_typeFields.push_back(field);
+	connect(m_genericNameEdit, SIGNAL(textEdited(QString)), this, SLOT(edited()));
+	bool isUserType = !typeDesc->name.compare(QString("User type"), Qt::CaseInsensitive);
+	if (isUserType) {
+		m_genericFieldsEditor = new TypeDescEditor(m_fields,
+							m_typeDesc->fields);
+	} else {
+		m_genericFieldsEditor = new GenericFieldsEditor(m_fields,
+								m_typeDesc->fields);
 	}
-	setGenericValues();
+	connect(m_genericFieldsEditor, SIGNAL(edited()), this, SLOT(edited()));
+
+	m_settingFields = true;
+	m_genericNameEdit->setText(m_generic->name);
+	m_genericFieldsEditor->loadFields();
+	m_settingFields = false;
 
 	m_undoChangesButton = new QPushButton("Undo");
 
@@ -66,12 +77,7 @@ OpenGeneric::OpenGeneric(generic *generic, genericTypeDesc *typeDesc, QWidget *p
 	QBoxLayout *mainLayout = new QBoxLayout(QBoxLayout::TopToBottom);
 	mainLayout->setAlignment(Qt::AlignTop);
 	mainLayout->addLayout(nameLayout);
-	for (auto dbField : m_typeFields) {
-		mainLayout->addWidget(dbField);
-	}
-	for (auto dbField : m_extraFields) {
-		mainLayout->addWidget(dbField);
-	}
+	mainLayout->addWidget(m_genericFieldsEditor);
 	mainLayout->addLayout(buttons);
 	setLayout(mainLayout);
 
@@ -94,36 +100,31 @@ void OpenGeneric::signetdevCmdResp(signetdevCmdRespInfo info)
 
 	switch (code) {
 	case OKAY: {
-#if 0
 		switch (info.cmd) {
 		case SIGNETDEV_CMD_OPEN_ID: {
-			account acct(m_acct->id);
-			acct.acct_name = m_account_name_edit->text();
-			acct.user_name = m_username_field->m_field_edit->text();
-			acct.password = m_password_edit->password();
-			acct.url = m_url_field->m_field_edit->text();
-			acct.email = m_email_field->m_field_edit->text();
+			//TODO: save fields
+			m_genericFieldsEditor->saveFields();
 			block blk;
-			acct.to_block(&blk);
-			::signetdev_write_id_async(NULL, &m_signetdev_cmd_token,
-						   m_acct->id,
+			generic g(m_generic->id);
+			g.name = m_genericNameEdit->text();
+			g.typeName = m_typeDesc->name;
+			g.fields = m_fields;
+			g.toBlock(&blk);
+			::signetdev_write_id_async(NULL, &m_signetdevCmdToken,
+						   m_generic->id,
 						   blk.data.size(),
 						   (const u8 *)blk.data.data(),
 						   (const u8 *)blk.mask.data());
 		}
 		break;
 		case SIGNETDEV_CMD_WRITE_ID:
-			m_acct->acct_name = m_account_name_edit->text();
-			m_acct->user_name = m_username_field->m_field_edit->text();
-			m_acct->password = m_password_edit->password();
-			m_acct->url = m_url_field->m_field_edit->text();
-			m_acct->email = m_email_field->m_field_edit->text();
-			emit accountChanged(m_acct->id);
-			m_save_button->setDisabled(true);
-			m_undo_changes_button->setDisabled(true);
+			m_generic->name = m_genericNameEdit->text();
+			m_generic->fields = m_fields;
+			emit accountChanged(m_generic->id);
+			m_saveButton->setDisabled(true);
+			m_undoChangesButton->setDisabled(true);
 			break;
 		}
-#endif
 	}
 	break;
 	case BUTTON_PRESS_TIMEOUT:
@@ -146,46 +147,22 @@ OpenGeneric::~OpenGeneric()
 {
 }
 
-void OpenGeneric::setGenericValues()
-{
-	m_genericNameEdit->setText(m_generic->name);
-	for (int i = 0; i < m_generic->fields.fieldCount(); i++) {
-		genericField genericField = m_generic->fields.getField(i);
-		bool matched = false;
-		for (auto typeField : m_typeFields) {
-			if (typeField->name() == genericField.name) {
-				typeField->setText(genericField.value);
-				matched = true;
-				break;
-			}
-		}
-		for (auto typeField : m_extraFields) {
-			if (typeField->name() == genericField.name) {
-				typeField->setText(genericField.value);
-				matched = true;
-				break;
-			}
-		}
-		if (!matched) {
-			DatabaseField *typeField = new DatabaseField(genericField.name, 140);
-			typeField->setText(genericField.value);
-			m_extraFields.push_back(typeField);
-		}
-	}
-}
-
 void OpenGeneric::undoChangesUI()
 {
-	setGenericValues();
+	m_settingFields = true;
+	m_genericNameEdit->setText(m_generic->name);
+	m_genericFieldsEditor->loadFields();
+	m_settingFields = false;
 	m_saveButton->setDisabled(true);
 	m_undoChangesButton->setDisabled(true);
 }
 
-void OpenGeneric::textEdited(QString s)
+void OpenGeneric::edited()
 {
-	Q_UNUSED(s);
-	m_saveButton->setDisabled(false);
-	m_undoChangesButton->setDisabled(false);
+	if (!m_settingFields) {
+		m_saveButton->setDisabled(false);
+		m_undoChangesButton->setDisabled(false);
+	}
 }
 
 void OpenGeneric::closePressed()

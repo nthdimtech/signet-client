@@ -14,8 +14,11 @@ class PasswordEdit;
 struct generic;
 struct block;
 struct genericTypeDesc;
+class GenericFieldsEditor;
 
 struct signetdevCmdRespInfo;
+
+#include "genericfields.h"
 
 class OpenGeneric : public QDialog
 {
@@ -25,13 +28,12 @@ class OpenGeneric : public QDialog
 	QPushButton *m_undoChangesButton;
 	generic *m_generic;
 	genericTypeDesc *m_typeDesc;
-
-	QList<DatabaseField *> m_typeFields;
-	QList<DatabaseField *> m_extraFields;
+	GenericFieldsEditor *m_genericFieldsEditor;
 
 	ButtonWaitDialog *m_buttonWaitDialog;
-	void setGenericValues();
+	genericFields m_fields;
 	int m_signetdevCmdToken;
+	bool m_settingFields;
 public:
 	OpenGeneric(generic *generic, genericTypeDesc *typeDesc, QWidget *parent = 0);
 	virtual ~OpenGeneric();
@@ -41,7 +43,7 @@ signals:
 public slots:
 	void signetdevCmdResp(signetdevCmdRespInfo info);
 	void saveGenericFinished(int);
-	void textEdited(QString);
+	void edited();
 	void closePressed();
 	void savePressed();
 	void undoChangesUI();

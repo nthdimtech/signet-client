@@ -24,6 +24,7 @@ EsdbActionBar *esdbGenericModule::newActionBar()
 esdbEntry *esdbGenericModule::decodeEntry(int id, int revision, esdbEntry *prev, struct block *blk) const
 {
 	generic *g = NULL;
+	generic_1 rev_1(id);
 
 	if (!prev) {
 		g = new generic(id);
@@ -33,12 +34,17 @@ esdbEntry *esdbGenericModule::decodeEntry(int id, int revision, esdbEntry *prev,
 
 	switch(revision) {
 	case 0:
+		rev_1.fromBlock(blk);
+		break;
+	case 1:
 		g->fromBlock(blk);
 		break;
 	}
 
 	switch(revision) {
 	case 0:
+		g->upgrade(rev_1);
+	case 1:
 		break;
 	default:
 		delete g;

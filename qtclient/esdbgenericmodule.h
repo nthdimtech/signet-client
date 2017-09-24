@@ -16,10 +16,10 @@ class esdbGenericModule : public esdbTypeModule
 private:
 	LoggedInWidget *m_parent;
 	genericTypeDesc *m_typeDesc;
-	EsdbActionBar *newActionBar();
 	esdbEntry *decodeEntry(int id, int revision, esdbEntry *prev, struct block *blk) const;
 	bool m_userDefined;
 public:
+	EsdbActionBar *newActionBar();
 	esdbGenericModule(genericTypeDesc *typeDesc, LoggedInWidget *parent, bool userDefined = false, bool plural = true);
 };
 
