@@ -5,10 +5,23 @@
 #include <QByteArray>
 #include <QString>
 #include <QIcon>
+#include <QVector>
 
 extern "C" {
 #include "common.h"
 }
+
+struct genericField {
+	QString name;
+	QString type;
+	QString value;
+	genericField(QString _name, QString _type, QString _value) :
+		name(_name),
+		type(_type),
+		value(_value) {
+	}
+	genericField() {}
+};
 
 struct block {
 	int index;
@@ -86,6 +99,10 @@ struct esdbEntry {
 	{
 		icon = QIcon();
 		iconSet = false;
+	}
+
+	virtual void getFields(QVector<genericField> &fields) const {
+		Q_UNUSED(fields);
 	}
 
 	virtual int matchQuality(const QString &search) const;

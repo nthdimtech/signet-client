@@ -82,6 +82,17 @@ QString account::getUrl() const
 	return url;
 }
 
+void account::getFields(QVector<genericField> &fields_) const
+{
+	fields_.push_back(genericField("name", QString(), acctName));
+	fields_.push_back(genericField("username", QString(), userName));
+	fields_.push_back(genericField("password", QString(), password));
+	fields_.push_back(genericField("url", QString(), password));
+	fields_.push_back(genericField("email", QString(), email));
+	fields.getFields(fields_);
+}
+
+
 int account::matchQuality(const QString &search) const
 {
 	int quality = esdbEntry::matchQuality(search);

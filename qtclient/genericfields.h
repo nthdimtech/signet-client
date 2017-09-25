@@ -4,13 +4,7 @@
 #include <QString>
 #include <QList>
 
-struct block;
-
-struct genericField {
-	QString name;
-	QString type;
-	QString value;
-};
+#include "esdb.h"
 
 class genericFields;
 
@@ -61,6 +55,8 @@ public:
 	void addField(const genericField &f) {
 		m_fields.push_back(f);
 	}
+
+	void getFields(QVector<genericField> &fields) const;
 
 	void upgrade(const genericFields_1 &f);
 };

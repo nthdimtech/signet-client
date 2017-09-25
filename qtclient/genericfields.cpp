@@ -63,3 +63,10 @@ void genericFields::upgrade(const genericFields_1 &f)
 {
 	m_fields = f.m_fields;
 }
+
+void genericFields::getFields(QVector<genericField> &fields) const
+{
+	for (auto x : m_fields) {
+		fields.push_back(x);
+	}
+}

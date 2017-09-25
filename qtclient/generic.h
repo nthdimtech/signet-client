@@ -50,6 +50,8 @@ struct generic : public esdbEntry {
 		fields.upgrade(g.fields);
 	}
 
+	void getFields(QVector<genericField> &fields_) const;
+
 	~generic() {}
 };
 

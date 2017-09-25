@@ -145,6 +145,9 @@ struct account : public esdbEntry {
 		fields.upgrade(prev.fields);
 	}
 
+	void getFields(QVector<genericField> &fields) const;
+
+
 	~account() {}
 };
 
