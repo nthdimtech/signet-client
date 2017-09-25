@@ -18,6 +18,8 @@ Tasks:
 	Add default first letter based icons for sites without an icon association
 	Pick good semi-perminant VID/PID for Signet
 	Group accounts/entries with the same icon
+	Warn when closing an edit dialog without saving
+	Don't let user create an entry with an empty name
 
 Tech debt:
 	Listbox model management code is messy
