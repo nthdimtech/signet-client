@@ -449,8 +449,9 @@ void signetdev_priv_handle_device_event(int event_type, const u8 *resp, int resp
 	}
 }
 
-void signetdev_priv_handle_command_resp(void *user, int token, int dev_cmd, int api_cmd, int resp_code, const u8 *resp, int resp_len)
+void signetdev_priv_handle_command_resp(void *user, int token, int dev_cmd, int api_cmd, int resp_code, const u8 *resp, int resp_len, int expected_messages_remaining)
 {
+	(void)(expected_messages_remaining);
 	switch (dev_cmd)
 	{
 	case READ_BLOCK: {

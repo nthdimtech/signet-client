@@ -72,6 +72,8 @@ struct signetdev_connection {
 	int resp_buffer[CMD_PACKET_BUF_SIZE];
 	int resp_code;
 	int expected_resp_size;
+	int expected_total_packets;
+	int expected_packets_remaining;
 };
 
 struct signetdev_connection g_connection;
@@ -121,7 +123,7 @@ static void command_response(int rc)
 	write(g_command_resp_pipe[1], &resp, 1);
 }
 
-static void finalize_message(struct send_message_req *msg ,int rc)
+static void message_send_notification(struct send_message_req *msg ,int rc, int expected_messages_remaining)
 {
 	if (!msg->interrupt) {
 		int resp_code = OKAY;
@@ -138,8 +140,14 @@ static void finalize_message(struct send_message_req *msg ,int rc)
 						   msg->api_cmd,
 						   resp_code,
 						   msg->resp,
-						   resp_len);
+						   resp_len,
+						   expected_messages_remaining);
 	}
+}
+
+static void finalize_message(struct send_message_req *msg ,int rc)
+{
+	message_send_notification(msg, rc, 0);
 	free(msg->payload);
 	free(msg);
 }
@@ -236,16 +244,18 @@ static int attempt_raw_hid_read()
 			conn->rx_packet_buf_pos = 0;
 			int seq = conn->rx_packet_buf[0] & 0x7f;
 			int last = conn->rx_packet_buf[0] >> 7;
+			const u8 *rx_packet_header = conn->rx_packet_buf + RAW_HID_HEADER_SIZE;
 			if (seq == 0x7f) {
-				int event_type = conn->rx_packet_buf[RAW_HID_HEADER_SIZE + 1];
-				int resp_len =  conn->rx_packet_buf[RAW_HID_HEADER_SIZE + 2];
-				void *data = (void *)(conn->rx_packet_buf + RAW_HID_HEADER_SIZE + 3);
+				int event_type = rx_packet_header[0];
+				int resp_len =  rx_packet_header[1];
+				void *data = (void *)(rx_packet_header + 2);
 				signetdev_priv_handle_device_event(event_type, data, resp_len);
 			} else if (conn->current_read_message) {
 				if (seq == 0) {
-					conn->expected_resp_size = conn->rx_packet_buf[RAW_HID_HEADER_SIZE] + (conn->rx_packet_buf[RAW_HID_HEADER_SIZE + 1] << 8) - CMD_PACKET_HEADER_SIZE;
+					conn->expected_resp_size = rx_packet_header[0] + (rx_packet_header[1] << 8) - CMD_PACKET_HEADER_SIZE;
+					conn->expected_packets_remaining = rx_packet_header[3] + (rx_packet_header[4] << 8);
 					if (conn->current_read_message->resp_code) {
-						*conn->current_read_message->resp_code = conn->rx_packet_buf[RAW_HID_HEADER_SIZE + 2];
+						*conn->current_read_message->resp_code = rx_packet_header[2];
 					}
 					memcpy(conn->current_read_message->resp,
 						conn->rx_packet_buf + RAW_HID_HEADER_SIZE + CMD_PACKET_HEADER_SIZE,
@@ -256,11 +266,15 @@ static int attempt_raw_hid_read()
 					if ((offset + to_read) > conn->expected_resp_size) {
 						to_read = (conn->expected_resp_size - offset);
 					}
-					memcpy(conn->current_read_message->resp + offset, conn->rx_packet_buf + RAW_HID_HEADER_SIZE, to_read);
+					memcpy(conn->current_read_message->resp + offset, rx_packet_header, to_read);
 				}
 				if (last) {
-					finalize_message(conn->current_read_message, conn->expected_resp_size);
-					conn->current_read_message = NULL;
+					if (conn->expected_packets_remaining == 0) {
+						finalize_message(conn->current_read_message, conn->expected_resp_size);
+						conn->current_read_message = NULL;
+					} else {
+						message_send_notification(conn->current_read_message, conn->expected_resp_size, conn->expected_packets_remaining);
+					}
 					return 0;
 				}
 			}

@@ -4,7 +4,7 @@ void signetdev_priv_platform_init();
 void signetdev_priv_platform_deinit();
 int signetdev_priv_send_message_async(void *user, int token,  int dev_cmd, int api_cmd, const u8 *payload, unsigned int payload_size, int get_resp);
 void signetdev_priv_handle_error();
-void signetdev_priv_handle_command_resp(void *user, int token, int dev_cmd, int api_cmd, int resp_code, const u8 *resp, int resp_len);
+void signetdev_priv_handle_command_resp(void *user, int token, int dev_cmd, int api_cmd, int resp_code, const u8 *resp, int resp_len, int expected_messages_remaining);
 int signetdev_priv_cancel_message_async(int dev_cmd, const u8 *payload, unsigned int payload_size);
 void signetdev_priv_handle_device_event(int event_type, const u8 *resp, int resp_len);
 

@@ -59,6 +59,7 @@ static int g_resp_len;
 static int g_resp_len_max;
 static int g_get_resp;
 static int g_token;
+static int g_expected_message_count;
 static void *g_user;
 
 void signetdev_priv_handle_error()
@@ -204,6 +205,8 @@ static DWORD WINAPI message_thread(LPVOID lpParameter)
 				g_resp_len = g_rx_packet[1 + RAW_HID_HEADER_SIZE] + (((int)g_rx_packet[1 +RAW_HID_HEADER_SIZE + 1]) << 8);
 				g_resp_len -= CMD_PACKET_HEADER_SIZE;
 				g_resp_code = g_rx_packet[1 + RAW_HID_HEADER_SIZE + 2];
+				g_expected_message_count = g_rx_packet[1 + RAW_HID_HEADER_SIZE + 3] +
+						 (g_rx_packet[1 + RAW_HID_HEADER_SIZE + 4] << 8);
 
 				src_offset = 1 + RAW_HID_HEADER_SIZE + CMD_PACKET_HEADER_SIZE;
 				dst_offset = 0;
@@ -229,7 +232,7 @@ static DWORD WINAPI message_thread(LPVOID lpParameter)
 			if (last) {
 				signetdev_priv_handle_command_resp(g_user, g_token,
 					g_send_message_req.dev_cmd, g_send_message_req.api_cmd,
-					g_resp_code, g_resp, g_resp_len);
+					g_resp_code, g_resp, g_resp_len, g_expected_message_count);
 				if (g_cancel_requested) {
 					g_cancel_requested = 0;
 					process_cancel_message_req(&g_cancel_message_req);
