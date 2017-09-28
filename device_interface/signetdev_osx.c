@@ -22,18 +22,8 @@ static struct send_message_req *g_tail_cancel_message = NULL;
 static struct send_message_req *g_head_cancel_message = NULL;
 
 static struct send_message_req *g_current_write_message = NULL;
-static struct send_message_req *g_current_read_message = NULL;
 
-struct signetdev_connection {
-	struct send_message_req *tail_message;
-	struct send_message_req *head_message;
-
-	struct send_message_req *tail_cancel_message;
-	struct send_message_req *head_cancel_message;
-
-	struct send_message_req *current_write_message;
-	struct send_message_req *current_read_message;
-};
+static struct rx_message_state g_rx_message_state;
 
 struct signetdev_connection g_connection;
 
@@ -157,8 +147,8 @@ static void detach_callback(void *context, IOReturn r, void *hid_mgr, IOHIDDevic
 	if (dev == hid_dev && hid_dev != NULL) {
 	    hid_dev = NULL;
 	}
-	if (g_current_read_message) {
-		signetdev_priv_finalize_message(&g_current_read_message, SIGNET_ERROR_DISCONNECT);
+	if (g_rx_message_state.message) {
+		signetdev_priv_finalize_message(&g_rx_message_state.message, SIGNET_ERROR_DISCONNECT);
 	}
 	if (g_device_closed_cb) {
 	    g_device_closed_cb(g_device_closed_cb_param);
@@ -232,54 +222,14 @@ static void attach_callback(void *context, IOReturn r, void *hid_mgr, IOHIDDevic
 	    }
 	}
 }
-
+g_rx_message_state
 static int process_hid_input()
 {
-	static int s_recv_packet_count;
-	static int s_expected_messages_remaining;
-
 	if (hid_packet_first == NULL)
 		return 1;
 	struct hid_packet *cur = hid_packet_first;
 	struct hid_packet *next = hid_packet_first->next;
-	int seq = cur->data[0] & 0x7f;
-	int last = cur->data[0] >> 7;
-	if (seq == 0x7f) {
-		int event_type = cur->data[RAW_HID_HEADER_SIZE];
-		int resp_len =  cur->data[RAW_HID_HEADER_SIZE + 1];
-		void *data = (void *)(cur->data + RAW_HID_HEADER_SIZE + 2);
-		signetdev_priv_handle_device_event(event_type, data, resp_len);
-	} else if (g_current_read_message) {
-		if (seq == 0) {
-			s_recv_packet_count = cur->data[RAW_HID_HEADER_SIZE] + (cur->data[RAW_HID_HEADER_SIZE + 1] << 8) - CMD_PACKET_HEADER_SIZE;
-			s_expected_messages_remaining = cur->data[RAW_HID_HEADER_SIZE + 3] + (cur->data[RAW_HID_HEADER_SIZE + 4] << 8);
-			if (g_current_read_message->resp_code) {
-			    *g_current_read_message->resp_code = cur->data[RAW_HID_HEADER_SIZE + 2];
-			}
-			memcpy(g_current_read_message->resp,
-			    cur->data + RAW_HID_HEADER_SIZE + CMD_PACKET_HEADER_SIZE,
-			    RAW_HID_PAYLOAD_SIZE - CMD_PACKET_HEADER_SIZE);
-		} else {
-			int to_read = RAW_HID_PAYLOAD_SIZE;
-			int offset = RAW_HID_PAYLOAD_SIZE * seq - CMD_PACKET_HEADER_SIZE;
-			if ((offset + RAW_HID_PAYLOAD_SIZE) > s_recv_packet_count) {
-			    to_read = (s_recv_packet_count - offset);
-			}
-			memcpy(g_current_read_message->resp + offset,
-			    cur->data + RAW_HID_HEADER_SIZE,
-			    to_read);
-		}
-		if (last) {
-			if (s_expected_messages_remaining == 0) {
-				signetdev_priv_finalize_message(&g_current_read_message, s_recv_packet_count);
-			} else {
-				signetdev_priv_message_send_resp(g_current_read_message, s_recv_packet_count, s_expected_messages_remaining);
-			}
-		}
-	} else {
-		//TODO: respond to this. input packets with no command
-		return 0;
-	}
+	signetdev_priv_process_rx_packet(&g_rx_message_state, cur->data);
 	free(hid_packet_first);
 	hid_packet_first = next;
 	return 0;
@@ -342,10 +292,10 @@ void *transaction_thread(void *arg)
 				if (!g_head_cancel_message) {
 					g_tail_cancel_message = NULL;
 				}
-			} else if (!g_current_read_message) {
+			} else if (!g_rx_message_state.message) {
 				g_current_write_message = g_head_message;
 				if (g_head_message->resp || g_head_message->resp_code)
-					g_current_read_message = g_head_message;
+					g_rx_message_state.message = g_head_message;
 				g_head_message = g_head_message->next;
 				if (!g_head_message) {
 					g_tail_message = NULL;

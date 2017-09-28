@@ -123,3 +123,42 @@ void signetdev_priv_finalize_message(struct send_message_req **msg ,int rc)
 	signetdev_priv_message_send_resp(*msg, rc, 0);
 	signetdev_priv_free_message(msg);
 }
+
+
+void signetdev_priv_process_rx_packet(struct rx_message_state *state, u8 *rx_packet_buf)
+{
+	int seq = rx_packet_buf[0] & 0x7f;
+	int last = rx_packet_buf[0] >> 7;
+	const u8 *rx_packet_header = rx_packet_buf + RAW_HID_HEADER_SIZE;
+	if (seq == 0x7f) {
+		int event_type = rx_packet_header[0];
+		int resp_len =  rx_packet_header[1];
+		void *data = (void *)(rx_packet_header + 2);
+		signetdev_priv_handle_device_event(event_type, data, resp_len);
+	} else if (state->message) {
+		if (seq == 0) {
+			state->expected_resp_size = rx_packet_header[0] + (rx_packet_header[1] << 8) - CMD_PACKET_HEADER_SIZE;
+			state->expected_messages_remaining = rx_packet_header[3] + (rx_packet_header[4] << 8);
+			if (state->message->resp_code) {
+				*state->message->resp_code = rx_packet_header[2];
+			}
+			memcpy(state->message->resp,
+				rx_packet_buf + RAW_HID_HEADER_SIZE + CMD_PACKET_HEADER_SIZE,
+				RAW_HID_PAYLOAD_SIZE - CMD_PACKET_HEADER_SIZE);
+		} else {
+			int to_read = RAW_HID_PAYLOAD_SIZE;
+			int offset = (RAW_HID_PAYLOAD_SIZE * seq) - CMD_PACKET_HEADER_SIZE;
+			if ((offset + to_read) > state->expected_resp_size) {
+				to_read = (state->expected_resp_size - offset);
+			}
+			memcpy(state->message->resp + offset, rx_packet_header, to_read);
+		}
+		if (last) {
+			if (state->expected_messages_remaining == 0) {
+				signetdev_priv_finalize_message(&state->message, state->expected_resp_size);
+			} else {
+				signetdev_priv_message_send_resp(state->message, state->expected_resp_size, state->expected_messages_remaining);
+			}
+		}
+	}
+}

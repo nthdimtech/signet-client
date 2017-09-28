@@ -28,17 +28,13 @@ struct signetdev_connection {
 	struct send_message_req *tail_cancel_message;
 	struct send_message_req *head_cancel_message;
 	struct send_message_req *current_write_message;
-	struct send_message_req *current_read_message;
 
 	struct tx_message_state tx_state;
+	struct rx_message_state rx_state;
 
-	u8 rx_packet_buf[RAW_HID_PACKET_SIZE + 1];
-	int rx_packet_buf_pos;
-
-	int resp_buffer[CMD_PACKET_BUF_SIZE];
 	int resp_code;
 	int expected_resp_size;
-	int expected_packets_remaining;
+	int expected_messages_remaining;
 };
 
 struct signetdev_connection g_connection;
@@ -47,8 +43,8 @@ static struct send_message_req **pending_message()
 {
 	struct signetdev_connection *conn = &g_connection;
 	struct send_message_req **msg = NULL;
-	if (conn->current_read_message) {
-		msg = &conn->current_read_message;
+	if (conn->rx_state.message) {
+		msg = &conn->rx_state.message;
 	} else if (conn->current_write_message && !conn->current_write_message->interrupt) {
 		msg = &conn->current_write_message;
 	}
@@ -118,10 +114,9 @@ static int attempt_raw_hid_write()
 			signetdev_priv_finalize_message(&conn->current_write_message, conn->tx_state.msg_size);
 		} else {
 			//TODO: check that we aren't already reading a message
-			conn->current_read_message = conn->current_write_message;
+			conn->rx_state.message = conn->current_write_message;
+			conn->rx_state.expected_resp_size = 0;
 			conn->current_write_message = NULL;
-			conn->rx_packet_buf_pos = 0;
-			conn->expected_resp_size = 0;
 		}
 		return 0;
 	}
@@ -138,51 +133,14 @@ static int attempt_raw_hid_write()
 static int attempt_raw_hid_read()
 {
 	struct signetdev_connection *conn = &g_connection;
-	int rc = read(conn->fd, conn->rx_packet_buf + conn->rx_packet_buf_pos, RAW_HID_PACKET_SIZE - conn->rx_packet_buf_pos);
+	u8 rx_packet_buf[RAW_HID_PACKET_SIZE];
+	int rc = read(conn->fd, rx_packet_buf, RAW_HID_PACKET_SIZE);
 	if (rc == -1 && errno == EAGAIN) {
 		return 1;
-	} else if (rc == -1) {
+	} else if (rc != RAW_HID_PACKET_SIZE) {
 		handle_error();
 	} else {
-		conn->rx_packet_buf_pos += rc;
-		if (conn->rx_packet_buf_pos == RAW_HID_PACKET_SIZE) {
-			conn->rx_packet_buf_pos = 0;
-			int seq = conn->rx_packet_buf[0] & 0x7f;
-			int last = conn->rx_packet_buf[0] >> 7;
-			const u8 *rx_packet_header = conn->rx_packet_buf + RAW_HID_HEADER_SIZE;
-			if (seq == 0x7f) {
-				int event_type = rx_packet_header[0];
-				int resp_len =  rx_packet_header[1];
-				void *data = (void *)(rx_packet_header + 2);
-				signetdev_priv_handle_device_event(event_type, data, resp_len);
-			} else if (conn->current_read_message) {
-				if (seq == 0) {
-					conn->expected_resp_size = rx_packet_header[0] + (rx_packet_header[1] << 8) - CMD_PACKET_HEADER_SIZE;
-					conn->expected_packets_remaining = rx_packet_header[3] + (rx_packet_header[4] << 8);
-					if (conn->current_read_message->resp_code) {
-						*conn->current_read_message->resp_code = rx_packet_header[2];
-					}
-					memcpy(conn->current_read_message->resp,
-						conn->rx_packet_buf + RAW_HID_HEADER_SIZE + CMD_PACKET_HEADER_SIZE,
-						RAW_HID_PAYLOAD_SIZE - CMD_PACKET_HEADER_SIZE);
-				} else {
-					int to_read = RAW_HID_PAYLOAD_SIZE;
-					int offset = (RAW_HID_PAYLOAD_SIZE * seq) - CMD_PACKET_HEADER_SIZE;
-					if ((offset + to_read) > conn->expected_resp_size) {
-						to_read = (conn->expected_resp_size - offset);
-					}
-					memcpy(conn->current_read_message->resp + offset, rx_packet_header, to_read);
-				}
-				if (last) {
-					if (conn->expected_packets_remaining == 0) {
-						signetdev_priv_finalize_message(&conn->current_read_message, conn->expected_resp_size);
-					} else {
-						signetdev_priv_message_send_resp(conn->current_read_message, conn->expected_resp_size, conn->expected_packets_remaining);
-					}
-					return 0;
-				}
-			}
-		}
+		signetdev_priv_process_rx_packet(&conn->rx_state, rx_packet_buf);
 	}
 	return 0;
 }
@@ -286,7 +244,7 @@ static int raw_hid_io(struct signetdev_connection *conn)
 			if (!conn->head_cancel_message) {
 				conn->tail_cancel_message = NULL;
 			}
-		} else if (!conn->current_read_message) {
+		} else if (!conn->rx_state.message) {
 			conn->current_write_message = conn->head_message;
 			conn->head_message = conn->head_message->next;
 			if (!conn->head_message) {

@@ -18,6 +18,14 @@ struct send_message_req {
 	struct send_message_req *next;
 };
 
+struct rx_message_state {
+	int expected_resp_size;
+	int expected_messages_remaining;
+	int resp_code;
+	int resp_buffer[CMD_PACKET_BUF_SIZE];
+	struct send_message_req *message;
+};
+
 enum signetdev_commands {
     SIGNETDEV_CMD_OPEN,
     SIGNETDEV_CMD_CANCEL_OPEN,
@@ -30,6 +38,8 @@ enum signetdev_commands {
 void signetdev_priv_message_send_resp(struct send_message_req *msg, int rc, int expected_messages_remaining);
 void signetdev_priv_free_message(struct send_message_req **req);
 void signetdev_priv_finalize_message(struct send_message_req **msg ,int rc);
+void signetdev_priv_process_rx_packet(struct rx_message_state *state, u8 *rx_packet_buf);
+
 
 //Platform specific
 void issue_command_no_resp(int command, void *p);
