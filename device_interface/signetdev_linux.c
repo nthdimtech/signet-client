@@ -30,13 +30,7 @@ struct signetdev_connection {
 	struct send_message_req *current_write_message;
 	struct send_message_req *current_read_message;
 
-	u8 tx_msg[CMD_PACKET_BUF_SIZE];
-	int tx_msg_size;
-	int tx_msg_packet_seq;
-	int tx_msg_packet_count;
-
-	u8 tx_packet_buf[RAW_HID_PACKET_SIZE + 1];
-	int tx_packet_buf_pos;
+	struct tx_message_state tx_state;
 
 	u8 rx_packet_buf[RAW_HID_PACKET_SIZE + 1];
 	int rx_packet_buf_pos;
@@ -59,17 +53,6 @@ static struct send_message_req **pending_message()
 		msg = &conn->current_write_message;
 	}
 	return msg;
-}
-
-static void queue_hid_command(int dev_cmd, u8 *payload, int payload_size)
-{
-	struct signetdev_connection *conn = &g_connection;
-	int msg_sz = signetdev_priv_prepare_message(conn->tx_msg, dev_cmd,
-				       payload,
-				       payload_size);
-	conn->tx_msg_packet_seq = -1;
-	conn->tx_packet_buf_pos = RAW_HID_PACKET_SIZE+1;
-	conn->tx_msg_packet_count = signetdev_priv_message_packet_count(msg_sz);
 }
 
 void signetdev_priv_handle_error()
@@ -129,39 +112,25 @@ static int attempt_raw_hid_write()
 	struct signetdev_connection *conn = &g_connection;
 	if (!conn->current_write_message)
 		return 1;
-	if (conn->tx_packet_buf_pos == (RAW_HID_PACKET_SIZE+1)) {
-		conn->tx_packet_buf_pos = 0;
-		conn->tx_msg_packet_seq++;
-		if (conn->tx_msg_packet_seq >= conn->tx_msg_packet_count) {
-			if (!conn->current_write_message->resp) {
-				signetdev_priv_finalize_message(&conn->current_write_message, conn->tx_msg_size);
-			} else {
-				//TODO: check that we aren't already reading a message
-				conn->current_read_message = conn->current_write_message;
-				conn->current_write_message = NULL;
-				conn->rx_packet_buf_pos = 0;
-				conn->expected_resp_size = 0;
-			}
-			return 0;
+
+	if (conn->tx_state.msg_packet_seq == conn->tx_state.msg_packet_count) {
+		if (!conn->current_write_message->resp) {
+			signetdev_priv_finalize_message(&conn->current_write_message, conn->tx_state.msg_size);
+		} else {
+			//TODO: check that we aren't already reading a message
+			conn->current_read_message = conn->current_write_message;
+			conn->current_write_message = NULL;
+			conn->rx_packet_buf_pos = 0;
+			conn->expected_resp_size = 0;
 		}
-		int pidx = 0;
-		conn->tx_packet_buf[pidx++] = 0;
-		conn->tx_packet_buf[pidx] = conn->tx_msg_packet_seq;
-		if ((conn->tx_msg_packet_seq + 1) == conn->tx_msg_packet_count)
-			conn->tx_packet_buf[pidx] |= 0x80;
-		pidx++;
-		memcpy(conn->tx_packet_buf + pidx,
-			   conn->tx_msg + RAW_HID_PAYLOAD_SIZE * conn->tx_msg_packet_seq,
-			   RAW_HID_PAYLOAD_SIZE);
-		pidx += RAW_HID_PAYLOAD_SIZE;
+		return 0;
 	}
-	int rc = write(conn->fd, conn->tx_packet_buf + conn->tx_packet_buf_pos, RAW_HID_PACKET_SIZE + 1 - conn->tx_packet_buf_pos);
+	signetdev_priv_advance_message_state(&conn->tx_state);
+	int rc = write(conn->fd, conn->tx_state.packet_buf, RAW_HID_PACKET_SIZE + 1);
 	if (rc == -1 && errno == EAGAIN) {
 		return 1;
 	} else if (rc == -1) {
 		handle_error();
-	} else {
-		conn->tx_packet_buf_pos += rc;
 	}
 	return 0;
 }
@@ -325,7 +294,8 @@ static int raw_hid_io(struct signetdev_connection *conn)
 			}
 		}
 		if (conn->current_write_message) {
-			queue_hid_command(conn->current_write_message->dev_cmd,
+			signetdev_priv_prepare_message_state(&conn->tx_state,
+					 conn->current_write_message->dev_cmd,
 					 conn->current_write_message->payload,
 					 conn->current_write_message->payload_size);
 		}

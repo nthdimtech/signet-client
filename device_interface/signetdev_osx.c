@@ -72,24 +72,11 @@ static void command_response(int rc)
 
 static int send_hid_command(int cmd, u8 *payload, int payload_size)
 {
-	u8 packet[RAW_HID_PACKET_SIZE];
-	u8 msg[CMD_PACKET_BUF_SIZE];
-	int cmd_sz = signetdev_priv_prepare_message(msg, cmd, payload, payload_size);
-	int i;
-	int count = signetdev_priv_message_packet_count(cmd_sz);
-	for (i = 0; i < count; i++) {
-		packet[0] = i;
-		if ((i + 1) == count)
-			packet[0] |= 0x80;
-		int offset = RAW_HID_PAYLOAD_SIZE * i;
-		int to_copy = RAW_HID_PAYLOAD_SIZE;
-		if ((offset + to_copy) > cmd_size) {
-			to_copy = cmd_size - offset;
-		}
-		memcpy(packet + RAW_HID_HEADER_SIZE,
-		       msg + offset,
-		       to_copy);
-		IOHIDDeviceSetReport(hid_dev, kIOHIDReportTypeOutput, 0, packet, RAW_HID_PACKET_SIZE);
+	struct tx_message_state msg;
+	signetdev_priv_prepare_message(&msg, cmd, payload, payload_size);
+	for (int i = 0; i < msg.msg_packet_count; i++) {
+		signetdev_priv_advance_message_state(msg);
+		IOHIDDeviceSetReport(hid_dev, kIOHIDReportTypeOutput, 0, msg.packet_buf + 1, RAW_HID_PACKET_SIZE);
 		//TODO: validate return
 	}
 	return 0;

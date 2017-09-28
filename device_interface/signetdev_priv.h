@@ -8,8 +8,16 @@ void signetdev_priv_handle_command_resp(void *user, int token, int dev_cmd, int 
 int signetdev_priv_cancel_message_async(int dev_cmd, const u8 *payload, unsigned int payload_size);
 void signetdev_priv_handle_device_event(int event_type, const u8 *resp, int resp_len);
 
-int signetdev_priv_prepare_message(u8 *msg, int dev_cmd, u8 *payload, int payload_size);
-int signetdev_priv_message_packet_count(int msg_sz);
+struct tx_message_state {
+	u8 msg_buf[CMD_PACKET_BUF_SIZE];
+	u8 packet_buf[RAW_HID_PACKET_SIZE + 1];
+	int msg_size;
+	int msg_packet_seq;
+	int msg_packet_count;
+};
+
+void signetdev_priv_prepare_message_state(struct tx_message_state *msg, int dev_cmd, u8 *payload, int payload_size);
+void signetdev_priv_advance_message_state(struct tx_message_state *msg);
 
 extern void (*g_device_opened_cb)(void *);
 extern void *g_device_opened_cb_param;

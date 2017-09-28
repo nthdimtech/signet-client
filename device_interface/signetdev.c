@@ -448,16 +448,31 @@ void signetdev_priv_handle_device_event(int event_type, const u8 *resp, int resp
 	}
 }
 
-int signetdev_priv_prepare_message(u8 *msg, int dev_cmd, u8 *payload, int payload_size)
+void signetdev_priv_prepare_message_state(struct tx_message_state *msg, int dev_cmd, u8 *payload, int payload_size)
 {
-	int cmd_size = payload_size + CMD_PACKET_HEADER_SIZE;
-	msg[0] = cmd_size & 0xff;
-	msg[1] = cmd_size >> 8;
-	msg[2] = dev_cmd;
+	msg->msg_size = payload_size + CMD_PACKET_HEADER_SIZE;
+	msg->msg_buf[0] = msg->msg_size & 0xff;
+	msg->msg_buf[1] = msg->msg_size >> 8;
+	msg->msg_buf[2] = dev_cmd;
+	msg->msg_packet_seq = 0;
+	msg->msg_packet_count = (msg->msg_size + RAW_HID_PAYLOAD_SIZE - 1)/ RAW_HID_PAYLOAD_SIZE;
 	if (payload)
-		memcpy(msg + CMD_PACKET_HEADER_SIZE, payload, payload_size);
-	return cmd_size;
+		memcpy(msg->msg_buf + CMD_PACKET_HEADER_SIZE, payload, payload_size);
+
 }
+
+void signetdev_priv_advance_message_state(struct tx_message_state *msg)
+{
+	int pidx = 0;
+	msg->packet_buf[pidx++] = 0;
+	msg->packet_buf[pidx++] = msg->msg_packet_seq |
+			(((msg->msg_packet_seq + 1) == msg->msg_packet_count) ? 0x80 : 0);
+	memcpy(msg->packet_buf + 1 + RAW_HID_HEADER_SIZE,
+		   msg->msg_buf + RAW_HID_PAYLOAD_SIZE * msg->msg_packet_seq,
+		   RAW_HID_PAYLOAD_SIZE);
+	msg->msg_packet_seq++;
+}
+
 
 int signetdev_priv_message_packet_count(int msg_sz)
 {
