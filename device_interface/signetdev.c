@@ -441,12 +441,27 @@ int signetdev_erase_pages_async(void *param, int *token, int n_pages, const u8 *
 			SIGNETDEV_PRIV_GET_RESP);
 }
 
-
 void signetdev_priv_handle_device_event(int event_type, const u8 *resp, int resp_len)
 {
 	if (g_device_event_cb) {
 		g_device_event_cb(g_device_event_cb_param, event_type, (void *)resp, resp_len);
 	}
+}
+
+int signetdev_priv_prepare_message(u8 *msg, int dev_cmd, u8 *payload, int payload_size)
+{
+	int cmd_size = payload_size + CMD_PACKET_HEADER_SIZE;
+	msg[0] = cmd_size & 0xff;
+	msg[1] = cmd_size >> 8;
+	msg[2] = dev_cmd;
+	if (payload)
+		memcpy(msg + CMD_PACKET_HEADER_SIZE, payload, payload_size);
+	return cmd_size;
+}
+
+int signetdev_priv_message_packet_count(int msg_sz)
+{
+	return (msg_sz + RAW_HID_PAYLOAD_SIZE - 1)/ RAW_HID_PAYLOAD_SIZE;
 }
 
 void signetdev_priv_handle_command_resp(void *user, int token, int dev_cmd, int api_cmd, int resp_code, const u8 *resp, int resp_len, int expected_messages_remaining)

@@ -1,4 +1,5 @@
 #include "signetdev_priv.h"
+#include "signetdev_unix.h"
 #include "signetdev.h"
 
 #include <sys/epoll.h>
@@ -16,35 +17,6 @@
 extern signetdev_conn_err_t g_error_handler;
 extern void *g_error_handler_param;
 
-static pthread_t worker_thread;
-
-struct send_message_req {
-	int dev_cmd;
-	int api_cmd;
-	u8 *payload;
-	unsigned int payload_size;
-	u8 *resp;
-	int *resp_code;
-	void *user;
-	int token;
-	int interrupt;
-	struct send_message_req *next;
-};
-
-static u8 g_async_resp[CMD_PACKET_PAYLOAD_SIZE];
-static int g_async_resp_code;
-
-enum signetdev_commands {
-	SIGNETDEV_CMD_OPEN,
-	SIGNETDEV_CMD_CANCEL_OPEN,
-	SIGNETDEV_CMD_CLOSE,
-	SIGNETDEV_CMD_MESSAGE,
-	SIGNETDEV_CMD_QUIT,
-	SIGNETDEV_CMD_CANCEL_MESSAGE
-};
-
-static int g_command_pipe[2];
-static int g_command_resp_pipe[2];
 static int g_opening_connection;
 static int g_poll_fd = -1;
 static int g_inotify_fd = -1;
@@ -72,7 +44,6 @@ struct signetdev_connection {
 	int resp_buffer[CMD_PACKET_BUF_SIZE];
 	int resp_code;
 	int expected_resp_size;
-	int expected_total_packets;
 	int expected_packets_remaining;
 };
 
@@ -93,16 +64,12 @@ static struct send_message_req **pending_message()
 static void queue_hid_command(int dev_cmd, u8 *payload, int payload_size)
 {
 	struct signetdev_connection *conn = &g_connection;
-	int cmd_size = payload_size + CMD_PACKET_HEADER_SIZE;
-	conn->tx_msg[0] = cmd_size & 0xff;
-	conn->tx_msg[1] = cmd_size >> 8;
-	conn->tx_msg[2] = dev_cmd;
-	if (payload)
-		memcpy(conn->tx_msg + CMD_PACKET_HEADER_SIZE, payload, payload_size);
-
+	int msg_sz = signetdev_priv_prepare_message(conn->tx_msg, dev_cmd,
+				       payload,
+				       payload_size);
 	conn->tx_msg_packet_seq = -1;
 	conn->tx_packet_buf_pos = RAW_HID_PACKET_SIZE+1;
-	conn->tx_msg_packet_count = (cmd_size + RAW_HID_PAYLOAD_SIZE - 1)/ RAW_HID_PAYLOAD_SIZE;
+	conn->tx_msg_packet_count = signetdev_priv_message_packet_count(msg_sz);
 }
 
 void signetdev_priv_handle_error()
@@ -123,43 +90,13 @@ static void command_response(int rc)
 	write(g_command_resp_pipe[1], &resp, 1);
 }
 
-static void message_send_notification(struct send_message_req *msg ,int rc, int expected_messages_remaining)
-{
-	if (!msg->interrupt) {
-		int resp_code = OKAY;
-		int resp_len = 0;
-		if (msg->resp_code)
-			resp_code = *msg->resp_code;
-		if (rc >= 0)
-			resp_len = rc;
-		else
-			resp_code = rc;
-		signetdev_priv_handle_command_resp(msg->user,
-						   msg->token,
-						   msg->dev_cmd,
-						   msg->api_cmd,
-						   resp_code,
-						   msg->resp,
-						   resp_len,
-						   expected_messages_remaining);
-	}
-}
-
-static void finalize_message(struct send_message_req *msg ,int rc)
-{
-	message_send_notification(msg, rc, 0);
-	free(msg->payload);
-	free(msg);
-}
-
 static void handle_exit(void *arg)
 {
 	struct signetdev_connection *conn = &g_connection;
 	(void)arg;
 	struct send_message_req **msg = pending_message();
 	if (msg) {
-		finalize_message(*msg, SIGNET_ERROR_QUIT);
-		*msg = NULL;
+		signetdev_priv_finalize_message(msg, SIGNET_ERROR_QUIT);
 	}
 	if (conn->fd != -1)
 		close(conn->fd);
@@ -183,22 +120,21 @@ static void handle_error()
 	}
 	struct send_message_req **msg = pending_message();
 	if (msg) {
-		finalize_message(*msg, SIGNET_ERROR_DISCONNECT);
-		*msg = NULL;
+		signetdev_priv_finalize_message(msg, SIGNET_ERROR_DISCONNECT);
 	}
-
 }
 
 static int attempt_raw_hid_write()
 {
 	struct signetdev_connection *conn = &g_connection;
+	if (!conn->current_write_message)
+		return 1;
 	if (conn->tx_packet_buf_pos == (RAW_HID_PACKET_SIZE+1)) {
 		conn->tx_packet_buf_pos = 0;
 		conn->tx_msg_packet_seq++;
 		if (conn->tx_msg_packet_seq >= conn->tx_msg_packet_count) {
 			if (!conn->current_write_message->resp) {
-				finalize_message(conn->current_write_message, conn->tx_msg_size);
-				conn->current_write_message = NULL;
+				signetdev_priv_finalize_message(&conn->current_write_message, conn->tx_msg_size);
 			} else {
 				//TODO: check that we aren't already reading a message
 				conn->current_read_message = conn->current_write_message;
@@ -270,10 +206,9 @@ static int attempt_raw_hid_read()
 				}
 				if (last) {
 					if (conn->expected_packets_remaining == 0) {
-						finalize_message(conn->current_read_message, conn->expected_resp_size);
-						conn->current_read_message = NULL;
+						signetdev_priv_finalize_message(&conn->current_read_message, conn->expected_resp_size);
 					} else {
-						message_send_notification(conn->current_read_message, conn->expected_resp_size, conn->expected_packets_remaining);
+						signetdev_priv_message_send_resp(conn->current_read_message, conn->expected_resp_size, conn->expected_packets_remaining);
 					}
 					return 0;
 				}
@@ -373,43 +308,37 @@ static void command_pipe_io_iter()
 	}
 }
 
+static int raw_hid_io(struct signetdev_connection *conn)
+{
+	if (!conn->current_write_message && (conn->head_message || conn->head_cancel_message)) {
+		if (conn->head_cancel_message) {
+			conn->current_write_message = conn->head_cancel_message;
+			conn->head_cancel_message = conn->head_cancel_message->next;
+			if (!conn->head_cancel_message) {
+				conn->tail_cancel_message = NULL;
+			}
+		} else if (!conn->current_read_message) {
+			conn->current_write_message = conn->head_message;
+			conn->head_message = conn->head_message->next;
+			if (!conn->head_message) {
+				conn->tail_message = NULL;
+			}
+		}
+		if (conn->current_write_message) {
+			queue_hid_command(conn->current_write_message->dev_cmd,
+					 conn->current_write_message->payload,
+					 conn->current_write_message->payload_size);
+		}
+	}
+
+	return attempt_raw_hid_read() && attempt_raw_hid_write();
+}
+
 static void raw_hid_io_iter()
 {
-	struct signetdev_connection *conn = &g_connection;
 	//Read and/or write non-blocking until EAGAIN is returned
-	int done = 0;
-	while (!done) {
-		if (!conn->current_write_message && (conn->head_message || conn->head_cancel_message)) {
-			if (conn->head_cancel_message) {
-				conn->current_write_message = conn->head_cancel_message;
-				conn->head_cancel_message = conn->head_cancel_message->next;
-				if (!conn->head_cancel_message) {
-					conn->tail_cancel_message = NULL;
-				}
-			} else if (!conn->current_read_message) {
-				conn->current_write_message = conn->head_message;
-				conn->head_message = conn->head_message->next;
-				if (!conn->head_message) {
-					conn->tail_message = NULL;
-				}
-			}
-			if (conn->current_write_message) {
-				queue_hid_command(conn->current_write_message->dev_cmd,
-						 conn->current_write_message->payload,
-						 conn->current_write_message->payload_size);
-			}
-		}
-
-		int writing_done = 1;
-		int reading_done = 1;
-
-		if (conn->current_write_message) {
-			writing_done = attempt_raw_hid_write();
-		}
-		reading_done = attempt_raw_hid_read();
-
-		done = reading_done && writing_done;
-	}
+	struct signetdev_connection *conn = &g_connection;
+	while (!raw_hid_io(conn));
 }
 
 static void inotify_fd_readable()
@@ -438,7 +367,7 @@ static void inotify_fd_readable()
 	}
 }
 
-static void *transaction_thread(void *arg)
+void *transaction_thread(void *arg)
 {
 	struct signetdev_connection *conn = &g_connection;
 	g_opening_connection = 0;
@@ -491,7 +420,7 @@ static void *transaction_thread(void *arg)
 	return NULL;
 }
 
-static int issue_command(int command, void *p)
+int issue_command(int command, void *p)
 {
 	intptr_t v[2] = {command, (intptr_t)p};
 	write(g_command_pipe[1], v, sizeof(intptr_t) * 2);
@@ -500,83 +429,8 @@ static int issue_command(int command, void *p)
 	return cmd_resp;
 }
 
-static void issue_command_no_resp(int command, void *p)
+void issue_command_no_resp(int command, void *p)
 {
 	intptr_t v[2] = {command, (intptr_t)p};
 	write(g_command_pipe[1], v, sizeof(intptr_t) * 2);
-}
-
-int signetdev_priv_send_message_async(void *user, int token, int dev_cmd, int api_cmd, const u8 *payload, unsigned int payload_size, int get_resp)
-{
-	struct send_message_req *r = (struct send_message_req *)malloc(sizeof(struct send_message_req));
-	r->dev_cmd = dev_cmd;
-	r->api_cmd = api_cmd;
-	if (payload) {
-		r->payload = malloc(payload_size);
-		memcpy(r->payload, payload, payload_size);
-	} else {
-		r->payload = NULL;
-	}
-	r->payload_size = payload_size;
-	r->user = user;
-	r->token = token;
-	if (get_resp) {
-		r->resp = g_async_resp;
-		r->resp_code = &g_async_resp_code;
-	} else {
-		r->resp = NULL;
-		r->resp_code = NULL;
-	}
-	r->interrupt = 0;
-	issue_command_no_resp(SIGNETDEV_CMD_MESSAGE, r);
-	return 0;
-}
-
-void signetdev_priv_platform_init()
-{
-	pipe(g_command_pipe);
-	pipe(g_command_resp_pipe);
-	fcntl(g_command_pipe[0], F_SETFL, O_NONBLOCK);
-
-	pthread_create(&worker_thread, NULL, transaction_thread, NULL);
-}
-
-void signetdev_priv_platform_deinit()
-{
-	void *ret = NULL;
-	issue_command_no_resp(SIGNETDEV_CMD_QUIT, NULL);
-	pthread_join(worker_thread, &ret);
-}
-
-int signetdev_open_connection()
-{
-	return issue_command(SIGNETDEV_CMD_OPEN, NULL);
-}
-
-void signetdev_close_connection()
-{
-	issue_command_no_resp(SIGNETDEV_CMD_CLOSE, NULL);
-}
-
-void signetdev_cancel_close_connection()
-{
-	issue_command_no_resp(SIGNETDEV_CMD_CANCEL_OPEN, NULL);
-}
-
-int signetdev_priv_cancel_message_async(int dev_cmd, const u8 *payload, unsigned int payload_size)
-{
-	struct send_message_req *r = malloc(sizeof(struct send_message_req));
-	r->dev_cmd = dev_cmd;
-	if (payload) {
-		r->payload = malloc(payload_size);
-		memcpy(r->payload, payload, payload_size);
-	} else {
-		r->payload = NULL;
-	}
-	r->payload_size = payload_size;
-	r->resp = NULL;
-	r->resp_code = NULL;
-	r->interrupt = 1;
-	issue_command_no_resp(SIGNETDEV_CMD_CANCEL_MESSAGE, r);
-	return 0;
 }
