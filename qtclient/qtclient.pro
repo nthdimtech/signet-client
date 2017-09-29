@@ -83,7 +83,8 @@ SOURCES += qtsingleapplication/src/qtlockedfile_win.cpp
 }
 
 unix {
-SOURCES += qtsingleapplication/src/qtlockedfile_unix.cpp
+SOURCES += qtsingleapplication/src/qtlockedfile_unix.cpp \
+    ../device_interface/signetdev_unix.c
 }
 
 macx {
@@ -155,6 +156,10 @@ HEADERS  += mainwindow.h \
 
 win32 {
 HEADERS += ../device_interface/rawhid/hid.h
+}
+
+unix {
+HEADERS += ../device_interface/signetdev_unix.h
 }
 
 INCLUDEPATH+=../common
