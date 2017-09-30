@@ -30,10 +30,6 @@ struct signetdev_connection {
 
 	struct tx_message_state tx_state;
 	struct rx_message_state rx_state;
-
-	int resp_code;
-	int expected_resp_size;
-	int expected_messages_remaining;
 };
 
 struct signetdev_connection g_connection;
