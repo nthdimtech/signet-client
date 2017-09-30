@@ -43,6 +43,11 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 	QBoxLayout *account_name_layout = new QBoxLayout(QBoxLayout::LeftToRight);
 	account_name_layout->addWidget(new QLabel("Account name"));
 	account_name_layout->addWidget(m_accountNameEdit);
+	connect(m_accountNameEdit, SIGNAL(textEdited(QString)), this, SLOT(accountNameEdited()));
+
+	m_accountNameWarning = new QLabel();
+	m_accountNameWarning->setStyleSheet("QLabel { color : red; }");
+	m_accountNameWarning->hide();
 
 	m_usernameField = new DatabaseField("username", 120, NULL);
 	m_emailField = new DatabaseField("email", 120, NULL);
@@ -90,6 +95,7 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 	QBoxLayout *main_layout = new QBoxLayout(QBoxLayout::TopToBottom);
 	main_layout->setAlignment(Qt::AlignTop);
 	main_layout->addLayout(account_name_layout);
+	main_layout->addWidget(m_accountNameWarning);
 	main_layout->addWidget(m_usernameField);
 	main_layout->addWidget(m_emailField);
 	main_layout->addWidget(m_passwordEdit);
@@ -100,6 +106,11 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 
 	connect(m_saveButton, SIGNAL(pressed(void)), this, SLOT(savePressed(void)));
 	connect(close_button, SIGNAL(pressed(void)), this, SLOT(closePressed(void)));
+}
+
+void EditAccount::accountNameEdited()
+{
+	m_accountNameWarning->hide();
 }
 
 void EditAccount::signetdevCmdResp(signetdevCmdRespInfo info)
@@ -196,6 +207,7 @@ void EditAccount::undoChangesUi()
 	m_settingFields = false;
 	m_saveButton->setDisabled(true);
 	m_undoChangesButton->setDisabled(true);
+	m_accountNameWarning->hide();
 }
 
 void EditAccount::textEdited()
@@ -213,6 +225,11 @@ void EditAccount::closePressed()
 
 void EditAccount::savePressed()
 {
+	if (m_accountNameEdit->text().size() == 0) {
+		m_accountNameWarning->setText("The account name cannot be empty");
+		m_accountNameWarning->show();
+		return;
+	}
 	m_buttonDialog = new ButtonWaitDialog( "Save account",
 					       QString("save changes to account \"") + m_accountNameEdit->text() + QString("\""),
 					       this);

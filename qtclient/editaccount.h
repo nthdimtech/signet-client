@@ -11,6 +11,7 @@ class QString;
 class CommThread;
 class DatabaseField;
 class PasswordEdit;
+class QLabel;
 struct account;
 struct block;
 
@@ -21,6 +22,7 @@ class EditAccount : public QDialog
 {
 	Q_OBJECT
 	QLineEdit *m_accountNameEdit;
+	QLabel *m_accountNameWarning;
 	DatabaseField *m_usernameField;
 	PasswordEdit *m_passwordEdit;
 	DatabaseField *m_urlField;
@@ -43,6 +45,7 @@ signals:
 public slots:
 	void signetdevCmdResp(signetdevCmdRespInfo info);
 	void editAccountFinished(int);
+	void accountNameEdited();
 	void browseUrl();
 	void textEdited();
 	void closePressed();
