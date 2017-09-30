@@ -35,6 +35,7 @@
 #include "generictypedesc.h"
 #include "esdbgenericmodule.h"
 #include "genericactionbar.h"
+#include "generictypedesc.h"
 
 extern "C" {
 #include "common.h"
@@ -162,6 +163,38 @@ int iconAccount::matchQuality(esdbEntry *entry)
 	m_dataTypeModules.push_back(m_accounts);
 	m_dataTypeModules.push_back(m_bookmarks);
 
+	genericTypeDesc *genericTypeDesc_;
+	esdbGenericModule *genericModule;
+
+	genericTypeDesc_ = new genericTypeDesc();
+	genericTypeDesc_->name = "Credit card";
+	genericTypeDesc_->fields.push_back(fieldSpec("Card Number","text"));
+	genericTypeDesc_->fields.push_back(fieldSpec("Exp month","integer"));
+	genericTypeDesc_->fields.push_back(fieldSpec("Exp year","integer"));
+	genericTypeDesc_->fields.push_back(fieldSpec("CCV","text"));
+	genericModule = new esdbGenericModule(genericTypeDesc_, this);
+	m_dataTypeModules.push_back(genericModule);
+
+	genericTypeDesc_ = new genericTypeDesc();
+	genericTypeDesc_->name = "Contact";
+	genericTypeDesc_->fields.push_back(fieldSpec("Phone","text"));
+	genericTypeDesc_->fields.push_back(fieldSpec("Email","text"));
+	genericTypeDesc_->fields.push_back(fieldSpec("Address 1","text"));
+	genericTypeDesc_->fields.push_back(fieldSpec("Address 2","text"));
+	genericTypeDesc_->fields.push_back(fieldSpec("City","text"));
+	genericModule = new esdbGenericModule(genericTypeDesc_, this);
+	m_dataTypeModules.push_back(genericModule);
+
+	genericTypeDesc_ = new genericTypeDesc();
+	genericTypeDesc_->name = "Misc";
+	genericModule = new esdbGenericModule(genericTypeDesc_, this, false, false);
+	m_dataTypeModules.push_back(genericModule);
+
+	genericTypeDesc_ = new genericTypeDesc();
+	genericTypeDesc_->name = "User type";
+	genericModule = new esdbGenericModule(genericTypeDesc_, this);
+	m_dataTypeModules.push_back(genericModule);
+
 	SignetApplication *app = SignetApplication::get();
 	connect(app, SIGNAL(focusChanged(QWidget*,QWidget*)), this, SLOT(focusChanged(QWidget*,QWidget*)));
 
@@ -255,6 +288,9 @@ int iconAccount::matchQuality(esdbEntry *entry)
 
 void LoggedInWidget::currentTypeIndexChanged(int idx)
 {
+	if (idx >= 7) {
+		idx--;
+	}
 	m_activeType = idx;
 	m_searchListbox->setModel(m_esdbModel.at(idx));
 	m_selectedEntry = NULL;
@@ -773,6 +809,29 @@ void LoggedInWidget::entryCreated(EsdbActionBar *actionBar, esdbEntry *entry)
 		if (typeIndex >= 0) {
 			(*m_entriesByType.at(typeIndex))[entry->id] = entry;
 			populateEntryList(typeIndex, m_filterEdit->text());
+			QString typeName = m_dataTypeModules.at(typeIndex)->m_name;
+			if (!typeName.compare("User types", Qt::CaseInsensitive)) {
+				generic *g = (generic *)entry;
+				genericTypeDesc *genericTypeDesc_ = new genericTypeDesc();
+				genericTypeDesc_->name = g->name;
+				for (int i = 0; i < g->fields.fieldCount(); i++) {
+					auto field = g->fields.getField(i);
+					genericTypeDesc_->fields.push_back(fieldSpec(field.name,field.value));
+				}
+				esdbGenericModule *genericModule;
+				genericModule = new esdbGenericModule(genericTypeDesc_, this);
+				m_dataTypeModules.push_back(genericModule);
+				auto data = new QMap<int, esdbEntry *>();
+				m_entriesByType.push_back(data);
+				auto filteredList = new QList<esdbEntry *>();
+				m_filteredLists.push_back(filteredList);
+				auto esdbModel = new EsdbModel(genericModule, filteredList);
+				m_esdbModel.push_back(esdbModel);
+				EsdbActionBar *actionBar = genericModule->newActionBar();
+				connect(actionBar, SIGNAL(background()), this, SIGNAL(background()));
+				m_actionBarStack->addWidget(actionBar);
+				m_viewSelector->addItem(g->name);
+			}
 		}
 	}
 }
@@ -789,7 +848,7 @@ void LoggedInWidget::populateEntryList(int index, QString filter)
 		esdbEntry *entry = x;
 		int quality = entry->matchQuality(filter);
 		if (quality) {
-			if (qualityGroups.length() < quality) {
+			if (qualityGroups.size() < quality) {
 				qualityGroups.resize(quality);
 			}
 			qualityGroups[quality - 1].append(entry);

@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QMessageBox>
 #include <QtSingleApplication>
-
+#include <qmetatype.h>
 #include "systemtray.h"
 
 class QMessageBox;
