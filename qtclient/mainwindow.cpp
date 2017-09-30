@@ -850,7 +850,7 @@ void MainWindow::updateFirmwareUi()
 {
 	QFileDialog fd(this);
 	QStringList filters;
-	filters.append("*.signet_fw");
+	filters.append("*.sfw");
 	filters.append("*");
 	fd.setNameFilters(filters);
 	fd.setFileMode(QFileDialog::AnyFile);
