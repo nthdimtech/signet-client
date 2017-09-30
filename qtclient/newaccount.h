@@ -15,6 +15,7 @@ class ButtonWaitDialog;
 class DatabaseField;
 class QLabel;
 class PasswordEdit;
+class GenericFieldsEditor;
 
 struct signetdevCmdRespInfo;
 
@@ -34,6 +35,8 @@ private:
 	account *m_acct;
 	int m_id;
 	int m_signetdev_cmd_token;
+	genericFields m_fields;
+	GenericFieldsEditor *m_genericFieldsEditor;
 signals:
 	void abort();
 	void accountCreated(account *acct);

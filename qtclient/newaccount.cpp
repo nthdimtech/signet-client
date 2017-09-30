@@ -14,6 +14,7 @@
 #include "databasefield.h"
 #include "passwordedit.h"
 #include "signetapplication.h"
+#include "genericfieldseditor.h"
 
 extern "C" {
 #include "signetdev.h"
@@ -31,6 +32,9 @@ NewAccount::NewAccount(int id, const QString &name, QWidget *parent) : QDialog(p
 		this, SLOT(signetdev_cmd_resp(signetdevCmdRespInfo)));
 
 	setWindowTitle("New account");
+
+	m_genericFieldsEditor = new GenericFieldsEditor(m_fields,
+					QList<fieldSpec>());
 
 	QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
 	layout->setAlignment(Qt::AlignTop);
@@ -66,6 +70,7 @@ NewAccount::NewAccount(int id, const QString &name, QWidget *parent) : QDialog(p
 	layout->addWidget(m_email_field);
 	layout->addWidget(m_password_edit);
 	layout->addWidget(m_url_field);
+	layout->addWidget(m_genericFieldsEditor);
 	layout->addWidget(create_button);
 
 	setLayout(layout);
@@ -121,7 +126,8 @@ void NewAccount::signetdev_cmd_resp(signetdevCmdRespInfo info)
 			m_acct->password = m_password_edit->password();
 			m_acct->url = m_url_field->text();
 			m_acct->email = m_email_field->text();
-
+			m_genericFieldsEditor->saveFields();
+			m_acct->fields = m_fields;
 			m_acct->toBlock(&blk);
 			::signetdev_write_id_async(NULL, &m_signetdev_cmd_token,
 						   m_acct->id,
