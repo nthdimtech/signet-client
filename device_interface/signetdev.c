@@ -5,6 +5,7 @@
 #include <memory.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 void (*g_device_opened_cb)(void *) = NULL;
 void *g_device_opened_cb_param = NULL;

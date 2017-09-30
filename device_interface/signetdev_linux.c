@@ -27,7 +27,6 @@ struct signetdev_connection {
 	struct send_message_req *head_message;
 	struct send_message_req *tail_cancel_message;
 	struct send_message_req *head_cancel_message;
-	struct send_message_req *current_write_message;
 
 	struct tx_message_state tx_state;
 	struct rx_message_state rx_state;
@@ -45,8 +44,8 @@ static struct send_message_req **pending_message()
 	struct send_message_req **msg = NULL;
 	if (conn->rx_state.message) {
 		msg = &conn->rx_state.message;
-	} else if (conn->current_write_message && !conn->current_write_message->interrupt) {
-		msg = &conn->current_write_message;
+	} else if (conn->tx_state.message && !conn->tx_state.message->interrupt) {
+		msg = &conn->tx_state.message;
 	}
 	return msg;
 }
@@ -106,14 +105,14 @@ static void handle_error()
 static int attempt_raw_hid_write()
 {
 	struct signetdev_connection *conn = &g_connection;
-	if (!conn->current_write_message)
+	if (!conn->tx_state.message)
 		return 1;
 
 	if (conn->tx_state.msg_packet_seq == conn->tx_state.msg_packet_count) {
-		if (!conn->current_write_message->resp) {
-			signetdev_priv_finalize_message(&conn->current_write_message, conn->tx_state.msg_size);
+		if (!conn->tx_state.message->resp) {
+			signetdev_priv_finalize_message(&conn->tx_state.message, conn->tx_state.msg_size);
 		} else {
-			conn->current_write_message = NULL;
+			conn->tx_state.message = NULL;
 		}
 		return 0;
 	}
@@ -234,25 +233,26 @@ static void command_pipe_io_iter()
 
 static int raw_hid_io(struct signetdev_connection *conn)
 {
-	if (!conn->current_write_message && (conn->head_message || conn->head_cancel_message)) {
+	if (!conn->tx_state.message && (conn->head_message || conn->head_cancel_message)) {
 		if (conn->head_cancel_message) {
-			conn->current_write_message = conn->head_cancel_message;
+			conn->tx_state.message = conn->head_cancel_message;
 			conn->head_cancel_message = conn->head_cancel_message->next;
 			if (!conn->head_cancel_message) {
 				conn->tail_cancel_message = NULL;
 			}
 		} else if (!conn->rx_state.message) {
-			conn->current_write_message = conn->head_message;
+			conn->tx_state.message = conn->head_message;
+			conn->rx_state.message = conn->head_message;
 			conn->head_message = conn->head_message->next;
 			if (!conn->head_message) {
 				conn->tail_message = NULL;
 			}
 		}
-		if (conn->current_write_message) {
+		if (conn->tx_state.message) {
 			signetdev_priv_prepare_message_state(&conn->tx_state,
-					 conn->current_write_message->dev_cmd,
-					 conn->current_write_message->payload,
-					 conn->current_write_message->payload_size);
+					 conn->tx_state.message->dev_cmd,
+					 conn->tx_state.message->payload,
+					 conn->tx_state.message->payload_size);
 		}
 	}
 
