@@ -856,7 +856,8 @@ void MainWindow::updateFirmwareUi()
 	fd.setFileMode(QFileDialog::AnyFile);
 	fd.setAcceptMode(QFileDialog::AcceptOpen);
 	fd.setWindowModality(Qt::WindowModal);
-	fd.exec();
+	if (!fd.exec())
+		return;
 	QStringList sl = fd.selectedFiles();
 	if (sl.empty()) {
 		return;
