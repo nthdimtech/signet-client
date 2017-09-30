@@ -113,9 +113,6 @@ static int attempt_raw_hid_write()
 		if (!conn->current_write_message->resp) {
 			signetdev_priv_finalize_message(&conn->current_write_message, conn->tx_state.msg_size);
 		} else {
-			//TODO: check that we aren't already reading a message
-			conn->rx_state.message = conn->current_write_message;
-			conn->rx_state.expected_resp_size = 0;
 			conn->current_write_message = NULL;
 		}
 		return 0;

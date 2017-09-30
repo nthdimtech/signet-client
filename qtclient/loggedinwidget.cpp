@@ -153,7 +153,7 @@ int iconAccount::matchQuality(esdbEntry *entry)
 
 	m_activeType = 0;
 
-	genericTypeDesc *place = new genericTypeDesc(-1);
+	genericTypeDesc *place = new genericTypeDesc();
 	place->name = "";
 	m_genericDecoder = new esdbGenericModule(place, this);
 

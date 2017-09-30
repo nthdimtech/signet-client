@@ -5,45 +5,7 @@
 
 #include <pthread.h>
 
-struct send_message_req {
-	int dev_cmd;
-	int api_cmd;
-	u8 *payload;
-	unsigned int payload_size;
-	u8 *resp;
-	int *resp_code;
-	void *user;
-	int token;
-	int interrupt;
-	struct send_message_req *next;
-};
-
-struct rx_message_state {
-	int expected_resp_size;
-	int expected_messages_remaining;
-	int resp_code;
-	int resp_buffer[CMD_PACKET_BUF_SIZE];
-	struct send_message_req *message;
-};
-
-enum signetdev_commands {
-    SIGNETDEV_CMD_OPEN,
-    SIGNETDEV_CMD_CANCEL_OPEN,
-    SIGNETDEV_CMD_CLOSE,
-    SIGNETDEV_CMD_QUIT,
-    SIGNETDEV_CMD_MESSAGE,
-    SIGNETDEV_CMD_CANCEL_MESSAGE
-};
-
-void signetdev_priv_message_send_resp(struct send_message_req *msg, int rc, int expected_messages_remaining);
-void signetdev_priv_free_message(struct send_message_req **req);
-void signetdev_priv_finalize_message(struct send_message_req **msg ,int rc);
-void signetdev_priv_process_rx_packet(struct rx_message_state *state, u8 *rx_packet_buf);
-
-
 //Platform specific
-void issue_command_no_resp(int command, void *p);
-int issue_command(int command, void *p);
 void *transaction_thread(void *arg);
 
 extern pthread_t worker_thread;
