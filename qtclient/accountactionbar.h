@@ -51,6 +51,7 @@ class AccountActionBar : public EsdbActionBar
 	bool m_quickTypeMode;
 signals:
 	void background();
+	void abort();
 public:
 	AccountActionBar(LoggedInWidget *parent);
 	void getEntryDone(esdbEntry *entry, int intent);

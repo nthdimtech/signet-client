@@ -368,7 +368,7 @@ void AccountActionBar::getEntryDone(esdbEntry *entry, int intent)
 			m_buttonWaitDialog->done(QMessageBox::Ok);
 		}
 		EditAccount *ea = new EditAccount(acct, m_parent);
-		connect(ea, SIGNAL(abort()), this, SLOT(abort_proxy()));
+		connect(ea, SIGNAL(abort()), this, SIGNAL(abort()));
 		connect(ea, SIGNAL(accountChanged(int)), m_parent, SLOT(entryChanged(int)));
 		connect(ea, SIGNAL(finished(int)), ea, SLOT(deleteLater()));
 		ea->show();
