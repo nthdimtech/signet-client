@@ -74,7 +74,8 @@ SOURCES += main.cpp\
     integerfieldedit.cpp \
     textblockfieldedit.cpp \
     typedescedit.cpp \
-    typedesceditor.cpp
+    typedesceditor.cpp \
+    configuremachine.cpp
 
 win32 {
 SOURCES += ../device_interface/rawhid/hid_WINDOWS.c
@@ -152,7 +153,8 @@ HEADERS  += mainwindow.h \
     integerfieldedit.h \
     textblockfieldedit.h \
     typedescedit.h \
-    typedesceditor.h
+    typedesceditor.h \
+    configuremachine.h
 
 win32 {
 HEADERS += ../device_interface/rawhid/hid.h

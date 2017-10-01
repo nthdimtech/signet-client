@@ -116,6 +116,7 @@ private:
 
 	QAction *m_saveAction;
 	QAction *m_importAction;
+	QAction *m_settingsAction;
 	QAction *m_exportAction;
 	QAction *m_backupAction;
 	QAction *m_restoreAction;
@@ -129,7 +130,8 @@ private:
 	int m_signetdevCmdToken;
 
 	void sendFirmwareWriteCmd();
-
+	void loadSettings();
+	void saveSettings();
 	void showEvent(QShowEvent *event);
 #ifdef _WIN32
 	bool nativeEvent(const QByteArray &eventType, void *message, long *result);
@@ -169,6 +171,7 @@ public slots:
 	void resetTimer();
 	void connectingTimer();
 	void background();
+	void openSettingsUi();
 };
 
 #endif // MAINWINDOW_H
