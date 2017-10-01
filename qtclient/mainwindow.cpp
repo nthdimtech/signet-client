@@ -22,6 +22,7 @@
 #include <QStackedWidget>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QStandardPaths>
 
 #include "loggedinwidget.h"
 #include "account.h"
@@ -70,6 +71,76 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_buttonWaitDialog(NULL),
 	m_signetdevCmdToken(-1)
 {
+	QString genericConfigPath = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation);
+	QString appConfigPath = genericConfigPath + "/signet";
+
+	QDir configDir(genericConfigPath);
+	QDir appConfigDir(appConfigPath);
+	if (!appConfigDir.exists()) {
+		configDir.mkdir("signet");
+	}
+
+	QString configFileName = appConfigPath + "/config.json";
+
+	QFile configFile(configFileName);
+	QJsonDocument doc;
+	if (configFile.exists()) {
+		if (!configFile.open(QFile::ReadWrite)) {
+			//TODO
+		} else {
+			QByteArray datum = configFile.readAll();
+			doc = QJsonDocument::fromJson(datum);
+			configFile.close();
+		}
+	}
+	QJsonObject obj = doc.object();
+
+	QJsonValue localBackups = obj.value("localBackups");
+	if (localBackups.isBool()) {
+		m_settings.localBackups = localBackups.toBool();
+	} else {
+		m_settings.localBackups = false;
+	}
+	QJsonValue localBackupPath = obj.value("localBackupPath");
+	if (localBackupPath.isString()) {
+		m_settings.localBackupPath = localBackupPath.isString();
+	} else {
+		m_settings.localBackupPath = QStandardPaths::locate(QStandardPaths::DocumentsLocation, "SignetBackups");
+	}
+
+	QJsonValue removableBackups = obj.value("removableBackups");
+	if (removableBackups.isBool()) {
+		m_settings.removableBackups = removableBackups.toBool();
+	} else {
+		m_settings.removableBackups = false;
+	}
+	QJsonValue removableBackupPath = obj.value("localBackupPath");
+	if (removableBackupPath.isString()) {
+		m_settings.removableBackupPath = localBackupPath.isString();
+	} else {
+		m_settings.removableBackupPath = "SignetBackups";
+	}
+	QJsonValue removableBackupVolume = obj.value("removableBackupVolume");
+	if (removableBackupVolume.isString()) {
+		m_settings.removableBackupVolume = removableBackupVolume.isString();
+	} else {
+		m_settings.removableBackupVolume = "";
+	}
+
+	if (!configFile.exists()) {
+		configFile.open(QFile::WriteOnly);
+		QJsonDocument doc;
+		QJsonObject obj;
+		obj.insert("localBackups", QJsonValue(m_settings.localBackups));
+		obj.insert("localBackupPath", QJsonValue(m_settings.localBackupPath));
+		obj.insert("removableBackups", QJsonValue(m_settings.removableBackups));
+		obj.insert("removableBackupPath", QJsonValue(m_settings.removableBackupPath));
+		obj.insert("removableBackupVolume", QJsonValue(m_settings.removableBackupVolume));
+		doc.setObject(obj);
+		QByteArray datum = doc.toJson();
+		configFile.write(datum);
+		configFile.close();
+	}
 
 	QStyle *style = SignetApplication::get()->style();
 	QObject::connect(&m_resetTimer, SIGNAL(timeout()), this, SLOT(resetTimer()));

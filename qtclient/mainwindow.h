@@ -42,9 +42,18 @@ struct fwSection {
 	QByteArray contents;
 };
 
+struct appSettings {
+	bool localBackups;
+	QString localBackupPath;
+	bool removableBackups;
+	QString removableBackupPath;
+	QString removableBackupVolume;
+};
+
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
+	appSettings m_settings;
 public:
 	explicit MainWindow(QWidget *parent = 0);
 	void closeEvent(QCloseEvent *event);
@@ -64,6 +73,9 @@ public:
 		STATE_BACKING_UP,
 		STATE_UPDATING_FIRMWARE
 	};
+	appSettings *getSettings() {
+		return &m_settings;
+	}
 private:
 	QProgressBar *m_wipeProgress;
 	QWidget *m_wipingWidget;
