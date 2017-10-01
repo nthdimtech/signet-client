@@ -102,6 +102,9 @@ private:
 
 	QWidget *m_uninitPrompt;
 
+	QAction *m_saveAction;
+	QAction *m_importAction;
+	QAction *m_exportAction;
 	QAction *m_backupAction;
 	QAction *m_restoreAction;
 	QAction *m_logoutAction;

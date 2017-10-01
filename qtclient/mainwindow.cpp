@@ -70,14 +70,21 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_buttonWaitDialog(NULL),
 	m_signetdevCmdToken(-1)
 {
+
+	QStyle *style = SignetApplication::get()->style();
 	QObject::connect(&m_resetTimer, SIGNAL(timeout()), this, SLOT(resetTimer()));
 
 	QObject::connect(&m_connectingTimer, SIGNAL(timeout()), this, SLOT(connectingTimer()));
 	QMenuBar *bar = new QMenuBar();
 	this->setMenuBar(bar);
 	m_fileMenu = bar->addMenu("File");
-	QAction *quit_action = m_fileMenu->addAction("Quit");
+	m_saveAction = m_fileMenu->addAction(style->standardIcon(QStyle::SP_DialogSaveButton)
+, "Save");
+	m_importAction = m_fileMenu->addAction("Import");
+	m_exportAction = m_fileMenu->addAction("Export");
+	QAction *quit_action = m_fileMenu->addAction("Exit");
 	QObject::connect(quit_action, SIGNAL(triggered(bool)), this, SLOT(quit()));
+	connect(m_saveAction, SIGNAL(triggered(bool)), this, SLOT(backupDeviceUi()));
 
 	m_deviceMenu = bar->addMenu("Device");
 
@@ -109,6 +116,9 @@ MainWindow::MainWindow(QWidget *parent) :
 	QObject::connect(m_updateFirmwareAction, SIGNAL(triggered(bool)),
 			 this, SLOT(updateFirmwareUi()));
 
+	m_saveAction->setVisible(false);
+	m_importAction->setVisible(false);
+	m_exportAction->setVisible(false);
 	m_logoutAction->setVisible(false);
 	m_eraseDeviceAction->setVisible(false);
 	m_wipeDeviceAction->setVisible(false);
@@ -787,6 +797,15 @@ void MainWindow::enterDeviceState(int state)
 	default:
 		break;
 	}
+
+	bool fileActionsVisible = m_loggedIn;
+	bool fileActionsEnabled = (m_deviceState == STATE_LOGGED_IN);
+	m_saveAction->setVisible(fileActionsVisible);
+	m_importAction->setVisible(fileActionsVisible);
+	m_exportAction->setVisible(fileActionsVisible);
+	m_saveAction->setEnabled(fileActionsEnabled);
+	m_importAction->setEnabled(fileActionsEnabled);
+	m_exportAction->setEnabled(fileActionsEnabled);
 }
 
 void MainWindow::eraseDeviceUi()
