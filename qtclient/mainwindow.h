@@ -113,11 +113,12 @@ private:
 	QTimer m_resetTimer;
 
 	QWidget *m_uninitPrompt;
+	QMenu *m_exportMenu;
 
 	QAction *m_saveAction;
 	QAction *m_importAction;
 	QAction *m_settingsAction;
-	QAction *m_exportAction;
+	QAction *m_exportCSVAction;
 	QAction *m_backupAction;
 	QAction *m_restoreAction;
 	QAction *m_logoutAction;
@@ -152,6 +153,7 @@ public slots:
 	void signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_get_progress_resp_data data);
 	void signetdevStartupResp(signetdevCmdRespInfo info, int device_state, QByteArray hashfn, QByteArray salt);
 	void signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray block);
+	void signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
 
 	void wipeDeviceDialogFinished(int code);
 	void connectionError();
@@ -172,6 +174,7 @@ public slots:
 	void connectingTimer();
 	void background();
 	void openSettingsUi();
+	void exportCSVUi();
 };
 
 #endif // MAINWINDOW_H

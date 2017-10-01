@@ -40,6 +40,7 @@ typedef enum signetdev_cmd_id {
 	SIGNETDEV_CMD_WRITE_BLOCK,
 	SIGNETDEV_CMD_WRITE_FLASH,
 	SIGNETDEV_CMD_ERASE_PAGES,
+	SIGNETDEV_CMD_READ_ALL_ID,
 	SIGNETDEV_NUM_COMMANDS
 } signetdev_cmd_id_t;
 
@@ -77,6 +78,14 @@ int signetdev_read_block_async(void *param, int *token, int idx);
 int signetdev_write_block_async(void *param, int *token, int idx, const void *buffer);
 int signetdev_write_flash_async(void *param, int *token, u32 addr, const void *data, int data_len);
 int signetdev_erase_pages_async(void *param, int *token, int n_pages, const u8 *page_numbers);
+int signetdev_read_all_id_async(void *user, int *token, int unmask);
+
+struct signetdev_read_all_id_resp_data {
+	int id;
+	int size;
+	u8 data[CMD_PACKET_PAYLOAD_SIZE];
+	u8 mask[CMD_PACKET_PAYLOAD_SIZE];
+};
 
 struct signetdev_read_id_resp_data {
 	int size;
@@ -107,7 +116,7 @@ void signetdev_win32_set_window_handle(HANDLE recp);
 int signetdev_filter_window_messasage(UINT uMsg, WPARAM wParam, LPARAM lParam);
 #endif
 
-typedef void (*signetdev_cmd_resp_t)(void *cb_param, void *cmd_user_param, int cmd_token, int cmd, int resp_code, void *resp_data);
+typedef void (*signetdev_cmd_resp_t)(void *cb_param, void *cmd_user_param, int cmd_token, int messages_remaining, int cmd, int resp_code, void *resp_data);
 typedef void (*signetdev_device_event_t)(void *cb_param, int event_type, void *resp_data, int resp_len);
 
 

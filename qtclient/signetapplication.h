@@ -17,6 +17,7 @@ struct signetdevCmdRespInfo {
 	int token;
 	int cmd;
 	int resp_code;
+	int messages_remaining;
 };
 
 extern "C" {
@@ -46,7 +47,7 @@ private:
 	MainWindow *m_main_window;
 	static void deviceOpenedS(void *this_);
 	static void deviceClosedS(void *this_);
-	static void commandRespS(void *cb_param, void *cmd_user_param, int cmd_token, int cmd, int resp_code, void *resp_data);
+	static void commandRespS(void *cb_param, void *cmd_user_param, int cmd_token, int cmd, int messages_remaining, int resp_code, void *resp_data);
 	static void deviceEventS(void *cb_param, int event_type, void *data, int data_len);
 	static void connectionErrorS(void *cb_param);
 	static void generateScryptKey(const QString &password, QByteArray &key, const QByteArray &salt, unsigned int N, unsigned int r, unsigned int s);
@@ -80,6 +81,7 @@ signals:
 	void signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_get_progress_resp_data resp);
 	void signetdevStartupResp(signetdevCmdRespInfo info, int device_state, QByteArray hashfn, QByteArray salt);
 	void signetdevReadIdResp(signetdevCmdRespInfo info, QByteArray data, QByteArray mask);
+	void signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
 	void signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray block);
 	void signetdevEvent(int event_type);
 public slots:

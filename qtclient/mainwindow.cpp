@@ -82,14 +82,20 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_settingsAction = m_fileMenu->addAction("Settings");
 	m_saveAction = m_fileMenu->addAction(style->standardIcon(QStyle::SP_DialogSaveButton)
 , "Save");
+
 	m_importAction = m_fileMenu->addAction("Import");
-	m_exportAction = m_fileMenu->addAction("Export");
+	m_exportMenu = m_fileMenu->addMenu("Export");
+
+	m_exportCSVAction = m_exportMenu->addAction("CSV");
 	QAction *quit_action = m_fileMenu->addAction("Exit");
 	QObject::connect(quit_action, SIGNAL(triggered(bool)), this, SLOT(quit()));
 	connect(m_saveAction, SIGNAL(triggered(bool)), this, SLOT(backupDeviceUi()));
 
 	connect(m_settingsAction, SIGNAL(triggered(bool)), this,
 		SLOT(openSettingsUi()));
+
+	connect(m_exportCSVAction, SIGNAL(triggered(bool)), this,
+		SLOT(exportCSVUi()));
 
 	m_deviceMenu = bar->addMenu("Device");
 
@@ -123,7 +129,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	m_saveAction->setVisible(false);
 	m_importAction->setVisible(false);
-	m_exportAction->setVisible(false);
+	m_exportMenu->setVisible(false);
 	m_logoutAction->setVisible(false);
 	m_eraseDeviceAction->setVisible(false);
 	m_wipeDeviceAction->setVisible(false);
@@ -423,6 +429,13 @@ void MainWindow::backupError()
 	::signetdev_end_device_backup_async(NULL, &m_signetdevCmdToken);
 }
 
+void MainWindow::signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask)
+{
+	if (info.token != m_signetdevCmdToken) {
+		return;
+	}
+}
+
 void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, int device_state, QByteArray hashfn, QByteArray salt)
 {
 	if (info.token != m_signetdevCmdToken) {
@@ -584,7 +597,7 @@ void MainWindow::loadSettings()
 	}
 	QJsonValue localBackupPath = obj.value("localBackupPath");
 	if (localBackupPath.isString()) {
-		m_settings.localBackupPath = localBackupPath.isString();
+		m_settings.localBackupPath = localBackupPath.toString();
 	} else {
 		m_settings.localBackupPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/SignetBackups";
 	}
@@ -595,15 +608,15 @@ void MainWindow::loadSettings()
 	} else {
 		m_settings.removableBackups = false;
 	}
-	QJsonValue removableBackupPath = obj.value("localBackupPath");
+	QJsonValue removableBackupPath = obj.value("removableBackupPath");
 	if (removableBackupPath.isString()) {
-		m_settings.removableBackupPath = localBackupPath.isString();
+		m_settings.removableBackupPath = removableBackupPath.toString();
 	} else {
 		m_settings.removableBackupPath = "SignetBackups";
 	}
 	QJsonValue removableBackupVolume = obj.value("removableBackupVolume");
 	if (removableBackupVolume.isString()) {
-		m_settings.removableBackupVolume = removableBackupVolume.isString();
+		m_settings.removableBackupVolume = removableBackupVolume.toString();
 	} else {
 		m_settings.removableBackupVolume = "";
 	}
@@ -902,11 +915,11 @@ void MainWindow::enterDeviceState(int state)
 	bool fileActionsEnabled = (m_deviceState == STATE_LOGGED_IN);
 	m_saveAction->setVisible(fileActionsVisible);
 	m_importAction->setVisible(fileActionsVisible);
-	m_exportAction->setVisible(fileActionsVisible);
+	m_exportMenu->setVisible(fileActionsVisible);
 	m_settingsAction->setVisible(fileActionsVisible);
 	m_saveAction->setEnabled(fileActionsEnabled);
 	m_importAction->setEnabled(fileActionsEnabled);
-	m_exportAction->setEnabled(fileActionsEnabled);
+	m_exportMenu->setEnabled(fileActionsEnabled);
 	m_settingsAction->setEnabled(fileActionsEnabled);
 }
 
@@ -1125,6 +1138,11 @@ void MainWindow::backupDeviceUi()
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 	m_buttonWaitDialog->show();
 	::signetdev_begin_device_backup_async(NULL, &m_signetdevCmdToken);
+}
+
+void MainWindow::exportCSVUi()
+{
+	::signetdev_read_all_id_async(NULL, &m_signetdevCmdToken, 1);
 }
 
 void MainWindow::restoreDeviceUi()

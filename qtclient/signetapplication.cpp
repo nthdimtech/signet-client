@@ -95,17 +95,29 @@ void SignetApplication::deviceEventS(void *cb_param, int event_type, void *data,
 	this_->signetdevEvent(event_type);
 }
 
-
-void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int cmd_token, int cmd, int resp_code, void *resp_data)
+void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int cmd_token, int cmd, int messages_remaining, int resp_code, void *resp_data)
 {
 	signetdevCmdRespInfo info;
 	info.param = cmd_user_param;
 	info.cmd = cmd;
 	info.token = cmd_token;
 	info.resp_code = resp_code;
+	info.messages_remaining = messages_remaining;
 
 	SignetApplication *this_ = (SignetApplication *)cb_param;
 	switch(cmd) {
+	case SIGNETDEV_CMD_READ_ALL_ID: {
+		if (resp_data) {
+			signetdev_read_all_id_resp_data *resp = (signetdev_read_all_id_resp_data *)resp_data;
+			QByteArray data((char *)resp->data, resp->size);
+			QByteArray mask((char *)resp->mask, resp->size);
+			this_->signetdevReadAllIdResp(info, resp->id, data, mask);
+		} else {
+			QByteArray data;
+			QByteArray mask;
+			this_->signetdevReadAllIdResp(info, -1, data, mask);
+		}
+	} break;
 	case SIGNETDEV_CMD_READ_BLOCK: {
 		QByteArray blk((const char *)resp_data, BLK_SIZE);
 		this_->signetdevReadBlockResp(info, blk);
@@ -168,6 +180,8 @@ void SignetApplication::init()
 		m_main_window, SLOT(signetdevStartupResp(signetdevCmdRespInfo,int, QByteArray, QByteArray)));
 	connect(this, SIGNAL(signetdevReadBlockResp(signetdevCmdRespInfo, QByteArray)),
 		m_main_window, SLOT(signetdevReadBlockResp(signetdevCmdRespInfo, QByteArray)));
+	connect(this, SIGNAL(signetdevReadAllIdResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)),
+		m_main_window, SLOT(signetdevReadAllIdResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)));
 
 	connect(this, SIGNAL(connectionError()), m_main_window, SLOT(connectionError()));
 

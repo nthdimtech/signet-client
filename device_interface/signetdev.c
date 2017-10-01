@@ -217,6 +217,16 @@ int signetdev_get_progress_async(void *user, int *token, int progress, int state
 			msg, sizeof(msg), SIGNETDEV_PRIV_GET_RESP);
 }
 
+int signetdev_read_all_id_async(void *user, int *token, int unmask)
+{
+	uint8_t msg[1];
+	*token = get_cmd_token();
+	msg[0] = unmask;
+	return signetdev_priv_send_message_async(user, *token,
+			GET_ALL_DATA, SIGNETDEV_CMD_READ_ALL_ID,
+			msg, sizeof(msg), SIGNETDEV_PRIV_GET_RESP);
+}
+
 int signetdev_begin_device_backup_async(void *user, int *token)
 {
 	*token = get_cmd_token();
@@ -480,7 +490,33 @@ int signetdev_priv_message_packet_count(int msg_sz)
 	return (msg_sz + RAW_HID_PAYLOAD_SIZE - 1)/ RAW_HID_PAYLOAD_SIZE;
 }
 
-void signetdev_priv_handle_command_resp(void *user, int token, int dev_cmd, int api_cmd, int resp_code, const u8 *resp, int resp_len, int expected_messages_remaining)
+static int decode_id(const u8 *resp, int resp_len, u8 *data, u8 *mask, int *size)
+{
+	if (resp_len < 2) {
+		return -1;
+	}
+	*size = resp[0] + (resp[1] << 8);
+	resp_len -= 2;
+	resp += 2;
+	int i;
+	unsigned int blk_count = SIZE_TO_SUB_BLK_COUNT(*size);
+	if ((SUB_BLK_SIZE * blk_count) >= CMD_PACKET_PAYLOAD_SIZE) {
+		return -1;
+	}
+	for (i = 0; i < *size; i++) {
+		int blk = i / SUB_BLK_DATA_SIZE;
+		int blk_field = (i % SUB_BLK_DATA_SIZE);
+		int bit = (resp[(blk * SUB_BLK_SIZE) + (blk_field/8)] >> (blk_field%8)) & 1;
+		data[i] = resp[(blk * SUB_BLK_SIZE) + blk_field + SUB_BLK_MASK_SIZE];
+		mask[i/8] = (mask[i/8] & ~(1<<(i%8))) | (bit << (i%8));
+	}
+	return 0;
+}
+
+void signetdev_priv_handle_command_resp(void *user, int token,
+					int dev_cmd, int api_cmd,
+					int resp_code, const u8 *resp, int resp_len,
+					int expected_messages_remaining)
 {
 	(void)(expected_messages_remaining);
 	switch (dev_cmd)
@@ -491,7 +527,7 @@ void signetdev_priv_handle_command_resp(void *user, int token, int dev_cmd, int 
 			break;
 		} else if (g_command_resp_cb) {
 			g_command_resp_cb(g_command_resp_cb_param,
-				user, token, api_cmd,
+				user, token, api_cmd, expected_messages_remaining,
 				resp_code, (void *)resp);
 		}
 	} break;
@@ -518,7 +554,7 @@ void signetdev_priv_handle_command_resp(void *user, int token, int dev_cmd, int 
 		}
 		if (g_command_resp_cb)
 			g_command_resp_cb(g_command_resp_cb_param,
-				user, token, api_cmd,
+				user, token, api_cmd, expected_messages_remaining,
 				resp_code, &cb_resp);
 
 		} break;
@@ -529,47 +565,55 @@ void signetdev_priv_handle_command_resp(void *user, int token, int dev_cmd, int 
 		memcpy(cb_resp.salt, resp + 1 + AES_BLK_SIZE, AES_BLK_SIZE);
 		if (g_command_resp_cb)
 			g_command_resp_cb(g_command_resp_cb_param,
-				user, token, api_cmd,
+				user, token, api_cmd, expected_messages_remaining,
 				resp_code, &cb_resp);
+		} break;
+	case GET_ALL_DATA: {
+		struct signetdev_read_all_id_resp_data cb_resp;
+		u8 *data = cb_resp.data;
+		u8 *mask = cb_resp.mask;
+		if (resp_code == OKAY) {
+			if (resp_len < 2) {
+				signetdev_priv_handle_error();
+				break;
+			}
+			cb_resp.id = resp[0] + (resp[1] << 8);
+			resp_len -=2;
+			resp += 2;
+			if (resp_len == 0) {
+				cb_resp.size = 0;
+			} else if (decode_id(resp, resp_len, data, mask, &cb_resp.size)) {
+				signetdev_priv_handle_error();
+				break;
+			}
+		}
+		if (g_command_resp_cb)
+			g_command_resp_cb(g_command_resp_cb_param,
+				user, token, api_cmd, expected_messages_remaining,
+				resp_code, &cb_resp);
+
 		} break;
 	case GET_DATA: {
 		struct signetdev_read_id_resp_data cb_resp;
 		u8 *data = cb_resp.data;
 		u8 *mask = cb_resp.mask;
 		cb_resp.size = 0;
-		const u8 *ptr = resp;
 		if (resp_code == OKAY) {
-			if (resp_len < 2) {
+			if (decode_id(resp, resp_len, data, mask, &cb_resp.size)) {
 				signetdev_priv_handle_error();
 				break;
-			}
-			cb_resp.size = resp[0] + (resp[1] << 8);
-			resp_len -= 2;
-			ptr += 2;
-			int i;
-			unsigned int blk_count = SIZE_TO_SUB_BLK_COUNT(resp_len);
-			if ((SUB_BLK_SIZE * blk_count) >= sizeof(cb_resp.data)) {
-				signetdev_priv_handle_error();
-				break;
-			}
-			for (i = 0; i < cb_resp.size; i++) {
-				int blk = i / SUB_BLK_DATA_SIZE;
-				int blk_field = (i % SUB_BLK_DATA_SIZE);
-				int bit = (ptr[(blk * SUB_BLK_SIZE) + (blk_field/8)] >> (blk_field%8)) & 1;
-				data[i] = ptr[(blk * SUB_BLK_SIZE) + blk_field + SUB_BLK_MASK_SIZE];
-				mask[i/8] = (mask[i/8] & ~(1<<(i%8))) | (bit << (i%8));
 			}
 		}
 		if (g_command_resp_cb)
 			g_command_resp_cb(g_command_resp_cb_param,
-				user, token, api_cmd,
+				user, token, api_cmd, expected_messages_remaining,
 				resp_code, &cb_resp);
 
 		} break;
 	default:
 		if (g_command_resp_cb)
 			g_command_resp_cb(g_command_resp_cb_param,
-					  user, token, api_cmd,
+					  user, token, api_cmd, expected_messages_remaining,
 					  resp_code, NULL);
 		break;
 	}
