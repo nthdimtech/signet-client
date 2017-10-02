@@ -23,6 +23,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QStandardPaths>
+#include <QDateTime>
 
 #include "loggedinwidget.h"
 #include "account.h"
@@ -742,6 +743,48 @@ void MainWindow::loadSettings()
 		}
 		saveSettings();
 	}
+	if (m_settings.localBackups) {
+		QDir backupPath(m_settings.localBackupPath);
+		if (!backupPath.exists()) {
+			QString dirName = backupPath.dirName();
+			if (backupPath.cdUp()) {
+				backupPath.mkdir(dirName);
+				backupPath.setPath(m_settings.localBackupPath);
+			}
+		}
+		if (backupPath.exists()) {
+			QDateTime currentTime = QDateTime::currentDateTime();
+			QString backupFileName = m_settings.localBackupPath + "/" +
+					QString::number(currentTime.date().year()) + "-" +
+					QString::number(currentTime.date().month()) + "-" +
+					QString::number(currentTime.date().day()) + ".sdb";
+			QStringList nameFilters;
+			nameFilters.push_back("*.sdb");
+			QFileInfoList files = backupPath.entryInfoList(nameFilters, QDir::Files, QDir::Time);
+			bool needToCreate = false;
+			if (files.size()) {
+				QDateTime lastModified = files[0].lastModified();
+				qint64 delta = lastModified.daysTo(currentTime);
+				if (delta > 7) {
+					needToCreate = true;
+				}
+			} else {
+				needToCreate = true;
+			}
+			if (needToCreate) {
+				QMessageBox *box = new QMessageBox(QMessageBox::Warning,
+								"Backup database",
+								"No database backups have been made in the last 7 days. Create a new backup?",
+								QMessageBox::Yes | QMessageBox::No,
+								this);
+				int rc = box->exec();
+				box->deleteLater();
+				if (rc == QMessageBox::Yes) {
+					backupDevice(backupFileName);
+				}
+			}
+		}
+	}
 }
 
 void MainWindow::enterDeviceState(int state)
@@ -1234,6 +1277,20 @@ void MainWindow::operationFinished(int code)
 	m_buttonWaitDialog = NULL;
 }
 
+void MainWindow::backupDevice(QString fileName)
+{
+	m_backupFile = new QFile(fileName);
+	bool result = m_backupFile->open(QFile::ReadWrite);
+	if (!result) {
+		SignetApplication::messageBoxError(QMessageBox::Warning, "Backup device", "Failed to create destination file", this);
+		return;
+	}
+	m_buttonWaitDialog = new ButtonWaitDialog("Backup device", "start backing up device", this);
+	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
+	m_buttonWaitDialog->show();
+	::signetdev_begin_device_backup_async(NULL, &m_signetdevCmdToken);
+}
+
 void MainWindow::backupDeviceUi()
 {
 	QFileDialog fd(this);
@@ -1250,16 +1307,7 @@ void MainWindow::backupDeviceUi()
 	QStringList sl = fd.selectedFiles();
 	if (sl.empty())
 		return;
-	m_backupFile = new QFile(sl.first());
-	bool result = m_backupFile->open(QFile::ReadWrite);
-	if (!result) {
-		SignetApplication::messageBoxError(QMessageBox::Warning, "Backup device", "Failed to create destination file", this);
-		return;
-	}
-	m_buttonWaitDialog = new ButtonWaitDialog("Backup device", "start backing up device", this);
-	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
-	m_buttonWaitDialog->show();
-	::signetdev_begin_device_backup_async(NULL, &m_signetdevCmdToken);
+	backupDevice(sl.first());
 }
 
 void MainWindow::exportCSVUi()

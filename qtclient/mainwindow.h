@@ -148,6 +148,7 @@ private:
 	void loadSettings();
 	void saveSettings();
 	void showEvent(QShowEvent *event);
+	void backupDevice(QString fileName);
 #ifdef _WIN32
 	bool nativeEvent(const QByteArray &eventType, void *message, long *result);
 #endif
