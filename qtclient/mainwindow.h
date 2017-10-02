@@ -34,6 +34,7 @@ class QProgressBar;
 class QMenu;
 class QStackedWidget;
 class QByteArray;
+class esdbTypeModule;
 
 struct fwSection {
 	QString name;
@@ -50,10 +51,17 @@ struct appSettings {
 	QString removableBackupVolume;
 };
 
+struct exportType {
+	QList<QVector<QString> > m_data;
+};
+
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
 	appSettings m_settings;
+	esdbTypeModule *m_genericTypeModule;
+	esdbTypeModule *m_accountTypeModule;
+	esdbTypeModule *m_bookmarkTypeModule;
 public:
 	explicit MainWindow(QWidget *parent = 0);
 	void closeEvent(QCloseEvent *event);
@@ -71,7 +79,8 @@ public:
 		STATE_WIPING,
 		STATE_RESTORING,
 		STATE_BACKING_UP,
-		STATE_UPDATING_FIRMWARE
+		STATE_UPDATING_FIRMWARE,
+		STATE_EXPORTING
 	};
 	appSettings *getSettings() {
 		return &m_settings;
@@ -88,6 +97,10 @@ private:
 	bool m_loggedIn;
 	QTimer m_connectingTimer;
 	bool m_wasConnected;
+
+	QMap<QString, int> m_exportFieldMap;
+	QVector<QString> m_exportField;
+	QMap<QString, exportType> m_exportData;
 
 	enum device_state m_deviceState;
 
@@ -129,6 +142,7 @@ private:
 	ButtonWaitDialog *m_buttonWaitDialog;
 	QMessageBox *m_wipeDeviceDialog;
 	int m_signetdevCmdToken;
+	bool m_startedExport;
 
 	void sendFirmwareWriteCmd();
 	void loadSettings();

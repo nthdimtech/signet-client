@@ -41,6 +41,10 @@ extern "C" {
 };
 
 #include "changemasterpassword.h"
+#include "esdbgenericmodule.h"
+#include "esdbbookmarkmodule.h"
+#include "esdbaccountmodule.h"
+#include "generictypedesc.h"
 
 MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
@@ -70,8 +74,15 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_eraseDeviceAction(NULL),
 	m_changePasswordAction(NULL),
 	m_buttonWaitDialog(NULL),
-	m_signetdevCmdToken(-1)
+	m_signetdevCmdToken(-1),
+	m_startedExport(false)
 {
+	genericTypeDesc *g = new genericTypeDesc();
+	g->name = "generic";
+	m_genericTypeModule = new esdbGenericModule(g, NULL);
+	m_accountTypeModule = new esdbAccountModule(NULL);
+	m_bookmarkTypeModule = new esdbBookmarkModule(NULL);
+
 	QStyle *style = SignetApplication::get()->style();
 	QObject::connect(&m_resetTimer, SIGNAL(timeout()), this, SLOT(resetTimer()));
 
@@ -129,7 +140,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	m_saveAction->setVisible(false);
 	m_importAction->setVisible(false);
-	m_exportMenu->setVisible(false);
 	m_logoutAction->setVisible(false);
 	m_eraseDeviceAction->setVisible(false);
 	m_wipeDeviceAction->setVisible(false);
@@ -429,10 +439,104 @@ void MainWindow::backupError()
 	::signetdev_end_device_backup_async(NULL, &m_signetdevCmdToken);
 }
 
+#include "genericfields.h"
+#include "generic.h"
+#include <QVector>
+
 void MainWindow::signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask)
 {
 	if (info.token != m_signetdevCmdToken) {
 		return;
+	}
+	if (m_buttonWaitDialog)
+		m_buttonWaitDialog->done(QMessageBox::Ok);
+
+	if (m_startedExport) {
+		enterDeviceState(STATE_EXPORTING);
+		m_backupProgress->setMaximum(info.messages_remaining);
+		m_backupProgress->setMinimum(0);
+		m_backupProgress->setValue(0);
+		m_startedExport = false;
+		m_exportData.clear();
+		m_exportField.clear();
+		m_exportFieldMap.clear();
+	} else {
+		m_backupProgress->setValue(m_backupProgress->maximum() - info.messages_remaining);
+	}
+
+	block *blk = new block();
+	blk->data = data;
+	blk->mask = mask;
+	esdbEntry_1 tmp(id);
+	tmp.fromBlock(blk);
+
+	esdbTypeModule *typeModule = NULL;
+	QString typeName;
+
+	switch (tmp.type) {
+	case ESDB_TYPE_ACCOUNT:
+		typeModule = m_accountTypeModule;
+		typeName = typeModule->name();
+		break;
+	case ESDB_TYPE_BOOKMARK:
+		typeModule = m_bookmarkTypeModule;
+		typeName = typeModule->name();
+		break;
+	case ESDB_TYPE_GENERIC:
+		typeModule = m_genericTypeModule;
+		break;
+	}
+	if (typeModule != NULL) {
+		esdbEntry *entry = typeModule->decodeEntry(id, tmp.revision, NULL, blk);
+		if (tmp.type == ESDB_TYPE_GENERIC) {
+			generic *g = (generic *)entry;
+			typeName = g->typeName;
+		}
+
+		if (entry) {
+			exportType &exportType = m_exportData[typeName];
+			QVector<genericField> fields;
+			entry->getFields(fields);
+			for (genericField x : fields) {
+				auto iter = m_exportFieldMap.find(x.name);
+				if (iter == m_exportFieldMap.end()) {
+					m_exportField.push_back(x.name);
+					m_exportFieldMap[x.name] = m_exportField.size() - 1;
+				}
+			}
+			exportType.m_data.push_back(QVector<QString>());
+			QVector<QString> &csvEntry = exportType.m_data.back();
+			csvEntry.resize(m_exportField.size() + 1);
+			for (genericField x : fields) {
+				int index = m_exportFieldMap[x.name];
+				csvEntry[index] = x.value;
+			}
+		}
+	}
+	if (!info.messages_remaining) {
+		QTextStream out(m_backupFile);
+
+		out << "typeName,";
+		for (auto x : m_exportField) {
+			out << x << ",";
+		}
+		out << endl;
+		QMap<QString, exportType>::iterator x;
+		for (x = m_exportData.begin(); x != m_exportData.end(); x++) {
+			for (auto y : x.value().m_data) {
+				out << x.key() << ",";
+				for (auto z : y) {
+					out << z << ",";
+				}
+				out << endl;
+			}
+		}
+	}
+	if (!info.messages_remaining) {
+		m_backupFile->close();
+		delete m_backupFile;
+		m_backupFile = NULL;
+		enterDeviceState(STATE_LOGGED_IN);
 	}
 }
 
@@ -517,6 +621,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 MainWindow::~MainWindow()
 {
+	delete m_genericTypeModule;
+	delete m_accountTypeModule;
+	delete m_bookmarkTypeModule;
 }
 
 void MainWindow::logoutUi()
@@ -645,6 +752,7 @@ void MainWindow::enterDeviceState(int state)
 	case STATE_LOGGED_IN:
 		break;
 	case STATE_BACKING_UP:
+	case STATE_EXPORTING:
 		m_loggedInStack->setCurrentIndex(0);
 		m_loggedInStack->removeWidget(m_backupWidget);
 		m_backupWidget->deleteLater();
@@ -747,6 +855,21 @@ void MainWindow::enterDeviceState(int state)
 		layout->setAlignment(Qt::AlignTop);
 		m_backupProgress = new QProgressBar();
 		layout->addWidget(new QLabel("Backing up device..."));
+		layout->addWidget(m_backupProgress);
+		m_backupWidget->setLayout(layout);
+		m_deviceMenu->setDisabled(true);
+		m_fileMenu->setDisabled(false);
+		m_loggedInStack->addWidget(m_backupWidget);
+		m_loggedInStack->setCurrentWidget(m_backupWidget);
+	}
+	break;
+	case STATE_EXPORTING: {
+		m_loggedIn = true;
+		m_backupWidget = new QWidget();
+		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
+		layout->setAlignment(Qt::AlignTop);
+		m_backupProgress = new QProgressBar();
+		layout->addWidget(new QLabel("Exporting to CSV"));
 		layout->addWidget(m_backupProgress);
 		m_backupWidget->setLayout(layout);
 		m_deviceMenu->setDisabled(true);
@@ -915,11 +1038,10 @@ void MainWindow::enterDeviceState(int state)
 	bool fileActionsEnabled = (m_deviceState == STATE_LOGGED_IN);
 	m_saveAction->setVisible(fileActionsVisible);
 	m_importAction->setVisible(fileActionsVisible);
-	m_exportMenu->setVisible(fileActionsVisible);
 	m_settingsAction->setVisible(fileActionsVisible);
 	m_saveAction->setEnabled(fileActionsEnabled);
 	m_importAction->setEnabled(fileActionsEnabled);
-	m_exportMenu->setEnabled(fileActionsEnabled);
+	m_exportCSVAction->setEnabled(fileActionsEnabled);
 	m_settingsAction->setEnabled(fileActionsEnabled);
 }
 
@@ -1116,18 +1238,18 @@ void MainWindow::backupDeviceUi()
 {
 	QFileDialog fd(this);
 	QStringList filters;
-	filters.append("*.pm_backup");
+	filters.append("*.sdb");
 	filters.append("*");
 	fd.setNameFilters(filters);
 	fd.setFileMode(QFileDialog::AnyFile);
 	fd.setAcceptMode(QFileDialog::AcceptSave);
-	fd.setDefaultSuffix(QString("pm_backup"));
+	fd.setDefaultSuffix(QString("sdb"));
 	fd.setWindowModality(Qt::WindowModal);
-	fd.exec();
-	QStringList sl = fd.selectedFiles();
-	if (sl.empty()) {
+	if (!fd.exec())
 		return;
-	}
+	QStringList sl = fd.selectedFiles();
+	if (sl.empty())
+		return;
 	m_backupFile = new QFile(sl.first());
 	bool result = m_backupFile->open(QFile::ReadWrite);
 	if (!result) {
@@ -1142,6 +1264,31 @@ void MainWindow::backupDeviceUi()
 
 void MainWindow::exportCSVUi()
 {
+	QFileDialog fd(this);
+	QStringList filters;
+	filters.append("*.csv");
+	filters.append("*.txt");
+	filters.append("*");
+	fd.setNameFilters(filters);
+	fd.setFileMode(QFileDialog::AnyFile);
+	fd.setAcceptMode(QFileDialog::AcceptSave);
+	fd.setDefaultSuffix(QString("csv"));
+	fd.setWindowModality(Qt::WindowModal);
+	if (!fd.exec())
+		return;
+	QStringList sl = fd.selectedFiles();
+	if (sl.empty())
+		return;
+	m_backupFile = new QFile(sl.first());
+	bool result = m_backupFile->open(QFile::ReadWrite);
+	if (!result) {
+		SignetApplication::messageBoxError(QMessageBox::Warning, "Export to CSV", "Failed to create CSV file", this);
+		return;
+	}
+	m_buttonWaitDialog = new ButtonWaitDialog("Export CSV", "export to CSV", this, true);
+	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
+	m_buttonWaitDialog->show();
+	m_startedExport = true;
 	::signetdev_read_all_id_async(NULL, &m_signetdevCmdToken, 1);
 }
 
@@ -1149,14 +1296,15 @@ void MainWindow::restoreDeviceUi()
 {
 	QFileDialog fd(this);
 	QStringList filters;
-	filters.append("*.pm_backup");
+	filters.append("*.sdb");
 	filters.append("*");
 	fd.setNameFilters(filters);
 	fd.setFileMode(QFileDialog::AnyFile);
 	fd.setAcceptMode(QFileDialog::AcceptOpen);
-	fd.setDefaultSuffix(QString("pm_backup"));
+	fd.setDefaultSuffix(QString("sdb"));
 	fd.setWindowModality(Qt::WindowModal);
-	fd.exec();
+	if (!fd.exec())
+		return;
 	QStringList sl = fd.selectedFiles();
 	if (sl.empty()) {
 		return;

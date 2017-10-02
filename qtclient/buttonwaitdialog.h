@@ -13,9 +13,10 @@ class ButtonWaitDialog : public QMessageBox
 	QTimer m_timer;
 	void updateText();
 	QString m_action;
+	bool m_longPress;
 	const static int sTimeoutPeriod = 10;
 public:
-	ButtonWaitDialog(QString title, QString action, QWidget *parent = 0);
+	ButtonWaitDialog(QString title, QString action, QWidget *parent = 0, bool longPress = false);
 	void startTimer();
 	void stopTimer();
 public slots:

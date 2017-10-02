@@ -21,6 +21,9 @@ public:
 	virtual esdbEntry *decodeEntry(int id, int revision, esdbEntry *prev, struct block *blk) const = 0;
 
 	esdbTypeModule(const QString &name);
+	virtual ~esdbTypeModule()
+	{
+	}
 
 	QString name()
 	{
