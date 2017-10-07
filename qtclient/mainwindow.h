@@ -25,6 +25,7 @@ class MainWindow;
 #include <QCloseEvent>
 #include <QAction>
 #include <QTimer>
+#include <QDateTime>
 
 class LoggedInWidget;
 class ButtonWaitDialog;
@@ -46,9 +47,12 @@ struct fwSection {
 struct appSettings {
 	bool localBackups;
 	QString localBackupPath;
+	int localBackupInterval;
 	bool removableBackups;
 	QString removableBackupPath;
 	QString removableBackupVolume;
+	int removableBackupInterval;
+	QDateTime lastRemoveableBackup;
 };
 
 struct exportType {
@@ -147,6 +151,7 @@ private:
 	void sendFirmwareWriteCmd();
 	void loadSettings();
 	void saveSettings();
+	void settingsChanged();
 	void showEvent(QShowEvent *event);
 	void backupDevice(QString fileName);
 #ifdef _WIN32

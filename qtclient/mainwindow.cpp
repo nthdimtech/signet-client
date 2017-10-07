@@ -24,6 +24,7 @@
 #include <QJsonDocument>
 #include <QStandardPaths>
 #include <QDateTime>
+#include <QStorageInfo>
 
 #include "loggedinwidget.h"
 #include "account.h"
@@ -465,6 +466,7 @@ void MainWindow::signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByte
 		m_backupProgress->setValue(m_backupProgress->maximum() - info.messages_remaining);
 	}
 
+	if (id >= MIN_ID) {
 	block *blk = new block();
 	blk->data = data;
 	blk->mask = mask;
@@ -513,6 +515,7 @@ void MainWindow::signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByte
 				csvEntry[index] = x.value;
 			}
 		}
+	}
 	}
 	if (!info.messages_remaining) {
 		QTextStream out(m_backupFile);
@@ -662,13 +665,142 @@ void MainWindow::saveSettings()
 	QJsonObject obj;
 	obj.insert("localBackups", QJsonValue(m_settings.localBackups));
 	obj.insert("localBackupPath", QJsonValue(m_settings.localBackupPath));
+	obj.insert("localBackupInterval", QJsonValue(m_settings.localBackupInterval));
 	obj.insert("removableBackups", QJsonValue(m_settings.removableBackups));
 	obj.insert("removableBackupPath", QJsonValue(m_settings.removableBackupPath));
 	obj.insert("removableBackupVolume", QJsonValue(m_settings.removableBackupVolume));
+	obj.insert("removableBackupInterval", QJsonValue(m_settings.removableBackupInterval));
+	obj.insert("lastRemoveableBackup", QJsonValue(m_settings.lastRemoveableBackup.toString()));
 	doc.setObject(obj);
 	QByteArray datum = doc.toJson();
 	configFile.write(datum);
 	configFile.close();
+}
+
+void MainWindow::settingsChanged()
+{
+	QDateTime currentTime = QDateTime::currentDateTime();
+
+	if (m_settings.localBackups) {
+		QString backupFileName = m_settings.localBackupPath + "/" +
+				QString::number(currentTime.date().year()) + "-" +
+				QString::number(currentTime.date().month()) + "-" +
+				QString::number(currentTime.date().day()) + ".sdb";
+		QDir backupPath(m_settings.localBackupPath);
+		if (!backupPath.exists()) {
+			QString dirName = backupPath.dirName();
+			if (backupPath.cdUp()) {
+				backupPath.mkdir(dirName);
+				backupPath.setPath(m_settings.localBackupPath);
+			}
+		}
+		if (backupPath.exists()) {
+			QStringList nameFilters;
+			nameFilters.push_back("*.sdb");
+			QFileInfoList files = backupPath.entryInfoList(nameFilters, QDir::Files, QDir::Time);
+			bool needToCreate = false;
+			if (files.size()) {
+				QDateTime lastModified = files[0].lastModified();
+				qint64 delta = lastModified.daysTo(currentTime);
+				if (delta > m_settings.localBackupInterval) {
+					needToCreate = true;
+				}
+			} else {
+				needToCreate = true;
+			}
+			if (needToCreate) {
+				QMessageBox *box = new QMessageBox(QMessageBox::Warning,
+								"Backup database",
+								"No local database backups have been made in the last " +
+								QString::number(m_settings.localBackupInterval) +
+								" days. Create a new backup?",
+								QMessageBox::Yes | QMessageBox::No,
+								this);
+				int rc = box->exec();
+				box->deleteLater();
+				if (rc == QMessageBox::Yes) {
+					backupDevice(backupFileName);
+					return;
+				}
+			}
+		}
+	}
+	if (m_settings.removableBackups) {
+		if (!m_settings.lastRemoveableBackup.isValid() ||
+			m_settings.lastRemoveableBackup.daysTo(currentTime) > m_settings.removableBackupInterval) {
+			QMessageBox *box = new QMessageBox(QMessageBox::Warning,
+							"Backup database",
+							"No database backups have been made to removable volume " +
+							m_settings.removableBackupVolume +
+							" in the last " +
+							QString::number(m_settings.removableBackupInterval) +
+							" days. Create a new backup?",
+							QMessageBox::Yes | QMessageBox::No,
+							this);
+			int rc = box->exec();
+			box->deleteLater();
+			if (rc == QMessageBox::Yes) {
+				QMessageBox *box = new QMessageBox(QMessageBox::Information,
+								   "Load volume",
+								   "Insert and open volume " + m_settings.removableBackupVolume +
+								   " then click 'Ok' to start backup",
+								   QMessageBox::Ok | QMessageBox::Cancel,
+								   this);
+				int rc = box->exec();
+				box->deleteLater();
+				QStorageInfo storageInfo;
+				bool volumeFound = false;
+				if (rc == QMessageBox::Ok) {
+					QList<QStorageInfo> volumes = QStorageInfo::mountedVolumes();
+					for (auto x : volumes) {
+						if (x.name() != m_settings.removableBackupVolume)
+							continue;
+						storageInfo = x;
+						volumeFound = true;
+						break;
+					}
+					if (volumeFound) {
+						QString backupPath = storageInfo.rootPath() + "/" +
+								m_settings.removableBackupPath;
+						QString backupFileName = backupPath + "/" +
+								QString::number(currentTime.date().year()) + "-" +
+								QString::number(currentTime.date().month()) + "-" +
+								QString::number(currentTime.date().day()) + ".sdb";
+						QDir backupPathDir(backupPath);
+						if (!backupPathDir.exists()) {
+							QString dirName = backupPathDir.dirName();
+							if (backupPathDir.cdUp()) {
+								backupPathDir.mkdir(dirName);
+								backupPathDir.setPath(m_settings.localBackupPath);
+							}
+						}
+						if (backupPathDir.exists()) {
+							backupDevice(backupFileName);
+							m_settings.lastRemoveableBackup = currentTime;
+							saveSettings();
+						} else {
+							QMessageBox *box = new QMessageBox(QMessageBox::Warning,
+											   "Backup database",
+											   "Failed to create backup path",
+											   QMessageBox::Ok,
+											   this);
+							box->exec();
+							box->deleteLater();
+						}
+					} else {
+						QMessageBox *box = new QMessageBox(QMessageBox::Warning,
+										   "Backup database",
+										   "No open volume named " + m_settings.removableBackupVolume +
+										   " found",
+										   QMessageBox::Ok,
+										   this);
+						box->exec();
+						box->deleteLater();
+					}
+				}
+			}
+		}
+	}
 }
 
 void MainWindow::loadSettings()
@@ -709,6 +841,12 @@ void MainWindow::loadSettings()
 	} else {
 		m_settings.localBackupPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/SignetBackups";
 	}
+	QJsonValue localBackupInterval = obj.value("localBackupInterval");
+	if (localBackupInterval.isDouble()) {
+		m_settings.localBackupInterval = localBackupInterval.toInt();
+	} else {
+		m_settings.localBackupInterval = 7;
+	}
 
 	QJsonValue removableBackups = obj.value("removableBackups");
 	if (removableBackups.isBool()) {
@@ -726,7 +864,19 @@ void MainWindow::loadSettings()
 	if (removableBackupVolume.isString()) {
 		m_settings.removableBackupVolume = removableBackupVolume.toString();
 	} else {
-		m_settings.removableBackupVolume = "";
+		m_settings.removableBackupVolume = "SIGNET";
+	}
+	QJsonValue removableBackupInterval = obj.value("removableBackupInterval");
+	if (removableBackupInterval.isDouble()) {
+		m_settings.removableBackupInterval = removableBackupInterval.toInt();
+	} else {
+		m_settings.removableBackupInterval = 30;
+	}
+	QJsonValue lastRemoveableBackup = obj.value("lastRemoveableBackup");
+	if (lastRemoveableBackup.isString()) {
+		m_settings.lastRemoveableBackup = QDateTime::fromString(lastRemoveableBackup.toString());
+	} else {
+		m_settings.lastRemoveableBackup = QDateTime();
 	}
 
 	if (!configFile.exists()) {
@@ -743,48 +893,7 @@ void MainWindow::loadSettings()
 		}
 		saveSettings();
 	}
-	if (m_settings.localBackups) {
-		QDir backupPath(m_settings.localBackupPath);
-		if (!backupPath.exists()) {
-			QString dirName = backupPath.dirName();
-			if (backupPath.cdUp()) {
-				backupPath.mkdir(dirName);
-				backupPath.setPath(m_settings.localBackupPath);
-			}
-		}
-		if (backupPath.exists()) {
-			QDateTime currentTime = QDateTime::currentDateTime();
-			QString backupFileName = m_settings.localBackupPath + "/" +
-					QString::number(currentTime.date().year()) + "-" +
-					QString::number(currentTime.date().month()) + "-" +
-					QString::number(currentTime.date().day()) + ".sdb";
-			QStringList nameFilters;
-			nameFilters.push_back("*.sdb");
-			QFileInfoList files = backupPath.entryInfoList(nameFilters, QDir::Files, QDir::Time);
-			bool needToCreate = false;
-			if (files.size()) {
-				QDateTime lastModified = files[0].lastModified();
-				qint64 delta = lastModified.daysTo(currentTime);
-				if (delta > 7) {
-					needToCreate = true;
-				}
-			} else {
-				needToCreate = true;
-			}
-			if (needToCreate) {
-				QMessageBox *box = new QMessageBox(QMessageBox::Warning,
-								"Backup database",
-								"No database backups have been made in the last 7 days. Create a new backup?",
-								QMessageBox::Yes | QMessageBox::No,
-								this);
-				int rc = box->exec();
-				box->deleteLater();
-				if (rc == QMessageBox::Yes) {
-					backupDevice(backupFileName);
-				}
-			}
-		}
-	}
+	settingsChanged();
 }
 
 void MainWindow::enterDeviceState(int state)
@@ -1095,6 +1204,7 @@ void MainWindow::openSettingsUi()
 	config->deleteLater();
 	if (!rc) {
 		saveSettings();
+		settingsChanged();
 	}
 }
 
@@ -1328,7 +1438,7 @@ void MainWindow::exportCSVUi()
 	if (sl.empty())
 		return;
 	m_backupFile = new QFile(sl.first());
-	bool result = m_backupFile->open(QFile::ReadWrite);
+	bool result = m_backupFile->open(QFile::WriteOnly);
 	if (!result) {
 		SignetApplication::messageBoxError(QMessageBox::Warning, "Export to CSV", "Failed to create CSV file", this);
 		return;
