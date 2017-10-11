@@ -196,7 +196,7 @@ int signetdev_connect_async(void *user, int *token)
 int signetdev_login_async(void *user, int *token, u8 *key, unsigned int key_len)
 {
 	*token = get_cmd_token();
-	uint8_t msg[AES_BLK_SIZE];
+	uint8_t msg[AES_256_KEY_SIZE];
 	memset(msg, 0, sizeof(msg));
 	memcpy(msg, key, key_len > sizeof(msg) ? sizeof(msg) : key_len);
 	return signetdev_priv_send_message_async(user, *token,
@@ -379,10 +379,10 @@ int signetdev_begin_initialize_device_async(void *param, int *token,
 	u8 msg[CMD_PACKET_PAYLOAD_SIZE];
 	memset(msg, 0, INITIALIZE_CMD_SIZE); //Hash function
 
-	memcpy(msg, key, key_len > AES_BLK_SIZE ? AES_BLK_SIZE : key_len);
-	memcpy(msg + AES_BLK_SIZE, hashfn, hashfn_len > AES_BLK_SIZE ? AES_BLK_SIZE : hashfn_len);
-	memcpy(msg + AES_BLK_SIZE*2, salt, salt_len > AES_BLK_SIZE ? AES_BLK_SIZE : salt_len);
-	memcpy(msg + AES_BLK_SIZE*3, rand_data, rand_data_len > INIT_RAND_DATA_SZ ? INIT_RAND_DATA_SZ : rand_data_len);
+	memcpy(msg, key, key_len > AES_256_KEY_SIZE ? AES_256_KEY_SIZE : key_len);
+	memcpy(msg + AES_256_KEY_SIZE, hashfn, hashfn_len > HASH_FN_SZ ? HASH_FN_SZ : hashfn_len);
+	memcpy(msg + AES_256_KEY_SIZE + HASH_FN_SZ, salt, salt_len > SALT_SZ_V2 ? SALT_SZ_V2 : salt_len);
+	memcpy(msg + AES_256_KEY_SIZE + HASH_FN_SZ + SALT_SZ_V2, rand_data, rand_data_len > INIT_RAND_DATA_SZ ? INIT_RAND_DATA_SZ : rand_data_len);
 
 	return signetdev_priv_send_message_async(param, *token,
 			INITIALIZE, SIGNETDEV_CMD_BEGIN_INITIALIZE_DEVICE,
@@ -432,12 +432,12 @@ int signetdev_change_master_password_async(void *param, int *token,
 		u8 *salt, u32 salt_len)
 {
 	*token = get_cmd_token();
-	uint8_t msg[AES_BLK_SIZE * 4];
-	memset(msg, 0, AES_BLK_SIZE * 2);
-	memcpy(msg, old_key, old_key_len > AES_BLK_SIZE ? AES_BLK_SIZE : old_key_len);
-	memcpy(msg + AES_BLK_SIZE, new_key, new_key_len > AES_BLK_SIZE ? AES_BLK_SIZE : new_key_len);
-	memcpy(msg + AES_BLK_SIZE * 2, hashfn, hashfn_len > AES_BLK_SIZE ? AES_BLK_SIZE : hashfn_len);
-	memcpy(msg + AES_BLK_SIZE * 3, salt, salt_len > AES_BLK_SIZE ? AES_BLK_SIZE : salt_len);
+	uint8_t msg[AES_256_KEY_SIZE * 2 + HASH_FN_SZ + SALT_SZ_V2];
+	memset(msg, 0, sizeof(msg));
+	memcpy(msg, old_key, old_key_len > AES_256_KEY_SIZE ? AES_256_KEY_SIZE : old_key_len);
+	memcpy(msg + AES_256_KEY_SIZE, new_key, new_key_len > AES_256_KEY_SIZE ? AES_256_KEY_SIZE : new_key_len);
+	memcpy(msg + AES_256_KEY_SIZE * 2, hashfn, hashfn_len > HASH_FN_SZ ? HASH_FN_SZ : hashfn_len);
+	memcpy(msg + AES_256_KEY_SIZE * 2 + HASH_FN_SZ, salt, salt_len > SALT_SZ_V2 ? SALT_SZ_V2 : salt_len);
 	return signetdev_priv_send_message_async(param, *token, CHANGE_MASTER_PASSWORD,
 			SIGNETDEV_CMD_CHANGE_MASTER_PASSWORD, msg, sizeof(msg),
 			SIGNETDEV_PRIV_GET_RESP);
@@ -560,9 +560,15 @@ void signetdev_priv_handle_command_resp(void *user, int token,
 		} break;
 	case STARTUP: {
 		struct signetdev_startup_resp_data cb_resp;
-		cb_resp.device_state = resp[0];
-		memcpy(cb_resp.hashfn, resp + 1, AES_BLK_SIZE);
-		memcpy(cb_resp.salt, resp + 1 + AES_BLK_SIZE, AES_BLK_SIZE);
+		if (resp_code == OKAY && resp_len < (HASH_FN_SZ + SALT_SZ_V2 + 2)) {
+			signetdev_priv_handle_error();
+			break;
+		} else if (resp_code == OKAY) {
+			cb_resp.device_state = resp[0];
+			cb_resp.root_block_format = resp[1];
+			memcpy(cb_resp.hashfn, resp + 2, HASH_FN_SZ);
+			memcpy(cb_resp.salt, resp + 2 + HASH_FN_SZ, SALT_SZ_V2);
+		}
 		if (g_command_resp_cb)
 			g_command_resp_cb(g_command_resp_cb_param,
 				user, token, api_cmd, expected_messages_remaining,
