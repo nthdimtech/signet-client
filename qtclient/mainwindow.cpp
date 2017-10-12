@@ -79,13 +79,29 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_signetdevCmdToken(-1),
 	m_startedExport(false)
 {
+	SignetApplication *app = SignetApplication::get();
 	genericTypeDesc *g = new genericTypeDesc();
 	g->name = "generic";
 	m_genericTypeModule = new esdbGenericModule(g, NULL);
 	m_accountTypeModule = new esdbAccountModule(NULL);
 	m_bookmarkTypeModule = new esdbBookmarkModule(NULL);
 
-	QStyle *style = SignetApplication::get()->style();
+	connect(app, SIGNAL(deviceOpened()), this, SLOT(deviceOpened()));
+	connect(app, SIGNAL(deviceClosed()), this, SLOT(deviceClosed()));
+	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
+		this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
+	connect(app, SIGNAL(signetdevGetProgressResp(signetdevCmdRespInfo, signetdev_get_progress_resp_data)),
+		this, SLOT(signetdevGetProgressResp(signetdevCmdRespInfo, signetdev_get_progress_resp_data)));
+	connect(app, SIGNAL(signetdevStartupResp(signetdevCmdRespInfo, int, int, QByteArray, QByteArray)),
+		this, SLOT(signetdevStartupResp(signetdevCmdRespInfo,int, int, QByteArray, QByteArray)));
+	connect(app, SIGNAL(signetdevReadBlockResp(signetdevCmdRespInfo, QByteArray)),
+		this, SLOT(signetdevReadBlockResp(signetdevCmdRespInfo, QByteArray)));
+	connect(app, SIGNAL(signetdevReadAllIdResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)),
+		this, SLOT(signetdevReadAllIdResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)));
+	connect(app, SIGNAL(connectionError()),
+		this, SLOT(connectionError()));
+
+	QStyle *style = app->style();
 	QObject::connect(&m_resetTimer, SIGNAL(timeout()), this, SLOT(resetTimer()));
 
 	QObject::connect(&m_connectingTimer, SIGNAL(timeout()), this, SLOT(connectingTimer()));
@@ -544,7 +560,7 @@ void MainWindow::signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByte
 	}
 }
 
-void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, int device_state, QByteArray hashfn, QByteArray salt)
+void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, int device_state, int root_block_ver, QByteArray hashfn, QByteArray salt)
 {
 	if (info.token != m_signetdevCmdToken) {
 		return;
@@ -552,8 +568,21 @@ void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, int device_stat
 	m_signetdevCmdToken = -1;
 	int code = info.resp_code;
 	SignetApplication *app = SignetApplication::get();
-	app->setSalt(salt);
+	QByteArray salt_copy = salt;
+	int keyLength;
+	int saltLength;
+	if (root_block_ver == 1) {
+		saltLength = AES_128_KEY_SIZE;
+		keyLength = AES_128_KEY_SIZE;
+	} else {
+		saltLength = AES_256_KEY_SIZE;
+		keyLength = AES_256_KEY_SIZE;
+	}
+	salt_copy.truncate(saltLength);
+	app->setSaltLength(saltLength);
+	app->setSalt(salt_copy);
 	app->setHashfn(hashfn);
+	app->setKeyLength(keyLength);
 
 	if (m_restoreFile) {
 		m_restoreFile->close();

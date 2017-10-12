@@ -12,9 +12,10 @@ class KeyGeneratorThread : public QThread
 	QByteArray m_key;
 	QByteArray m_hashfn;
 	QByteArray m_salt;
+	int m_keyLength;
 public:
 	KeyGeneratorThread();
-	void setParams(const QString &password, const QByteArray &hashfn, const QByteArray &salt);
+	void setParams(const QString &password, const QByteArray &hashfn, const QByteArray &salt, int keyLength);
 	const QByteArray &getKey()
 	{
 		return m_key;

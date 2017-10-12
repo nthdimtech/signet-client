@@ -27,15 +27,15 @@ ChangeMasterPassword::ChangeMasterPassword(QWidget *parent) :
 	m_signetdevCmdToken(-1)
 {
 	std::random_device rd;
-	m_newHashfn.resize(16);
+	m_newHashfn.resize(HASH_FN_SZ);
 	m_newHashfn.data()[0] = 1;
 	m_newHashfn.data()[1] = 12;
 	m_newHashfn.data()[2] = 32;
 	m_newHashfn.data()[3] = 0;
 	m_newHashfn.data()[4] = 1;
 
-	m_newSalt.resize(16);
-	for (int i = 0; i < 4; i++) {
+	m_newSalt.resize(SALT_SZ_V2);
+	for (int i = 0; i < (SALT_SZ_V2/4); i++) {
 		*((uint32_t *)(m_newSalt.data() + (i*4))) = rd();
 	}
 
@@ -45,7 +45,7 @@ ChangeMasterPassword::ChangeMasterPassword(QWidget *parent) :
 	SignetApplication *app = SignetApplication::get();
 
 	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)), this,
-	        SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
+		SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 
 	setWindowModality(Qt::WindowModal);
 
@@ -105,7 +105,8 @@ void ChangeMasterPassword::keyGenerated()
 		m_generatingOldKey = false;
 		m_generatingNewKey = true;
 		m_oldKey = m_keyGenerator->getKey();
-		m_keyGenerator->setParams(this->m_newPasswordEdit->text(), m_newHashfn, m_newSalt);
+		int keyLength = SignetApplication::get()->getKeyLength();
+		m_keyGenerator->setParams(this->m_newPasswordEdit->text(), m_newHashfn, m_newSalt, keyLength);
 		m_keyGenerator->start();
 	} else if (m_generatingNewKey) {
 		m_generatingNewKey = false;
@@ -115,10 +116,10 @@ void ChangeMasterPassword::keyGenerated()
 		connect(m_buttonDialog, SIGNAL(finished(int)), this, SLOT(changePasswordFinished(int)));
 		m_buttonDialog->show();
 		::signetdev_change_master_password_async(NULL, &m_signetdevCmdToken,
-		        (u8 *)m_oldKey.data(), m_oldKey.length(),
-		        (u8 *)m_newKey.data(), m_newKey.length(),
-		        (u8 *)m_newHashfn.data(), m_newHashfn.length(),
-		        (u8 *)m_newSalt.data(), m_newSalt.length());
+			(u8 *)m_oldKey.data(), m_oldKey.length(),
+			(u8 *)m_newKey.data(), m_newKey.length(),
+			(u8 *)m_newHashfn.data(), m_newHashfn.length(),
+			(u8 *)m_newSalt.data(), m_newSalt.length());
 	}
 }
 
@@ -158,7 +159,8 @@ void ChangeMasterPassword::changePasswordUi()
 		SignetApplication *app = SignetApplication::get();
 		QByteArray current_hashfn = app->getHashfn();
 		QByteArray current_salt = app->getSalt();
-		m_keyGenerator->setParams(this->m_oldPasswordEdit->text(), current_hashfn, current_salt);
+		int keyLength = app->getKeyLength();
+		m_keyGenerator->setParams(this->m_oldPasswordEdit->text(), current_hashfn, current_salt, keyLength);
 		m_keyGenerator->start();
 	}
 }

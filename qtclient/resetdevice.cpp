@@ -54,10 +54,10 @@ ResetDevice::ResetDevice(bool destructive, QWidget *parent) :
 
 	SignetApplication *app = SignetApplication::get();
 	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
-	        this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
+		this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 
 	connect(app, SIGNAL(signetdevGetProgressResp(signetdevCmdRespInfo, signetdev_get_progress_resp_data)),
-	        this, SLOT(signetdevGetProgressResp(signetdevCmdRespInfo, signetdev_get_progress_resp_data)));
+		this, SLOT(signetdevGetProgressResp(signetdevCmdRespInfo, signetdev_get_progress_resp_data)));
 
 
 	QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
@@ -141,10 +141,10 @@ void ResetDevice::keyGenerated()
 		       std::min((int)sizeof(unsigned int), sz - i));
 	}
 	::signetdev_begin_initialize_device_async(NULL, &m_signetdevCmdToken,
-	        (const u8 *)m_keyGenerator->getKey().data(), m_keyGenerator->getKey().length(),
-	        (const u8 *)m_keyGenerator->getHashfn().data(), m_keyGenerator->getHashfn().length(),
-	        (const u8 *)m_keyGenerator->getSalt().data(), m_keyGenerator->getSalt().length(),
-	        rand_data, sizeof(rand_data));
+		(const u8 *)m_keyGenerator->getKey().data(), m_keyGenerator->getKey().length(),
+		(const u8 *)m_keyGenerator->getHashfn().data(), m_keyGenerator->getHashfn().length(),
+		(const u8 *)m_keyGenerator->getSalt().data(), m_keyGenerator->getSalt().length(),
+		rand_data, sizeof(rand_data));
 }
 
 void ResetDevice::reset()
@@ -167,18 +167,18 @@ void ResetDevice::reset()
 	QByteArray hashfn;
 	QByteArray salt;
 
-	hashfn.resize(16);
+	hashfn.resize(HASH_FN_SZ);
 	hashfn.data()[0] = 1;
 	hashfn.data()[1] = 12;
 	hashfn.data()[2] = 32;
 	hashfn.data()[3] = 0;
 	hashfn.data()[4] = 1;
 
-	salt.resize(16);
-	for (int i = 0; i < 4; i++) {
+	salt.resize(SALT_SZ_V2);
+	for (int i = 0; i < (SALT_SZ_V2/4); i++) {
 		*((uint32_t *)(salt.data() + (i*4))) = rd();
 	}
-	m_keyGenerator->setParams(m_passwd, hashfn, salt);
+	m_keyGenerator->setParams(m_passwd, hashfn, salt, AES_256_KEY_SIZE);
 	m_keyGenerator->start();
 }
 
@@ -250,9 +250,9 @@ void ResetDevice::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_
 		app->setSalt(m_keyGenerator->getSalt());
 		app->setHashfn(m_keyGenerator->getHashfn());
 		QMessageBox * box = new QMessageBox(QMessageBox::Information,
-		                                    m_destructive ? "Reset device" : "Initialize device", m_destructive ? "Device reset successfully" : "Device initialized successfully",
-		                                    QMessageBox::Ok,
-		                                    this);
+						    m_destructive ? "Reset device" : "Initialize device", m_destructive ? "Device reset successfully" : "Device initialized successfully",
+						    QMessageBox::Ok,
+						    this);
 		connect(box, SIGNAL(finished(int)), box, SLOT(deleteLater()));
 		connect(box, SIGNAL(finished(int)), this, SLOT(resetDeviceFinalize()));
 		box->show();

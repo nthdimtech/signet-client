@@ -96,8 +96,8 @@ struct signetdev_read_id_resp_data {
 struct signetdev_startup_resp_data {
 	int device_state;
 	int root_block_format;
-	u8 hashfn[AES_BLK_SIZE];
-	u8 salt[AES_BLK_SIZE];
+	u8 hashfn[HASH_FN_SZ];
+	u8 salt[SALT_SZ_V2];
 };
 
 struct signetdev_get_progress_resp_data {

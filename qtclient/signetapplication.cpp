@@ -56,11 +56,11 @@ void SignetApplication::generateScryptKey(const QString &password, QByteArray &k
 
 }
 
-void SignetApplication::generateKey(const QString &password, QByteArray &key, const QByteArray &hashfn, const QByteArray &salt)
+void SignetApplication::generateKey(const QString &password, QByteArray &key, const QByteArray &hashfn, const QByteArray &salt, int keyLength)
 {
 	QByteArray s = password.toUtf8();
-	key.resize(16);
-	memset(key.data(), 0, 16);
+	key.resize(keyLength);
+	memset(key.data(), 0, key.length());
 
 	int fn = hashfn.at(0);
 
@@ -130,15 +130,17 @@ void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int c
 	break;
 	case SIGNETDEV_CMD_STARTUP: {
 		int device_state = 0;
+		int root_block_ver = 0;
 		QByteArray hashfn;
 		QByteArray salt;
 		if (resp_data) {
 			signetdev_startup_resp_data *resp = (signetdev_startup_resp_data *)resp_data;
 			device_state = resp->device_state;
+			root_block_ver = resp->root_block_format;
 			hashfn = QByteArray((const char *)resp->hashfn, sizeof(resp->hashfn));
 			salt = QByteArray((const char *)resp->salt, sizeof(resp->salt));
 		}
-		this_->signetdevStartupResp(info, device_state, hashfn, salt);
+		this_->signetdevStartupResp(info, device_state, root_block_ver, hashfn, salt);
 	}
 	break;
 	case SIGNETDEV_CMD_READ_ID: {
@@ -170,18 +172,6 @@ void SignetApplication::init()
 
 	m_main_window = new MainWindow();
 
-	connect(this, SIGNAL(deviceOpened()), m_main_window, SLOT(deviceOpened()));
-	connect(this, SIGNAL(deviceClosed()), m_main_window, SLOT(deviceClosed()));
-	connect(this, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
-		m_main_window, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
-	connect(this, SIGNAL(signetdevGetProgressResp(signetdevCmdRespInfo, signetdev_get_progress_resp_data)),
-		m_main_window, SLOT(signetdevGetProgressResp(signetdevCmdRespInfo, signetdev_get_progress_resp_data)));
-	connect(this, SIGNAL(signetdevStartupResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)),
-		m_main_window, SLOT(signetdevStartupResp(signetdevCmdRespInfo,int, QByteArray, QByteArray)));
-	connect(this, SIGNAL(signetdevReadBlockResp(signetdevCmdRespInfo, QByteArray)),
-		m_main_window, SLOT(signetdevReadBlockResp(signetdevCmdRespInfo, QByteArray)));
-	connect(this, SIGNAL(signetdevReadAllIdResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)),
-		m_main_window, SLOT(signetdevReadAllIdResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)));
 
 	connect(this, SIGNAL(connectionError()), m_main_window, SLOT(connectionError()));
 

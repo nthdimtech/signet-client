@@ -41,7 +41,6 @@ public:
 	{
 		return g_singleton;
 	}
-	static void generateKey(const QString &password, QByteArray &key, const QByteArray &hashfn, const QByteArray &salt);
 private:
 	SystemTray m_systray;
 	MainWindow *m_main_window;
@@ -53,6 +52,8 @@ private:
 	static void generateScryptKey(const QString &password, QByteArray &key, const QByteArray &salt, unsigned int N, unsigned int r, unsigned int s);
 	QByteArray m_hashfn;
 	QByteArray m_salt;
+	int m_keyLength;
+	int m_saltLength;
 public:
 	QByteArray getHashfn()
 	{
@@ -64,6 +65,16 @@ public:
 		return m_salt;
 	}
 
+	int getKeyLength()
+	{
+		return m_keyLength;
+	}
+
+	int getSaltLength()
+	{
+		return m_keyLength;
+	}
+
 	void setHashfn(QByteArray hashfn)
 	{
 		m_hashfn = hashfn;
@@ -73,13 +84,25 @@ public:
 	{
 		m_salt = salt;
 	}
+
+	void setKeyLength(int keyLength)
+	{
+		m_keyLength = keyLength;
+	}
+
+	void setSaltLength(int saltLength)
+	{
+		m_saltLength = saltLength;
+	}
+
+	static void generateKey(const QString &password, QByteArray &key, const QByteArray &hashfn, const QByteArray &salt, int keyLength);
 signals:
 	void deviceOpened();
 	void deviceClosed();
 	void connectionError();
 	void signetdevCmdResp(const signetdevCmdRespInfo info);
 	void signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_get_progress_resp_data resp);
-	void signetdevStartupResp(signetdevCmdRespInfo info, int device_state, QByteArray hashfn, QByteArray salt);
+	void signetdevStartupResp(signetdevCmdRespInfo info, int device_state, int root_block_ver, QByteArray hashfn, QByteArray salt);
 	void signetdevReadIdResp(signetdevCmdRespInfo info, QByteArray data, QByteArray mask);
 	void signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
 	void signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray block);

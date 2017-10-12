@@ -29,7 +29,7 @@ LoginWindow::LoginWindow(QWidget *parent) : QWidget(parent),
 
 	QObject::connect(m_keyGenerator, SIGNAL(finished()), this, SLOT(keyGenerated()));
 	QObject::connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
-	                 this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
+			 this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 
 	this->setWindowTitle("Login");
 	QLayout *top_layout = new QBoxLayout(QBoxLayout::TopToBottom);
@@ -54,9 +54,9 @@ LoginWindow::LoginWindow(QWidget *parent) : QWidget(parent),
 	top_layout->addWidget(m_preparingLabel);
 	top_layout->addWidget(m_loginButton);
 	connect(m_loginButton, SIGNAL(pressed(void)),
-	        this, SLOT(doLogin(void)));
+		this, SLOT(doLogin(void)));
 	connect(m_passwordInput, SIGNAL(returnPressed(void)),
-	        this, SLOT(doLogin(void)));
+		this, SLOT(doLogin(void)));
 	connect(m_passwordInput, SIGNAL(textEdited(QString)), this, SLOT(passwordTextEdited(QString)));
 	top_layout->setAlignment(Qt::AlignTop);
 	setLayout(top_layout);
@@ -81,8 +81,8 @@ void LoginWindow::keyGenerated()
 			connect(m_buttonWait, SIGNAL(finished(int)), this, SLOT(loginFinished(int)));
 			m_buttonWait->show();
 			::signetdev_login_async(NULL, &m_signetdevCmdToken,
-			                        (u8 *)m_keyGenerator->getKey().data(),
-			                        m_keyGenerator->getKey().length());
+						(u8 *)m_keyGenerator->getKey().data(),
+						m_keyGenerator->getKey().length());
 		}
 	}
 }
@@ -117,7 +117,8 @@ void LoginWindow::doLogin()
 	updateWidgetState();
 	const QByteArray &current_hashfn = SignetApplication::get()->getHashfn();
 	const QByteArray &current_salt = SignetApplication::get()->getSalt();
-	m_keyGenerator->setParams(m_passwordInput->text(), current_hashfn, current_salt);
+	int keyLength = SignetApplication::get()->getKeyLength();
+	m_keyGenerator->setParams(m_passwordInput->text(), current_hashfn, current_salt, keyLength);
 	m_keyGenerator->start();
 }
 
