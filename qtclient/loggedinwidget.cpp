@@ -312,8 +312,11 @@ void LoggedInWidget::open()
 
 void LoggedInWidget::signetDevEvent(int code)
 {
-	Q_UNUSED(code);
-	open();
+	switch (code) {
+	case 1:
+		open();
+		break;
+	}
 }
 
 void LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent)

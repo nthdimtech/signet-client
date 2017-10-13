@@ -107,6 +107,7 @@ signals:
 	void signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
 	void signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray block);
 	void signetdevEvent(int event_type);
+	void signetdevTimerEvent(int seconds_remaining);
 public slots:
 	void mainDestroyed();
 	void trayActivated(QSystemTrayIcon::ActivationReason reason);

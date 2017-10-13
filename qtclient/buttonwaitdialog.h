@@ -10,18 +10,17 @@ class ButtonWaitDialog : public QMessageBox
 {
 	Q_OBJECT
 	int m_timeLeft;
-	QTimer m_timer;
 	void updateText();
 	QString m_action;
 	bool m_longPress;
+	//TODO: We need to do away with this
+	// constant. The device should decide
+	// the timeout
 	const static int sTimeoutPeriod = 10;
 public:
 	ButtonWaitDialog(QString title, QString action, QWidget *parent = 0, bool longPress = false);
-	void startTimer();
-	void stopTimer();
 public slots:
-	void selfFinished(int result);
-	void tick();
+	void signetdevTimerEvent(int);
 };
 
 #endif // BUTTONWAITDIALOG_H

@@ -91,8 +91,15 @@ void SignetApplication::deviceEventS(void *cb_param, int event_type, void *data,
 {
 	Q_UNUSED(data_len);
 	Q_UNUSED(data);
-	SignetApplication *this_ = (SignetApplication *)cb_param;
-	this_->signetdevEvent(event_type);
+	SignetApplication *this_ = (SignetApplication *)cb_param;;
+	switch(event_type) {
+	case 1:
+		this_->signetdevEvent(event_type);
+		break;
+	case 2:
+		this_->signetdevTimerEvent(((u8 *)data)[0]);
+		break;
+	}
 }
 
 void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int cmd_token, int cmd, int messages_remaining, int resp_code, void *resp_data)

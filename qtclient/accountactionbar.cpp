@@ -310,9 +310,6 @@ void AccountActionBar::getEntryDone(esdbEntry *entry, int intent)
 		account *acct = static_cast<account *>(entry);
 		QApplication *app = static_cast<QApplication *>(QApplication::instance());
 		if (app->focusWidget()) {
-			if (m_buttonWaitDialog) {
-				m_buttonWaitDialog->stopTimer();
-			}
 			QMessageBox *box = SignetApplication::messageBoxError(
 					       QMessageBox::Warning,
 					       "Signet",

@@ -675,8 +675,11 @@ void MainWindow::open()
 
 void MainWindow::signetDevEvent(int code)
 {
-	Q_UNUSED(code);
-	open();
+	switch (code) {
+	case 1:
+		open();
+		break;
+	}
 }
 
 void MainWindow::background()
