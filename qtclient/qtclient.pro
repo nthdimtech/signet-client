@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network
+QT       += core gui network websockets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -75,7 +75,9 @@ SOURCES += main.cpp\
     textblockfieldedit.cpp \
     typedescedit.cpp \
     typedesceditor.cpp \
-    configuremachine.cpp
+    configuremachine.cpp \
+    signetdevserver.cpp \
+    signetdevserverconnection.cpp
 
 win32 {
 SOURCES += ../device_interface/rawhid/hid_WINDOWS.c
@@ -154,7 +156,9 @@ HEADERS  += mainwindow.h \
     textblockfieldedit.h \
     typedescedit.h \
     typedesceditor.h \
-    configuremachine.h
+    configuremachine.h \
+    signetdevserver.h \
+    signetdevserverconnection.h
 
 win32 {
 HEADERS += ../device_interface/rawhid/hid.h

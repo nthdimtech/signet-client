@@ -33,7 +33,6 @@ void SignetApplication::connectionErrorS(void *this_)
 SignetApplication::SignetApplication(int &argc, char **argv) :
 	QtSingleApplication(argc, argv)
 {
-
 	g_singleton = this;
 	qRegisterMetaType<signetdevCmdRespInfo>();
 	qRegisterMetaType<signetdev_read_id_resp_data>();
@@ -90,7 +89,6 @@ void SignetApplication::generateKey(const QString &password, QByteArray &key, co
 void SignetApplication::deviceEventS(void *cb_param, int event_type, void *data, int data_len)
 {
 	Q_UNUSED(data_len);
-	Q_UNUSED(data);
 	SignetApplication *this_ = (SignetApplication *)cb_param;;
 	switch(event_type) {
 	case 1:
