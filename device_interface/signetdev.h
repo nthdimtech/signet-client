@@ -41,9 +41,11 @@ typedef enum signetdev_cmd_id {
 	SIGNETDEV_CMD_WRITE_FLASH,
 	SIGNETDEV_CMD_ERASE_PAGES,
 	SIGNETDEV_CMD_READ_ALL_ID,
+	SIGNETDEV_CMD_ENTER_MOBILE_MODE,
 	SIGNETDEV_NUM_COMMANDS
 } signetdev_cmd_id_t;
 
+int signetdev_enter_mobile_mode(void *user, int *token);
 int signetdev_logout_async(void *user, int *token);
 int signetdev_login_async(void *user, int *token, u8 *key, unsigned int key_len);
 int signetdev_begin_update_firmware_async(void *user, int *token);

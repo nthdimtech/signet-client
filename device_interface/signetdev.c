@@ -310,6 +310,15 @@ int signetdev_startup_async(void *param, int *token)
 			SIGNETDEV_PRIV_GET_RESP);
 }
 
+int signetdev_enter_mobile_mode(void *param, int *token)
+{
+	*token = get_cmd_token();
+	return signetdev_priv_send_message_async(param, *token,
+			ENTER_MOBILE_MODE, SIGNETDEV_CMD_ENTER_MOBILE_MODE,
+			NULL, 0,
+			SIGNETDEV_PRIV_NO_RESP);
+}
+
 int signetdev_type_async(void *param, int *token, const u8 *keys, int n_keys)
 {
 	*token = get_cmd_token();
