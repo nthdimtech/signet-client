@@ -283,12 +283,12 @@ int iconAccount::matchQuality(esdbEntry *entry)
 	m_idTask = ID_TASK_READ_POPULATE;
 	m_taskIntent = ID_TASK_NONE;
 	m_id = MIN_ID;
-	::signetdev_read_id_async(NULL, &m_signetdevCmdToken, m_id);
+	::signetdev_read_id_async(NULL, &m_signetdevCmdToken, m_id, 1);
 }
 
 void LoggedInWidget::currentTypeIndexChanged(int idx)
 {
-	if (idx >= 7) {
+	if (idx >= 7) { //TODO: bad magic number
 		idx--;
 	}
 	m_activeType = idx;
@@ -313,7 +313,7 @@ void LoggedInWidget::open()
 void LoggedInWidget::signetDevEvent(int code)
 {
 	switch (code) {
-	case 1:
+	case 1: //TODO: fix magic number
 		open();
 		break;
 	}
@@ -324,7 +324,14 @@ void LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent)
 	m_id = id;
 	m_idTask = task;
 	m_taskIntent = intent;
-	::signetdev_open_id_async(NULL, &m_signetdevCmdToken, m_id);
+	switch (m_idTask) {
+	case ID_TASK_DELETE:
+		::signetdev_delete_id_async(NULL, &m_signetdevCmdToken, m_id);
+		break;
+	case ID_TASK_READ:
+		::signetdev_read_id_async(NULL, &m_signetdevCmdToken, m_id, 0);
+		break;
+	}
 }
 
 void LoggedInWidget::entryChanged(int id)
@@ -367,28 +374,10 @@ void LoggedInWidget::signetdevCmdResp(signetdevCmdRespInfo info)
 	switch (info.cmd) {
 	case SIGNETDEV_CMD_TYPE:
 		break;
-	case SIGNETDEV_CMD_OPEN_ID:
-		if (code == OKAY) {
-			switch (m_idTask) {
-			case ID_TASK_DELETE:
-				::signetdev_delete_id_async(NULL, &m_signetdevCmdToken, m_id);
-				break;
-			case ID_TASK_READ:
-				::signetdev_read_id_async(NULL, &m_signetdevCmdToken, m_id);
-				break;
-			default:
-				m_idTask = ID_TASK_NONE;
-				break;
-			}
-		} else {
-			m_idTask = ID_TASK_NONE;
-		}
-		break;
 	case SIGNETDEV_CMD_DELETE_ID: {
 		EsdbActionBar *bar = getActiveActionBar();
 		bar->idTaskComplete(m_id, m_taskIntent);
 		if (code == OKAY) {
-			::signetdev_close_id_async(NULL, &m_signetdevCmdToken, m_id);
 			m_entries.erase(m_entries.find(m_id));
 			//TODO: too long line
 			m_entriesByType.at(m_activeType)->erase(m_entriesByType.at(m_activeType)->find(m_id));
@@ -396,10 +385,9 @@ void LoggedInWidget::signetdevCmdResp(signetdevCmdRespInfo info)
 		} else {
 			m_idTask = ID_TASK_NONE;
 		}
-	}
-	break;
-	case SIGNETDEV_CMD_CLOSE_ID:
-		m_id = -1;
+		m_idTask = ID_TASK_NONE;
+		} break;
+	case ID_TASK_READ:
 		m_idTask = ID_TASK_NONE;
 		break;
 	}
@@ -440,7 +428,7 @@ void LoggedInWidget::signetdevReadIdResp(signetdevCmdRespInfo info,
 		if (m_idTask == ID_TASK_READ_POPULATE) {
 			m_id++;
 			if (m_id <= MAX_ID) {
-				::signetdev_read_id_async(NULL, &m_signetdevCmdToken, m_id);
+				::signetdev_read_id_async(NULL, &m_signetdevCmdToken, m_id, 1);
 			} else {
 				m_idTask = ID_TASK_NONE;
 			}

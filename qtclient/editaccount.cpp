@@ -129,24 +129,6 @@ void EditAccount::signetdevCmdResp(signetdevCmdRespInfo info)
 	switch (code) {
 	case OKAY: {
 		switch (info.cmd) {
-		case SIGNETDEV_CMD_OPEN_ID: {
-			account acct(m_acct->id);
-			acct.acctName = m_accountNameEdit->text();
-			acct.userName = m_usernameField->text();
-			acct.password = m_passwordEdit->password();
-			acct.url = m_urlField->text();
-			acct.email = m_emailField->text();
-			m_genericFieldsEditor->saveFields();
-			acct.fields = m_acct->fields;
-			block blk;
-			acct.toBlock(&blk);
-			::signetdev_write_id_async(NULL, &m_signetdevCmdToken,
-						   m_acct->id,
-						   blk.data.size(),
-						   (const u8 *)blk.data.data(),
-						   (const u8 *)blk.mask.data());
-		}
-		break;
 		case SIGNETDEV_CMD_WRITE_ID:
 			m_acct->acctName = m_accountNameEdit->text();
 			m_acct->userName = m_usernameField->text();
@@ -236,7 +218,21 @@ void EditAccount::savePressed()
 	connect(m_buttonDialog, SIGNAL(finished(int)), this, SLOT(editAccountFinished(int)));
 	m_buttonDialog->show();
 
-	::signetdev_open_id_async(NULL, &m_signetdevCmdToken, m_acct->id);
+	account acct(m_acct->id);
+	acct.acctName = m_accountNameEdit->text();
+	acct.userName = m_usernameField->text();
+	acct.password = m_passwordEdit->password();
+	acct.url = m_urlField->text();
+	acct.email = m_emailField->text();
+	m_genericFieldsEditor->saveFields();
+	acct.fields = m_acct->fields;
+	block blk;
+	acct.toBlock(&blk);
+	::signetdev_write_id_async(NULL, &m_signetdevCmdToken,
+				   m_acct->id,
+				   blk.data.size(),
+				   (const u8 *)blk.data.data(),
+				   (const u8 *)blk.mask.data());
 }
 
 void EditAccount::editAccountFinished(int code)

@@ -3,8 +3,8 @@
 
 enum commands {
 	STARTUP,
-	OPEN_ID,
-	CLOSE_ID,
+	OPEN_ID, //Defunct
+	CLOSE_ID, //Defunct
 	GET_DATA,
 	SET_DATA,
 	TYPE,

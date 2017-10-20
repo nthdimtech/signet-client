@@ -101,22 +101,6 @@ void OpenGeneric::signetdevCmdResp(signetdevCmdRespInfo info)
 	switch (code) {
 	case OKAY: {
 		switch (info.cmd) {
-		case SIGNETDEV_CMD_OPEN_ID: {
-			//TODO: save fields
-			m_genericFieldsEditor->saveFields();
-			block blk;
-			generic g(m_generic->id);
-			g.name = m_genericNameEdit->text();
-			g.typeName = m_typeDesc->name;
-			g.fields = m_fields;
-			g.toBlock(&blk);
-			::signetdev_write_id_async(NULL, &m_signetdevCmdToken,
-						   m_generic->id,
-						   blk.data.size(),
-						   (const u8 *)blk.data.data(),
-						   (const u8 *)blk.mask.data());
-		}
-		break;
 		case SIGNETDEV_CMD_WRITE_ID:
 			m_generic->name = m_genericNameEdit->text();
 			m_generic->fields = m_fields;
@@ -178,7 +162,18 @@ void OpenGeneric::savePressed()
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(saveGenericFinished(int)));
 	m_buttonWaitDialog->show();
 
-	::signetdev_open_id_async(NULL, &m_signetdevCmdToken, m_generic->id);
+	m_genericFieldsEditor->saveFields();
+	block blk;
+	generic g(m_generic->id);
+	g.name = m_genericNameEdit->text();
+	g.typeName = m_typeDesc->name;
+	g.fields = m_fields;
+	g.toBlock(&blk);
+	::signetdev_write_id_async(NULL, &m_signetdevCmdToken,
+				   m_generic->id,
+				   blk.data.size(),
+				   (const u8 *)blk.data.data(),
+				   (const u8 *)blk.mask.data());
 }
 
 void OpenGeneric::saveGenericFinished(int code)

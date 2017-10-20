@@ -99,7 +99,22 @@ void NewAccount::create_button_pressed()
 	m_wait_dialog = new ButtonWaitDialog("Add account", action, this);
 	connect(m_wait_dialog, SIGNAL(finished(int)), this, SLOT(add_account_finished(int)));
 	m_wait_dialog->show();
-	::signetdev_open_id_async(NULL, &m_signetdev_cmd_token, m_id);
+
+	block blk;
+	m_acct = new account(m_id);
+	m_acct->acctName = m_account_name_field->text();
+	m_acct->userName = m_username_field->text();
+	m_acct->password = m_password_edit->password();
+	m_acct->url = m_url_field->text();
+	m_acct->email = m_email_field->text();
+	m_genericFieldsEditor->saveFields();
+	m_acct->fields = m_fields;
+	m_acct->toBlock(&blk);
+	::signetdev_write_id_async(NULL, &m_signetdev_cmd_token,
+				   m_acct->id,
+				   blk.data.size(),
+				   (const u8 *)blk.data.data(),
+				   (const u8 *)blk.mask.data());
 }
 
 void NewAccount::signetdev_cmd_resp(signetdevCmdRespInfo info)
@@ -118,24 +133,6 @@ void NewAccount::signetdev_cmd_resp(signetdevCmdRespInfo info)
 	switch (code) {
 	case OKAY: {
 		switch (info.cmd) {
-		case SIGNETDEV_CMD_OPEN_ID: {
-			block blk;
-			m_acct = new account(m_id);
-			m_acct->acctName = m_account_name_field->text();
-			m_acct->userName = m_username_field->text();
-			m_acct->password = m_password_edit->password();
-			m_acct->url = m_url_field->text();
-			m_acct->email = m_email_field->text();
-			m_genericFieldsEditor->saveFields();
-			m_acct->fields = m_fields;
-			m_acct->toBlock(&blk);
-			::signetdev_write_id_async(NULL, &m_signetdev_cmd_token,
-						   m_acct->id,
-						   blk.data.size(),
-						   (const u8 *)blk.data.data(),
-						   (const u8 *)blk.mask.data());
-		}
-		break;
 		case SIGNETDEV_CMD_WRITE_ID:
 			emit accountCreated(m_acct);
 			close();

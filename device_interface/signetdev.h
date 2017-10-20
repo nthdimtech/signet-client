@@ -20,7 +20,7 @@ typedef enum signetdev_cmd_id {
 	SIGNETDEV_CMD_WIPE,
 	SIGNETDEV_CMD_BUTTON_WAIT,
 	SIGNETDEV_CMD_DISCONNECT,
-	SIGNETDEV_CMD_CONNECT,
+	SIGNETDEV_CMD_CONNECT, //Defunct
 	SIGNETDEV_CMD_GET_PROGRESS,
 	SIGNETDEV_CMD_BEGIN_DEVICE_BACKUP,
 	SIGNETDEV_CMD_END_DEVICE_BACKUP,
@@ -28,11 +28,11 @@ typedef enum signetdev_cmd_id {
 	SIGNETDEV_CMD_END_DEVICE_RESTORE,
 	SIGNETDEV_CMD_BEGIN_UPDATE_FIRMWARE,
 	SIGNETDEV_CMD_RESET_DEVICE,
-	SIGNETDEV_CMD_OPEN_ID,
+	SIGNETDEV_CMD_OPEN_ID, //Defunct
 	SIGNETDEV_CMD_READ_ID,
 	SIGNETDEV_CMD_WRITE_ID,
 	SIGNETDEV_CMD_DELETE_ID,
-	SIGNETDEV_CMD_CLOSE_ID,
+	SIGNETDEV_CMD_CLOSE_ID, //Defunct
 	SIGNETDEV_CMD_TYPE,
 	SIGNETDEV_CMD_CHANGE_MASTER_PASSWORD,
 	SIGNETDEV_CMD_BEGIN_INITIALIZE_DEVICE,
@@ -56,11 +56,9 @@ int signetdev_begin_device_restore_async(void *user, int *token);
 int signetdev_end_device_restore_async(void *user, int *token);
 int signetdev_startup_async(void *param, int *token);
 int signetdev_type_async(void *param, int *token, const u8 *keys, int n_keys);
-int signetdev_open_id_async(void *param, int *token, int id);
 int signetdev_delete_id_async(void *param, int *token, int id);
-int signetdev_close_id_async(void *param, int *token, int id);
 int signetdev_button_wait_async(void *user, int *token);
-int signetdev_read_id_async(void *user, int *token, int id);
+int signetdev_read_id_async(void *user, int *token, int id, int masked);
 int signetdev_write_id_async(void *user, int *token, int id, int size, const u8 *data, const u8 *mask);
 int signetdev_change_master_password_async(void *param, int *token,
 						u8 *old_key, u32 old_key_len,
@@ -72,7 +70,6 @@ int signetdev_begin_initialize_device_async(void *param, int *token,
 					const u8 *hashfn, int hashfn_len,
 					const u8 *salt, int salt_len,
 					const u8 *rand_data, int rand_data_len);
-int signetdev_connect_async(void *user, int *token);
 int signetdev_disconnect_async(void *user, int *token);
 int signetdev_read_block_async(void *param, int *token, int idx);
 int signetdev_write_block_async(void *param, int *token, int idx, const void *buffer);

@@ -63,7 +63,20 @@ void NewGeneric::createButtonPressed()
 	m_buttonWaitDialog = new ButtonWaitDialog("Add " + m_typeDesc->name, action, this);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(addEntryFinished(int)));
 	m_buttonWaitDialog->show();
-	::signetdev_open_id_async(NULL, &m_signetdevCmdToken, m_id);
+	block blk;
+
+	m_genericFieldsEditor->saveFields();
+	generic *g = new generic(m_id);
+	g->fields = m_genericFields;
+	g->name = m_nameField->text();
+	g->typeName = m_typeDesc->name;
+	m_entry = g;
+	g->toBlock(&blk);
+	::signetdev_write_id_async(NULL, &m_signetdevCmdToken,
+				   g->id,
+				   blk.data.size(),
+				   (const u8 *)blk.data.data(),
+				   (const u8 *)blk.mask.data());
 }
 
 void NewGeneric::signetdevCmdResp(signetdevCmdRespInfo info)
@@ -82,22 +95,6 @@ void NewGeneric::signetdevCmdResp(signetdevCmdRespInfo info)
 	switch (code) {
 	case OKAY: {
 		switch (info.cmd) {
-		case SIGNETDEV_CMD_OPEN_ID: {
-			block blk;
-			m_genericFieldsEditor->saveFields();
-			generic *g = new generic(m_id);
-			g->fields = m_genericFields;
-			g->name = m_nameField->text();
-			g->typeName = m_typeDesc->name;
-			m_entry = g;
-			g->toBlock(&blk);;
-			::signetdev_write_id_async(NULL, &m_signetdevCmdToken,
-						   g->id,
-						   blk.data.size(),
-						   (const u8 *)blk.data.data(),
-						   (const u8 *)blk.mask.data());
-		}
-		break;
 		case SIGNETDEV_CMD_WRITE_ID:
 			emit entryCreated(m_entry);
 			close();

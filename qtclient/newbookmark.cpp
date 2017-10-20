@@ -24,7 +24,7 @@ NewBookmark::NewBookmark(int id, const QString &name, QWidget *parent) :
 	setWindowModality(Qt::WindowModal);
 	SignetApplication *app = SignetApplication::get();
 	connect(app, SIGNAL(signetdev_cmd_resp(signetdevCmdRespInfo)),
-	        this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
+		this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 
 	QBoxLayout *nameLayout = new QBoxLayout(QBoxLayout::LeftToRight);
 	m_nameField = new QLineEdit(name);
@@ -52,7 +52,19 @@ void NewBookmark::createButtonPressed()
 	m_buttonWaitDialog = new ButtonWaitDialog("Add account", action, this);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(addEntryFinished(int)));
 	m_buttonWaitDialog->show();
-	::signetdev_open_id_async(NULL, &m_signetdevCmdToken, m_id);
+
+	block blk;
+	m_entry = new bookmark(m_id);
+	bookmark *bm = (bookmark *)m_entry;
+	bm->name = m_nameField->text();
+	bm->url = m_urlField->text();
+
+	bm->toBlock(&blk);
+	::signetdev_write_id_async(NULL, &m_signetdevCmdToken,
+				   bm->id,
+				   blk.data.size(),
+				   (const u8 *)blk.data.data(),
+				   (const u8 *)blk.mask.data());
 }
 
 void NewBookmark::signetdevCmdResp(signetdevCmdRespInfo info)
@@ -71,21 +83,6 @@ void NewBookmark::signetdevCmdResp(signetdevCmdRespInfo info)
 	switch (code) {
 	case OKAY: {
 		switch (info.cmd) {
-		case SIGNETDEV_CMD_OPEN_ID: {
-			block blk;
-			m_entry = new bookmark(m_id);
-			bookmark *bm = (bookmark *)m_entry;
-			bm->name = m_nameField->text();
-			bm->url = m_urlField->text();
-
-			bm->toBlock(&blk);
-			::signetdev_write_id_async(NULL, &m_signetdevCmdToken,
-			                           bm->id,
-			                           blk.data.size(),
-			                           (const u8 *)blk.data.data(),
-			                           (const u8 *)blk.mask.data());
-		}
-		break;
 		case SIGNETDEV_CMD_WRITE_ID:
 			emit entryCreated(m_entry);
 			close();
