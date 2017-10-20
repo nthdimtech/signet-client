@@ -238,7 +238,9 @@ static int raw_hid_io(struct signetdev_connection *conn)
 			}
 		} else if (!conn->rx_state.message) {
 			conn->tx_state.message = conn->head_message;
-			conn->rx_state.message = conn->head_message;
+			if (conn->head_message->resp) {
+				conn->rx_state.message = conn->head_message;
+			}
 			conn->head_message = conn->head_message->next;
 			if (!conn->head_message) {
 				conn->tail_message = NULL;
