@@ -18,7 +18,7 @@ enum commands {
 	WRITE_FLASH,
 	RESET_DEVICE,
 	INITIALIZE,
-	CONNECT,
+	CONNECT, //Defunct
 	DISCONNECT,
 	WIPE,
 	CANCEL_BUTTON_PRESS,
@@ -38,7 +38,7 @@ enum commands {
 
 enum device_state {
 	DISCONNECTED,
-	RESET,
+	RESET, //Defunct
 	UNINITIALIZED,
 	INITIALIZING,
 	WIPING,
