@@ -1,6 +1,9 @@
 #include "signetdevserverconnection.h"
+#include "signetdevserver.h"
 
 #include <QWebSocket>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 signetdevServerConnection::signetdevServerConnection(QWebSocket *socket, signetdevServer *parent) :
 	QObject((QObject *)parent),
@@ -13,4 +16,5 @@ signetdevServerConnection::signetdevServerConnection(QWebSocket *socket, signetd
 
 void signetdevServerConnection::textMessageReceived(const QString &message)
 {
+	m_parent->textMessageReceived(this, message);
 }

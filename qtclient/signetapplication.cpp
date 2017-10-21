@@ -100,13 +100,14 @@ void SignetApplication::deviceEventS(void *cb_param, int event_type, void *data,
 	}
 }
 
-void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int cmd_token, int cmd, int messages_remaining, int resp_code, void *resp_data)
+void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int cmd_token, int cmd, int end_device_state, int messages_remaining, int resp_code, void *resp_data)
 {
 	signetdevCmdRespInfo info;
 	info.param = cmd_user_param;
 	info.cmd = cmd;
 	info.token = cmd_token;
 	info.resp_code = resp_code;
+	info.end_device_state = end_device_state;
 	info.messages_remaining = messages_remaining;
 
 	SignetApplication *this_ = (SignetApplication *)cb_param;

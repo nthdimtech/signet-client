@@ -5,11 +5,14 @@
 
 class signetdevServer;
 class QWebSocket;
+struct signetdevServerCommand;
 
 class signetdevServerConnection : public QObject
 {
 	Q_OBJECT
 	signetdevServer *m_parent;
+	int m_deviceState;
+	signetdevServerCommand *m_activeCommand;
 public:
 	QWebSocket *m_socket;
 	signetdevServerConnection(QWebSocket *socket, signetdevServer *parent);
