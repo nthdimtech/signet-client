@@ -113,7 +113,7 @@ void signetdev_win32_set_window_handle(HANDLE recp);
 int signetdev_filter_window_messasage(UINT uMsg, WPARAM wParam, LPARAM lParam);
 #endif
 
-typedef void (*signetdev_cmd_resp_t)(void *cb_param, void *cmd_user_param, int cmd_token, int messages_remaining, int cmd, int resp_code, void *resp_data);
+typedef void (*signetdev_cmd_resp_t)(void *cb_param, void *cmd_user_param, int cmd_token, int end_device_state, int messages_remaining, int cmd, int resp_code, void *resp_data);
 typedef void (*signetdev_device_event_t)(void *cb_param, int event_type, void *resp_data, int resp_len);
 
 

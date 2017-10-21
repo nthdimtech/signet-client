@@ -3,7 +3,7 @@
 void signetdev_priv_platform_init();
 void signetdev_priv_platform_deinit();
 void signetdev_priv_handle_error();
-void signetdev_priv_handle_command_resp(void *user, int token, int dev_cmd, int api_cmd, int resp_code, const u8 *resp, int resp_len, int expected_messages_remaining);
+void signetdev_priv_handle_command_resp(void *user, int token, int dev_cmd, int api_cmd, int resp_code, const u8 *resp, int resp_len, int end_device_state, int expected_messages_remaining);
 void signetdev_priv_handle_device_event(int event_type, const u8 *resp, int resp_len);
 
 enum signetdev_commands {
@@ -25,6 +25,7 @@ struct send_message_req {
 	void *user;
 	int token;
 	int interrupt;
+	int end_device_state;
 	struct send_message_req *next;
 };
 

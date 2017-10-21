@@ -498,9 +498,9 @@ static int decode_id(const u8 *resp, int resp_len, u8 *data, u8 *mask, int *size
 void signetdev_priv_handle_command_resp(void *user, int token,
 					int dev_cmd, int api_cmd,
 					int resp_code, const u8 *resp, int resp_len,
+					int end_device_state,
 					int expected_messages_remaining)
 {
-	(void)(expected_messages_remaining);
 	switch (dev_cmd)
 	{
 	case READ_BLOCK: {
@@ -509,7 +509,9 @@ void signetdev_priv_handle_command_resp(void *user, int token,
 			break;
 		} else if (g_command_resp_cb) {
 			g_command_resp_cb(g_command_resp_cb_param,
-				user, token, api_cmd, expected_messages_remaining,
+				user, token, api_cmd,
+				end_device_state,
+				expected_messages_remaining,
 				resp_code, (void *)resp);
 		}
 	} break;
@@ -536,7 +538,9 @@ void signetdev_priv_handle_command_resp(void *user, int token,
 		}
 		if (g_command_resp_cb)
 			g_command_resp_cb(g_command_resp_cb_param,
-				user, token, api_cmd, expected_messages_remaining,
+				user, token, api_cmd,
+				end_device_state,
+				expected_messages_remaining,
 				resp_code, &cb_resp);
 
 		} break;
@@ -553,7 +557,9 @@ void signetdev_priv_handle_command_resp(void *user, int token,
 		}
 		if (g_command_resp_cb)
 			g_command_resp_cb(g_command_resp_cb_param,
-				user, token, api_cmd, expected_messages_remaining,
+				user, token, api_cmd,
+				end_device_state,
+				expected_messages_remaining,
 				resp_code, &cb_resp);
 		} break;
 	case GET_ALL_DATA: {
@@ -577,7 +583,9 @@ void signetdev_priv_handle_command_resp(void *user, int token,
 		}
 		if (g_command_resp_cb)
 			g_command_resp_cb(g_command_resp_cb_param,
-				user, token, api_cmd, expected_messages_remaining,
+				user, token, api_cmd,
+				end_device_state,
+				expected_messages_remaining,
 				resp_code, &cb_resp);
 
 		} break;
@@ -594,14 +602,18 @@ void signetdev_priv_handle_command_resp(void *user, int token,
 		}
 		if (g_command_resp_cb)
 			g_command_resp_cb(g_command_resp_cb_param,
-				user, token, api_cmd, expected_messages_remaining,
+				user, token, api_cmd,
+				end_device_state,
+				expected_messages_remaining,
 				resp_code, &cb_resp);
 
 		} break;
 	default:
 		if (g_command_resp_cb)
 			g_command_resp_cb(g_command_resp_cb_param,
-					  user, token, api_cmd, expected_messages_remaining,
+					  user, token, api_cmd,
+					  end_device_state,
+					  expected_messages_remaining,
 					  resp_code, NULL);
 		break;
 	}
@@ -672,6 +684,7 @@ void signetdev_priv_process_rx_packet(struct rx_message_state *state, u8 *rx_pac
 			if (state->message->resp_code) {
 				*state->message->resp_code = rx_packet_header[2];
 			}
+			state->message->end_device_state = rx_packet_header[5];
 			memcpy(state->message->resp,
 				rx_packet_buf + RAW_HID_HEADER_SIZE + CMD_PACKET_HEADER_SIZE,
 				RAW_HID_PAYLOAD_SIZE - CMD_PACKET_HEADER_SIZE);
@@ -712,6 +725,7 @@ void signetdev_priv_message_send_resp(struct send_message_req *msg, int rc, int 
 			       resp_code,
 			       msg->resp,
 			       resp_len,
+			       msg->end_device_state,
 			       expected_messages_remaining);
 	}
 }
