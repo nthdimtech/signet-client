@@ -45,18 +45,25 @@ class signetdevServer : public QObject
 	QWebSocketServer *m_socketServer;
 	QQueue<signetdevServerCommand *> m_commandQueue;
 	QMap<QString, int> m_deviceStateMap;
-	QMap<QString, int> m_commandMap;
+	QMap<QString, int> m_invDeviceStateMap;
+	QMap<int, QString> m_invCommandMap;
+	QMap<int, QString> m_invCommandRespMap;
 	int lookupIntMap(const QMap<QString, int> &map,
 			  const QString &key,
 			  int defaultValue = 0);
+	QString lookupStrMap(const QMap<int, QString> &map,
+			  int key,
+			  const QString &defaultValue);
 	void processQueue();
 	signetdevServerCommand *m_activeCommand;
+	signetdevServerCommand *m_activeConnection;
 	void processActiveCommand();
 	int m_deviceState;
 
 	QByteArray getBinaryParam(const QString &key);
 	QString getStringParam(const QString &key);
 	int getIntParam(const QString &key, int defaultValue = -1);
+	void sendResponse(const signetdevCmdRespInfo &info, QJsonObject &params);
 public:
 	explicit signetdevServer(QObject *parent = 0);
 	static void deviceOpenedS(void *this_);

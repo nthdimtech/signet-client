@@ -14,7 +14,17 @@ extern "C" {
 int signetdevServer::lookupIntMap(const QMap<QString, int> &map, const QString &key, int defaultValue)
 {
 	QMap<QString, int>::const_iterator iter = map.find(key);
-	if (iter == map.end()) {
+	if (iter != map.end()) {
+		return iter.value();
+	} else {
+		return defaultValue;
+	}
+}
+
+int signetdevServer::lookupStrMap(const QMap<int, QString> &map, int key, const QString &defaultValue)
+{
+	QMap<QString, int>::const_iterator iter = map.find(key);
+	if (iter != map.end()) {
 		return iter.value();
 	} else {
 		return defaultValue;
@@ -180,6 +190,10 @@ signetdevServer::signetdevServer(QObject *parent) :
 	m_deviceStateMap.insert("BACKING_UP_DEVICE", BACKING_UP_DEVICE);
 	m_deviceStateMap.insert("RESTORING_DEVICE", RESTORING_DEVICE);
 
+	for (auto x = m_deviceStateMap.begin(); x = m_deviceStateMap.end(); x++) {
+		m_invDeviceStateMap.insert(x.value(),x.key());
+	}
+
 	m_commandMap.insert("STARTUP", SIGNETDEV_CMD_STARTUP);
 	m_commandMap.insert("LOGOUT", SIGNETDEV_CMD_LOGOUT);
 	m_commandMap.insert("LOGIN", SIGNETDEV_CMD_LOGIN);
@@ -205,6 +219,23 @@ signetdevServer::signetdevServer(QObject *parent) :
 	m_commandMap.insert("ERASE_PAGES", SIGNETDEV_CMD_ERASE_PAGES);
 	m_commandMap.insert("READ_ALL_ID", SIGNETDEV_CMD_READ_ALL_ID);
 	m_commandMap.insert("ENTER_MOBILE_MODE", SIGNETDEV_CMD_ENTER_MOBILE_MODE);
+
+	m_invCommandRespMap.insert(OKAY, "OKAY");
+	m_invCommandRespMap.insert(INVALID_STATE, "INVALID_STATE");
+	m_invCommandRespMap.insert(INVALID_INPUT, "INVALID_INPUT");
+	m_invCommandRespMap.insert(ID_INVALID, "ID_INVALID");
+	m_invCommandRespMap.insert(ID_NOT_OPEN, "ID_NOT_OPEN");
+	m_invCommandRespMap.insert(TAG_INVALID, "TAG_INVALID");
+	m_invCommandRespMap.insert(WRITE_FAILED, "WRITE_FAILED");
+	m_invCommandRespMap.insert(NOT_LOGGED_IN, "NOT_LOGGED_IN");
+	m_invCommandRespMap.insert(NOT_INITIALIZED, "NOT_INITIALIZED");
+	m_invCommandRespMap.insert(BAD_PASSWORD, "BAD_PASSWORD");
+	m_invCommandRespMap.insert(IN_PROGRESS, "IN_PROGRESS");
+	m_invCommandRespMap.insert(NOT_ENOUGH_SPACE, "NOT_ENOUGH_SPACE");
+	m_invCommandRespMap.insert(DONE, "DONE");
+	m_invCommandRespMap.insert(BUTTON_PRESS_CANCELED, "BUTTON_PRESS_CANCELED");
+	m_invCommandRespMap.insert(BUTTON_PRESS_TIMEOUT, "BUTTON_PRESS_TIMEOUT");
+	m_invCommandRespMap.insert(UNKNOWN_DB_FORMAT, "UNKNOWN_DB_FORMAT");
 }
 
 void signetdevServer::init()
@@ -272,9 +303,9 @@ void signetdevServer::commandRespS(void *cb_param, void *cmd_user_param, int cmd
 	info.end_device_state = end_device_state;
 	info.messages_remaining = messages_remaining;
 
-	m_deviceState = info.end_device_state;
-
 	signetdevServer *this_ = (signetdevServer *)cb_param;
+	this_->m_deviceState = info.end_device_state;
+
 	switch(cmd) {
 	case SIGNETDEV_CMD_READ_ALL_ID: {
 		const signetdev_read_all_id_resp_data *resp = (const signetdev_read_all_id_resp_data *)resp_data;
@@ -362,33 +393,73 @@ void signetdevServer::signetdevTimerEvent(int seconds_remaining)
  * Command response handlers
  */
 
+void signetdevServer::sendResponse(const signetdevCmdRespInfo &info, QJsonObject &params)
+{
+	QJsonDocument a;
+	a.object().insert("messagesRemaining", QJsonValue(info.messages_remaining));
+	a.object().insert("token", QJsonValue(m_activeCommand->clientToken));
+	a.object().insert("respCode", QJsonValue(lookupStrMap(m_invCommandRespMap, info.resp_code, "UNKNOWN_RESPONSE")));
+	a.object().insert("deviceState",
+		QJsonValue(lookupStrMap(m_invDeviceStateMap,
+				info.end_device_state,
+				"UNKNOWN_STATE"));
+	a.object().insert("params", params);
+	m_activeCommand->conn->m_socket->sendTextMessage(QString::fromUtf8(a.toJson()));
+}
+
 void signetdevServer::signetdevCmdResp(const signetdevCmdRespInfo &info)
 {
-
+	if (info.token == m_activeCommand->serverToken) {
+		QJsonObject &params;
+		sendResponse(info, params);
+	}
 }
 
 void signetdevServer::signetdevGetProgressResp(const signetdevCmdRespInfo &info, const signetdev_get_progress_resp_data *resp)
 {
-
+	if (info.token == m_activeCommand->serverToken) {
+		QJsonObject &params;
+		if (resp) {
+			params.insert("totalProgress", QJsonValue(resp->total_progress));
+			params.insert("totalProgressMaximum", QJsonValue(resp->total_progress_maximum));
+			//TODO: individual sub progress values
+		}
+		sendResponse(info, params);
+	}
 }
 
 void signetdevServer::signetdevStartupResp(const signetdevCmdRespInfo &info, const signetdev_startup_resp_data *resp)
 {
-
+	if (info.token == m_activeCommand->serverToken) {
+		QJsonObject &params;
+		sendResponse(info, params);
+		//TODO: fill out params
+	}
 }
 
 void signetdevServer::signetdevReadIdResp(const signetdevCmdRespInfo &info, const signetdev_read_id_resp_data *resp)
 {
-
+	if (info.token == m_activeCommand->serverToken) {
+		QJsonObject &params;
+		sendResponse(info, params);
+		//TODO: fill out params
+	}
 }
 
 void signetdevServer::signetdevReadAllIdResp(const signetdevCmdRespInfo &info, const signetdev_read_all_id_resp_data *resp)
 {
-
+	if (info.token == m_activeCommand->serverToken) {
+		QJsonObject &params;
+		sendResponse(info, params);
+		//TODO: fill out params
+	}
 }
 
 void signetdevServer::signetdevReadBlockResp(const signetdevCmdRespInfo &info, const char *data)
 {
-
+	if (info.token == m_activeCommand->serverToken) {
+		QJsonObject &params;
+		sendResponse(info, params);
+		//TODO: fill out params
+	}
 }
-
