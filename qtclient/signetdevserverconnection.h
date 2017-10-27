@@ -2,6 +2,7 @@
 #define SIGNETDEVSERVERCONNECTION_H
 
 #include <QObject>
+#include <QQueue>
 
 class signetdevServer;
 class QWebSocket;
@@ -11,9 +12,8 @@ class signetdevServerConnection : public QObject
 {
 	Q_OBJECT
 	signetdevServer *m_parent;
-	int m_deviceState;
-	signetdevServerCommand *m_activeCommand;
 public:
+	QQueue<signetdevServerCommand *> m_commandQueue;
 	QWebSocket *m_socket;
 	signetdevServerConnection(QWebSocket *socket, signetdevServer *parent);
 public slots:

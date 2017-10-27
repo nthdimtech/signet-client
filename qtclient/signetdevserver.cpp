@@ -10,6 +10,7 @@ extern "C" {
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QByteArray>
+#include <QJsonArray>
 
 int signetdevServer::lookupIntMap(const QMap<QString, int> &map, const QString &key, int defaultValue)
 {
@@ -33,16 +34,33 @@ QString signetdevServer::lookupStrMap(const QMap<int, QString> &map, int key, co
 
 void signetdevServer::processQueue()
 {
-	if (!m_activeCommand && m_commandQueue.size()) {
-		m_activeCommand = m_commandQueue.front();
-		m_commandQueue.pop_front();
-		if (m_activeCommand) {
-			processActiveCommand();
+	if (!m_activeCommand) {
+		if (!m_activeConnection) {
+			for (auto conn : m_connections) {
+				if (!conn->m_commandQueue.empty()) {
+					m_activeConnection = conn;
+				}
+			}
+		}
+		if (!m_activeConnection) {
+			return;
+		} else {
+			m_activeCommand = m_activeConnection->m_commandQueue.front();
+			m_activeConnection->m_commandQueue.pop_front();
+		}
+	}
+	if (m_activeCommand) {
+		switch (m_activeCommand->serverCommandState) {
+		case signetdevServerCommand::INITIAL:
+			sendActiveCommand();
+			break;
+		default:
+			break;
 		}
 	}
 }
 
-void signetdevServer::processActiveCommand()
+void signetdevServer::sendActiveCommand()
 {
 	if (!m_activeCommand) {
 		return;
@@ -57,44 +75,56 @@ void signetdevServer::processActiveCommand()
 	switch (m_activeCommand->command) {
 	case SIGNETDEV_CMD_LOGOUT:
 		signetdev_logout_async(this, &m_activeCommand->serverToken);
+		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_WIPE:
 		signetdev_wipe_async(this, &m_activeCommand->serverToken);
+		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_BUTTON_WAIT:
 		signetdev_button_wait_async(this, &m_activeCommand->serverToken);
+		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_BEGIN_DEVICE_BACKUP:
 		signetdev_begin_device_backup_async(this, &m_activeCommand->serverToken);
+		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_END_DEVICE_BACKUP:
 		signetdev_end_device_backup_async(this, &m_activeCommand->serverToken);
+		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_BEGIN_DEVICE_RESTORE:
 		signetdev_begin_device_restore_async(this, &m_activeCommand->serverToken);
+		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_END_DEVICE_RESTORE:
 		signetdev_end_device_restore_async(this, &m_activeCommand->serverToken);
+		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_BEGIN_UPDATE_FIRMWARE:
 		signetdev_begin_update_firmware_async(this, &m_activeCommand->serverToken);
+		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_RESET_DEVICE:
 		signetdev_reset_device_async(this, &m_activeCommand->serverToken);
+		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_STARTUP:
 		signetdev_startup_async(this, &m_activeCommand->serverToken);
+		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_DELETE_ID:
 		signetdev_delete_id_async(this,
 			&m_activeCommand->serverToken,
 			getIntParam("id", -1));
+		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_READ_ID:
 		signetdev_read_id_async(this,
 			&m_activeCommand->serverToken,
 			getIntParam("id", -1),
 			getIntParam("masked", -1));
+		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_WRITE_ID: {
 		QByteArray data = getBinaryParam("data");
@@ -110,6 +140,7 @@ void signetdevServer::processActiveCommand()
 			data.size(),
 			(const u8 *)data.data(),
 			(const u8 *)mask.data());
+		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		} break;
 	case SIGNETDEV_CMD_TYPE: {
 		QString keys = getStringParam("keys");
@@ -118,6 +149,7 @@ void signetdevServer::processActiveCommand()
 			&m_activeCommand->serverToken,
 			(const u8 *)keysUTF8.data(),
 			keysUTF8.size());
+		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		} break;
 	case SIGNETDEV_CMD_BEGIN_INITIALIZE_DEVICE: {
 		QByteArray key = getBinaryParam("key");
@@ -130,11 +162,13 @@ void signetdevServer::processActiveCommand()
 			(const u8 *)hashFn.data(), hashFn.length(),
 			(const u8 *)salt.data(), salt.length(),
 			(const u8 *)randData.data(), randData.length());
+		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		} break;
 	case SIGNETDEV_CMD_READ_BLOCK:
 		signetdev_read_block_async(this,
 			&m_activeCommand->serverToken,
 			getIntParam("idx"));
+		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_WRITE_BLOCK: {
 		QByteArray data = getBinaryParam("data");
@@ -146,7 +180,14 @@ void signetdevServer::processActiveCommand()
 			&m_activeCommand->serverToken,
 			getIntParam("idx"),
 			(const u8 *)data.data());
+		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		} break;
+	default:
+		delete m_activeCommand;
+		m_activeCommand = NULL;
+		//TODO: return error to client about unknown command
+		processQueue();
+		break;
 	}
 }
 
@@ -279,7 +320,8 @@ void signetdevServer::textMessageReceived(signetdevServerConnection *conn, const
 				-1);
 	command->conn = conn;
 	command->params = o.value("params").toObject();
-	m_commandQueue.push_back(command);
+	command->serverCommandState = signetdevServerCommand::INITIAL;
+	conn->m_commandQueue.push_back(command);
 	processQueue();
 }
 
@@ -442,7 +484,7 @@ void signetdevServer::sendJsonDocument(QJsonDocument &a)
 	m_activeCommand->conn->m_socket->sendTextMessage(QString::fromUtf8(a.toJson()));
 }
 
-void signetdevServer::sendResponse(const signetdevCmdRespInfo &info, QJsonObject &params)
+void signetdevServer::sendCommandResponse(const signetdevCmdRespInfo &info, QJsonObject &params)
 {
 	QJsonDocument a;
 	a.object().insert("messagesRemaining", QJsonValue(info.messages_remaining));
@@ -454,6 +496,9 @@ void signetdevServer::sendResponse(const signetdevCmdRespInfo &info, QJsonObject
 				"UNKNOWN_STATE")));
 	a.object().insert("params", params);
 	sendJsonDocument(a);
+	delete m_activeCommand;
+	m_activeCommand = NULL;
+	processQueue();
 }
 
 void signetdevServer::sendEvent(const QString &eventName, QJsonObject &params)
@@ -470,11 +515,9 @@ void signetdevServer::signetdevCmdResp(const signetdevCmdRespInfo &info)
 {
 	if (info.token == m_activeCommand->serverToken) {
 		QJsonObject params;
-		sendResponse(info, params);
+		sendCommandResponse(info, params);
 	}
 }
-
-#include <QJsonArray>
 
 void signetdevServer::signetdevGetProgressResp(const signetdevCmdRespInfo &info, const signetdev_get_progress_resp_data *resp)
 {
@@ -483,7 +526,6 @@ void signetdevServer::signetdevGetProgressResp(const signetdevCmdRespInfo &info,
 		if (resp) {
 			params.insert("totalProgress", QJsonValue(resp->total_progress));
 			params.insert("totalProgressMaximum", QJsonValue(resp->total_progress_maximum));
-			//resp->
 			QJsonArray progress;
 			QJsonArray progressMaximum;
 			for (int i = 0; i < resp->n_components; i++) {
@@ -493,7 +535,7 @@ void signetdevServer::signetdevGetProgressResp(const signetdevCmdRespInfo &info,
 			params.insert("progress", progress);
 			params.insert("progressMaximum", progressMaximum);
 		}
-		sendResponse(info, params);
+		sendCommandResponse(info, params);
 	}
 }
 
@@ -506,7 +548,7 @@ void signetdevServer::signetdevStartupResp(const signetdevCmdRespInfo &info, con
 		QByteArray hashfn((char *)(resp->hashfn), sizeof(resp->hashfn));
 		params.insert("salt", QJsonValue(QString::fromUtf8(salt.toBase64())));
 		params.insert("hashfn", QJsonValue(QString::fromUtf8(hashfn.toBase64())));
-		sendResponse(info, params);
+		sendCommandResponse(info, params);
 	}
 }
 
@@ -518,7 +560,7 @@ void signetdevServer::signetdevReadIdResp(const signetdevCmdRespInfo &info, cons
 		QByteArray mask((char *)(resp->mask), (resp->size+7)/8);
 		params.insert("data", QJsonValue(QString::fromUtf8(data.toBase64())));
 		params.insert("mask", QJsonValue(QString::fromUtf8(data.toBase64())));
-		sendResponse(info, params);
+		sendCommandResponse(info, params);
 	}
 }
 
@@ -531,7 +573,7 @@ void signetdevServer::signetdevReadAllIdResp(const signetdevCmdRespInfo &info, c
 		params.insert("id", QJsonValue(resp->id));
 		params.insert("data", QJsonValue(QString::fromUtf8(data.toBase64())));
 		params.insert("mask", QJsonValue(QString::fromUtf8(data.toBase64())));
-		sendResponse(info, params);
+		sendCommandResponse(info, params);
 	}
 }
 
@@ -541,7 +583,6 @@ void signetdevServer::signetdevReadBlockResp(const signetdevCmdRespInfo &info, c
 		QJsonObject params;
 		QByteArray block((char *)(data), BLK_SIZE);
 		params.insert("data", QJsonValue(QString::fromUtf8(block.toBase64())));
-		sendResponse(info, params);
-		//TODO: fill out params
+		sendCommandResponse(info, params);
 	}
 }

@@ -36,6 +36,11 @@ struct signetdevServerCommand {
 	int messagesRemaining;
 	signetdevServerConnection *conn;
 	QJsonObject params;
+	enum commandState {
+		INITIAL,
+		SENT
+	};
+	enum commandState serverCommandState;
 };
 
 class signetdevServer : public QObject
@@ -43,7 +48,6 @@ class signetdevServer : public QObject
 	Q_OBJECT
 	QList<signetdevServerConnection *> m_connections;
 	QWebSocketServer *m_socketServer;
-	QQueue<signetdevServerCommand *> m_commandQueue;
 	QMap<QString, int> m_commandMap;
 	QMap<QString, int> m_deviceStateMap;
 	QMap<int, QString> m_invDeviceStateMap;
@@ -57,15 +61,15 @@ class signetdevServer : public QObject
 			  const QString &defaultValue);
 	void processQueue();
 	signetdevServerCommand *m_activeCommand;
-	signetdevServerCommand *m_activeConnection;
-	void processActiveCommand();
+	signetdevServerConnection *m_activeConnection;
+	void sendActiveCommand();
 	int m_deviceState;
 	int m_deviceTransientState;
 
 	QByteArray getBinaryParam(const QString &key);
 	QString getStringParam(const QString &key);
 	int getIntParam(const QString &key, int defaultValue = -1);
-	void sendResponse(const signetdevCmdRespInfo &info, QJsonObject &params);
+	void sendCommandResponse(const signetdevCmdRespInfo &info, QJsonObject &params);
 	void sendEvent(const QString &eventName, QJsonObject &params);
 	void sendJsonDocument(QJsonDocument &a);
 	void deviceStateChanged();
