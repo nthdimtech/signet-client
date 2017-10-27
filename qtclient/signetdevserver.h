@@ -44,10 +44,11 @@ class signetdevServer : public QObject
 	QList<signetdevServerConnection *> m_connections;
 	QWebSocketServer *m_socketServer;
 	QQueue<signetdevServerCommand *> m_commandQueue;
+	QMap<QString, int> m_commandMap;
 	QMap<QString, int> m_deviceStateMap;
-	QMap<QString, int> m_invDeviceStateMap;
-	QMap<int, QString> m_invCommandMap;
+	QMap<int, QString> m_invDeviceStateMap;
 	QMap<int, QString> m_invCommandRespMap;
+	QMap<int, QString> m_invEventMap;
 	int lookupIntMap(const QMap<QString, int> &map,
 			  const QString &key,
 			  int defaultValue = 0);
@@ -64,6 +65,8 @@ class signetdevServer : public QObject
 	QString getStringParam(const QString &key);
 	int getIntParam(const QString &key, int defaultValue = -1);
 	void sendResponse(const signetdevCmdRespInfo &info, QJsonObject &params);
+	void sendEvent(const QString &eventName, QJsonObject &params);
+	void sendJsonDocument(QJsonDocument &a);
 public:
 	explicit signetdevServer(QObject *parent = 0);
 	static void deviceOpenedS(void *this_);
@@ -82,8 +85,8 @@ public:
 	void signetdevReadIdResp(const signetdevCmdRespInfo &info, const signetdev_read_id_resp_data *resp);
 	void signetdevReadAllIdResp(const signetdevCmdRespInfo &info, const signetdev_read_all_id_resp_data *resp);
 	void signetdevReadBlockResp(const signetdevCmdRespInfo &info, const char *data);
-	void signetdevEvent(int event_type);
-	void signetdevTimerEvent(int seconds_remaining);
+	void signetdevEvent(int eventType);
+	void signetdevTimerEvent(int secondsRemaining);
 	void textMessageReceived(signetdevServerConnection *conn, const QString &message);
 public slots:
 	void newConnection();
