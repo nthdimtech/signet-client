@@ -60,6 +60,7 @@ class signetdevServer : public QObject
 	signetdevServerCommand *m_activeConnection;
 	void processActiveCommand();
 	int m_deviceState;
+	int m_deviceTransientState;
 
 	QByteArray getBinaryParam(const QString &key);
 	QString getStringParam(const QString &key);
@@ -67,6 +68,7 @@ class signetdevServer : public QObject
 	void sendResponse(const signetdevCmdRespInfo &info, QJsonObject &params);
 	void sendEvent(const QString &eventName, QJsonObject &params);
 	void sendJsonDocument(QJsonDocument &a);
+	void deviceStateChanged();
 public:
 	explicit signetdevServer(QObject *parent = 0);
 	static void deviceOpenedS(void *this_);

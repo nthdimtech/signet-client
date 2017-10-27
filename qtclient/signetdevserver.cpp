@@ -193,6 +193,8 @@ signetdevServer::signetdevServer(QObject *parent) :
 	for (auto x = m_deviceStateMap.begin(); x != m_deviceStateMap.end(); x++) {
 		m_invDeviceStateMap.insert(x.value(),x.key());
 	}
+	m_deviceState = DISCONNECTED;
+	m_deviceTransientState = DISCONNECTED;
 
 	m_commandMap.insert("STARTUP", SIGNETDEV_CMD_STARTUP);
 	m_commandMap.insert("LOGOUT", SIGNETDEV_CMD_LOGOUT);
@@ -307,6 +309,28 @@ void signetdevServer::commandRespS(void *cb_param, void *cmd_user_param, int cmd
 	info.messages_remaining = messages_remaining;
 
 	signetdevServer *this_ = (signetdevServer *)cb_param;
+	int prevDeviceState = this_->m_deviceState;
+	switch (info.end_device_state) {
+	case DISCONNECTED:
+	case UNINITIALIZED:
+	case LOGGED_OUT:
+	case LOGGED_IN:
+		this_->m_deviceState = info.end_device_state;
+		this_->m_deviceTransientState = this_->m_deviceState;
+		if (this_->m_deviceState != prevDeviceState) {
+			this_->deviceStateChanged();
+		}
+		break;
+	case INITIALIZING:
+	case WIPING:
+	case ERASING_PAGES:
+	case FIRMWARE_UPDATE:
+	case BACKING_UP_DEVICE:
+	case RESTORING_DEVICE:
+		this_->m_deviceTransientState = this_->m_deviceState;
+		break;
+	}
+
 	this_->m_deviceState = info.end_device_state;
 
 	switch(cmd) {
@@ -377,6 +401,16 @@ void signetdevServer::deviceClosed()
 {
 	QJsonObject params;
 	sendEvent("DEVICE_CLOSED", params);
+}
+
+void signetdevServer::deviceStateChanged()
+{
+	QJsonObject params;
+	params.insert("deviceState",
+		QJsonValue(lookupStrMap(m_invDeviceStateMap,
+				m_deviceState,
+				"UNKNOWN_STATE")));
+	sendEvent("DEVICE_STATE_CHANGED", params);
 }
 
 void signetdevServer::connectionError()
