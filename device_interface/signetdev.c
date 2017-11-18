@@ -407,6 +407,46 @@ int signetdev_write_flash_async(void *param, int *token, u32 addr, const void *d
 				msg, 4 + data_len, SIGNETDEV_PRIV_GET_RESP);
 }
 
+int signetdev_update_uid_async(void *param, int *token, int uid, const void *data, int data_len)
+{
+	*token = get_cmd_token();
+	uint8_t msg[CMD_PACKET_PAYLOAD_SIZE];
+	unsigned int message_size = 2 + data_len;
+	if (message_size >= sizeof(msg))
+		return SIGNET_ERROR_OVERFLOW;
+	msg[0] = (uid >> 0) & 0xff;
+	msg[1] = (uid >> 8) & 0xff;
+	if (data)
+		memcpy(msg + 2, data, data_len);
+	else
+		memset(msg + 2, 0, data_len);
+	return signetdev_priv_send_message_async(param, *token,
+				UPDATE_UID, SIGNETDEV_CMD_UPDATE_UID,
+				msg, 2 + data_len, SIGNETDEV_PRIV_GET_RESP);
+}
+
+int signetdev_read_uid_async(void *param, int *token, int uid, int masked)
+{
+	*token = get_cmd_token();
+	uint8_t msg[3];
+	msg[0] = (uid >> 0) & 0xff;
+	msg[1] = (uid >> 8) & 0xff;
+	msg[2] = (masked) & 0xff;
+	return signetdev_priv_send_message_async(param, *token,
+				READ_UID, SIGNETDEV_CMD_READ_UID,
+				msg, sizeof(msg), SIGNETDEV_PRIV_GET_RESP);
+}
+
+int signetdev_read_all_uids_async(void *param, int *token, int masked)
+{
+	*token = get_cmd_token();
+	uint8_t msg[1];
+	msg[0] = masked & 0xff;
+	return signetdev_priv_send_message_async(param, *token,
+				READ_ALL_UIDS, SIGNETDEV_CMD_READ_ALL_UIDS,
+				msg, sizeof(msg), SIGNETDEV_PRIV_GET_RESP);
+}
+
 int signetdev_change_master_password_async(void *param, int *token,
 		u8 *old_key, u32 old_key_len,
 		u8 *new_key, u32 new_key_len,

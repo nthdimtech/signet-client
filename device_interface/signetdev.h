@@ -39,6 +39,9 @@ typedef enum signetdev_cmd_id {
 	SIGNETDEV_CMD_ERASE_PAGES,
 	SIGNETDEV_CMD_READ_ALL_ID,
 	SIGNETDEV_CMD_ENTER_MOBILE_MODE,
+	SIGNETDEV_CMD_UPDATE_UID,
+	SIGNETDEV_CMD_READ_UID,
+	SIGNETDEV_CMD_READ_ALL_UIDS,
 	SIGNETDEV_NUM_COMMANDS
 } signetdev_cmd_id_t;
 
@@ -75,6 +78,10 @@ int signetdev_write_block_async(void *param, int *token, int idx, const void *bu
 int signetdev_write_flash_async(void *param, int *token, u32 addr, const void *data, int data_len);
 int signetdev_erase_pages_async(void *param, int *token, int n_pages, const u8 *page_numbers);
 int signetdev_read_all_id_async(void *user, int *token, int unmask);
+
+int signetdev_update_uid_async(void *param, int *token, int uid, const void *data, int data_len);
+int signetdev_read_uid_async(void *param, int *token, int uid, int masked);
+int signetdev_read_all_uids_async(void *param, int *token, int masked);
 
 struct signetdev_read_all_id_resp_data {
 	int id;
