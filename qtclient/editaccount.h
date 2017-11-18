@@ -21,19 +21,19 @@ class GenericFieldsEditor;
 class EditAccount : public QDialog
 {
 	Q_OBJECT
+	account *m_acct;
+	ButtonWaitDialog *m_buttonDialog;
 	QLineEdit *m_accountNameEdit;
 	QLabel *m_accountNameWarning;
 	DatabaseField *m_usernameField;
 	PasswordEdit *m_passwordEdit;
 	DatabaseField *m_urlField;
 	DatabaseField *m_emailField;
+	int m_signetdevCmdToken;
 	QPushButton *m_saveButton;
 	QPushButton *m_browseUrlButton;
 	QPushButton *m_undoChangesButton;
-	account *m_acct;
-	ButtonWaitDialog *m_buttonDialog;
 	void setAccountValues();
-	int m_signetdevCmdToken;
 	GenericFieldsEditor *m_genericFieldsEditor;
 	bool m_settingFields;
 public:

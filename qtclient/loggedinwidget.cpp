@@ -331,6 +331,8 @@ void LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent)
 	case ID_TASK_READ:
 		::signetdev_read_id_async(NULL, &m_signetdevCmdToken, m_id, 0);
 		break;
+	default:
+		break;
 	}
 }
 
