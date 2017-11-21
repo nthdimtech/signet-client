@@ -17,8 +17,8 @@
 #include "genericfieldseditor.h"
 
 extern "C" {
-#include "signetdev.h"
-}
+#include "signetdev/host/signetdev.h"
+};
 
 NewAccount::NewAccount(int id, const QString &name, QWidget *parent) : QDialog(parent),
 	m_wait_dialog(NULL),

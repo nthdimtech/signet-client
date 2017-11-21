@@ -9,7 +9,7 @@
 #include "buttonwaitdialog.h"
 
 extern "C" {
-#include "signetdev.h"
+#include "signetdev/host/signetdev.h"
 }
 
 #include "bookmark.h"

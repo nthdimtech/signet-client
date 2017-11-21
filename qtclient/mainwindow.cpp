@@ -34,12 +34,12 @@
 #include "editaccount.h"
 #include "buttonwaitdialog.h"
 #include "loginwindow.h"
-#include "common.h"
+
 #include "signetapplication.h"
 #include "configuremachine.h"
 
 extern "C" {
-#include "signetdev.h"
+#include "signetdev/host/signetdev.h"
 };
 
 #include "changemasterpassword.h"

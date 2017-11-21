@@ -17,8 +17,8 @@
 #include "genericfieldseditor.h"
 
 extern "C" {
-#include "signetdev.h"
-}
+#include "signetdev/host/signetdev.h"
+};
 
 EditAccount::EditAccount(account *acct, QWidget *parent) :
 	QDialog(parent),

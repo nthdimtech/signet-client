@@ -15,14 +15,13 @@
 
 #include "buttonwaitdialog.h"
 
-#include "common.h"
 #include "mainwindow.h"
 
 #include "signetapplication.h"
 #include "keygeneratorthread.h"
 
 extern "C" {
-#include "signetdev.h"
+#include "signetdev/host/signetdev.h"
 }
 
 ResetDevice::ResetDevice(bool destructive, QWidget *parent) :

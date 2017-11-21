@@ -38,9 +38,8 @@
 #include "generictypedesc.h"
 
 extern "C" {
-#include "common.h"
-#include "signetdev.h"
-}
+#include "signetdev/host/signetdev.h"
+};
 
 #include "bookmark.h"
 #include "generic.h"

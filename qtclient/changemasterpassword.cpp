@@ -1,8 +1,8 @@
 #include "changemasterpassword.h"
 
 extern "C" {
-#include "signetdev.h"
-}
+#include "signetdev/host/signetdev.h"
+};
 
 #include <QPushButton>
 #include <QLineEdit>

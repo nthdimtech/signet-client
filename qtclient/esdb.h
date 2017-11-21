@@ -8,7 +8,7 @@
 #include <QVector>
 
 extern "C" {
-#include "common.h"
+#include "signetdev/common/signetdev_common.h"
 }
 
 struct genericField {

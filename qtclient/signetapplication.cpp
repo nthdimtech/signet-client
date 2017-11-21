@@ -4,7 +4,7 @@
 #include <QMenu>
 
 extern "C" {
-#include "signetdev.h"
+#include "signetdev/host/signetdev.h"
 #include "crypto_scrypt.h"
 };
 

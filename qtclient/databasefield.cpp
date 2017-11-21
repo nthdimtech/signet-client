@@ -11,8 +11,8 @@
 #include "signetapplication.h"
 
 extern "C" {
-#include "signetdev.h"
-}
+#include "signetdev/host/signetdev.h"
+};
 
 DatabaseField::DatabaseField(const QString &name, int width, QWidget *middle, QWidget *parent) : QWidget(parent),
 	m_buttonWait(NULL),
@@ -22,7 +22,7 @@ DatabaseField::DatabaseField(const QString &name, int width, QWidget *middle, QW
 	SignetApplication *app = SignetApplication::get();
 
 	QObject::connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
-	                 this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
+			 this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 
 	QPushButton *type_button = new QPushButton(QIcon(":/images/keyboard.png"),"");
 	type_button->setToolTip("Type");
@@ -82,7 +82,7 @@ void DatabaseField::signetdevCmdResp(signetdevCmdRespInfo info)
 		case SIGNETDEV_CMD_BUTTON_WAIT: {
 			QByteArray keys = m_fieldEdit->text().toLatin1();
 			::signetdev_type_async(NULL, &m_signetdevCmdToken,
-			                       (u8 *)keys.data(), keys.length());
+					       (u8 *)keys.data(), keys.length());
 		}
 		break;
 		case SIGNETDEV_CMD_TYPE:

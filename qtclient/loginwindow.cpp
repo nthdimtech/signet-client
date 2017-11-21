@@ -14,7 +14,7 @@
 #include "keygeneratorthread.h"
 
 extern "C" {
-#include "signetdev.h"
+#include "signetdev/host/signetdev.h"
 };
 
 LoginWindow::LoginWindow(QWidget *parent) : QWidget(parent),

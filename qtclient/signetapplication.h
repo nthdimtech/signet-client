@@ -22,7 +22,7 @@ struct signetdevCmdRespInfo {
 };
 
 extern "C" {
-#include "signetdev.h"
+#include "signetdev/host/signetdev.h"
 }
 
 Q_DECLARE_METATYPE(signetdevCmdRespInfo)

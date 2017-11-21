@@ -47,7 +47,6 @@ SOURCES += main.cpp\
     ../scrypt/insecure_memzero.c \
     ../scrypt/sha256.c \
     ../scrypt/warnp.c \
-    ../device_interface/signetdev.c \
     signetapplication.cpp \
     keygeneratorthread.cpp \
     esdbmodel.cpp \
@@ -80,23 +79,15 @@ SOURCES += main.cpp\
     signetdevserverconnection.cpp
 
 win32 {
-SOURCES += ../device_interface/rawhid/hid_WINDOWS.c
-SOURCES += ../device_interface/signetdev_win32.c
 SOURCES += qtsingleapplication/src/qtlockedfile_win.cpp
 }
 
 unix {
-SOURCES += qtsingleapplication/src/qtlockedfile_unix.cpp \
-    ../device_interface/signetdev_unix.c
+SOURCES += qtsingleapplication/src/qtlockedfile_unix.cpp
 }
 
 macx {
-SOURCES += ../device_interface/signetdev_osx.c
 ICON = images/signet.icns
-}
-
-unix:!macx {
-SOURCES += ../device_interface/signetdev_linux.c
 }
 
 HEADERS  += mainwindow.h \
@@ -111,8 +102,6 @@ HEADERS  += mainwindow.h \
     buttonwaitdialog.h \
     searchfilteredit.h \
     databasefield.h \
-    ../common/common.h \
-    ../device_interface/signetdev.h \
     esdb.h \
     systemtray.h \
     passwordedit.h \
@@ -127,10 +116,8 @@ HEADERS  += mainwindow.h \
     ../scrypt/insecure_memzero.h \
     ../scrypt/sha256.h \
     ../scrypt/warnp.h \
-    ../device_interface/signetdev.h \
     signetapplication.h \
     keygeneratorthread.h \
-    ../device_interface/signetdev_priv.h \
     esdbmodel.h \
     bookmark.h \
     resetdevice.h \
@@ -160,25 +147,17 @@ HEADERS  += mainwindow.h \
     signetdevserver.h \
     signetdevserverconnection.h
 
-win32 {
-HEADERS += ../device_interface/rawhid/hid.h
-}
-
-unix {
-HEADERS += ../device_interface/signetdev_unix.h
-}
-
-INCLUDEPATH+=../common
-INCLUDEPATH+=../device_interface
 INCLUDEPATH+=../scrypt
 INCLUDEPATH+=qtsingleapplication/src
 
 win32 {
-INCLUDEPATH+=$$PWD/../device_interface/rawhid
 RC_FILE = signet.rc
 }
 
 RESOURCES = resources.qrc
 
-DISTFILES += \
-    signet.rc
+DISTFILES += signet.rc
+
+LIBS += -L$$PWD/../../signet-firmware/signetdev -lsignetdev
+INCLUDEPATH += $$PWD/../../signet-firmware
+DEPENDPATH += $$PWD/../../signet-firmware
