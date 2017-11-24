@@ -203,6 +203,12 @@ int iconAccount::matchQuality(esdbEntry *entry)
 	connect(app, SIGNAL(signetdevReadIdResp(signetdevCmdRespInfo, QByteArray, QByteArray)), this,
 		SLOT(signetdevReadIdResp(signetdevCmdRespInfo, QByteArray, QByteArray)));
 
+	connect(app, SIGNAL(signetdevReadAllIdResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)), this,
+		SLOT(signetdevReadAllIdResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)));
+
+	connect(app, SIGNAL(signetdevReadAllUIdsResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)), this,
+		SLOT(signetdevReadAllUIdsResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)));
+
 	m_filterEdit = new SearchFilterEdit();
 	QObject::connect(m_filterEdit, SIGNAL(textEdited(QString)),
 			 this, SLOT(filterTextEdited(QString)));
@@ -278,11 +284,72 @@ int iconAccount::matchQuality(esdbEntry *entry)
 	m_newAcctButton->setEnabled(false);
 	m_filterLabel->setEnabled(false);
 	m_populating = true;
+	m_loadingProgress->setMinimum(0);
+	m_loadingProgress->setMaximum(1);
 
-	m_idTask = ID_TASK_READ_POPULATE;
-	m_taskIntent = ID_TASK_NONE;
-	m_id = MIN_ID;
-	::signetdev_read_id_async(NULL, &m_signetdevCmdToken, m_id, 1);
+	switch (app->getDBFormat()) {
+	case 1:
+		::signetdev_read_all_id_async(NULL, &m_signetdevCmdToken, 0);
+		break;
+	case 2:
+		::signetdev_read_all_uids_async(NULL, &m_signetdevCmdToken, 0);
+		break;
+	}
+}
+
+void LoggedInWidget::signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask)
+{
+	if (info.token != m_signetdevCmdToken) {
+		return;
+	}
+	bool do_abort = false;
+	int code = info.resp_code;
+
+	switch (code) {
+	case OKAY:
+	case ID_INVALID:
+	case BUTTON_PRESS_CANCELED:
+	case BUTTON_PRESS_TIMEOUT:
+	case SIGNET_ERROR_DISCONNECT:
+	case SIGNET_ERROR_QUIT:
+		break;
+	default:
+		do_abort = true;
+		return;
+	}
+
+	if (code == OKAY && id != -1) {
+		block *b = new block();
+		b->data = data;
+		b->mask = mask;
+		getEntryDone(id, code, b, false);
+	}
+
+	if (m_loadingProgress->maximum() == 1) {
+		m_loadingProgress->setMinimum(0);
+		m_loadingProgress->setMaximum(info.messages_remaining);
+	}
+	m_loadingProgress->setValue(m_loadingProgress->maximum() - info.messages_remaining);
+
+	if (!info.messages_remaining) {
+		m_populating = false;
+		m_searchListbox->setEnabled(true);
+		m_filterEdit->setEnabled(true);
+		m_newAcctButton->setEnabled(true);
+		m_filterLabel->setEnabled(true);
+		populateEntryList(m_activeType, m_searchListbox->filterText());
+		emit enterDeviceState(MainWindow::STATE_LOGGED_IN);
+		m_signetdevCmdToken = -1;
+	}
+
+	if (do_abort) {
+		abort();
+	}
+}
+
+void LoggedInWidget::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int uid, QByteArray data, QByteArray mask)
+{
+	//TODO
 }
 
 void LoggedInWidget::currentTypeIndexChanged(int idx)
@@ -425,15 +492,7 @@ void LoggedInWidget::signetdevReadIdResp(signetdevCmdRespInfo info,
 		block *b = new block();
 		b->data = data;
 		b->mask = mask;
-		this->getEntryDone(m_id, code, b);
-		if (m_idTask == ID_TASK_READ_POPULATE) {
-			m_id++;
-			if (m_id <= MAX_ID) {
-				::signetdev_read_id_async(NULL, &m_signetdevCmdToken, m_id, 1);
-			} else {
-				m_idTask = ID_TASK_NONE;
-			}
-		}
+		getEntryDone(m_id, code, b, true);
 	} else {
 		m_idTask = ID_TASK_NONE;
 	}
@@ -607,19 +666,17 @@ void LoggedInWidget::showEvent(QShowEvent *event)
 	m_filterEdit->setFocus();
 }
 
-void LoggedInWidget::getEntryDone(int id, int code, block *blk)
+void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 {
 	esdbEntry *entry = NULL;
 
 	int exists = m_entries.count(id);
 
-	if (exists) {
+	if (exists && task) {
 		entry = m_entries[id];
-		if (m_idTask != ID_TASK_READ_POPULATE) {
-			EsdbActionBar *bar = getActionBarByEntry(entry);
-			if (bar)
-				bar->idTaskComplete(id, m_taskIntent);
-		}
+		EsdbActionBar *bar = getActionBarByEntry(entry);
+		if (bar)
+			bar->idTaskComplete(id, m_taskIntent);
 	}
 
 	if (code != OKAY && code != ID_INVALID && code != BUTTON_PRESS_CANCELED && code != BUTTON_PRESS_TIMEOUT) {
@@ -633,12 +690,16 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk)
 		esdbEntry_1 tmp(id);
 		tmp.fromBlock(blk);
 		esdbTypeModule *module = getTypeModule(tmp.type);
-		entry = module->decodeEntry(id, tmp.revision, entry, blk);
-		EsdbActionBar *bar = getActionBarByEntry(entry);
-		if (entry && bar) {
-			bar->getEntryDone(entry, m_taskIntent);
-		} else {
-			//TODO
+		if (module) {
+			entry = module->decodeEntry(id, tmp.revision, entry, blk);
+			if (entry) {
+				EsdbActionBar *bar = getActionBarByEntry(entry);
+				if (bar) {
+					bar->getEntryDone(entry, m_taskIntent);
+				} else {
+					//TODO
+				}
+			}
 		}
 	}
 
@@ -657,23 +718,6 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk)
 	}
 	if (blk)
 		delete blk;
-
-	if (m_populating) {
-		m_loadingProgress->setMinimum(MIN_ID);
-		m_loadingProgress->setMaximum(MAX_ID);
-		m_loadingProgress->setValue(id);
-	}
-
-	if (m_populating && id == MAX_ID) {
-		m_populating = false;
-		m_searchListbox->setEnabled(true);
-		m_filterEdit->setEnabled(true);
-		m_newAcctButton->setEnabled(true);
-		m_filterLabel->setEnabled(true);
-		populateEntryList(m_activeType, m_searchListbox->filterText());
-		emit enterDeviceState(MainWindow::STATE_LOGGED_IN);
-	}
-
 }
 
 void LoggedInWidget::abortProxy()

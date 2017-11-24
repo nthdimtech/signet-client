@@ -171,7 +171,7 @@ public slots:
 	void deviceClosed();
 	void signetdevCmdResp(signetdevCmdRespInfo info);
 	void signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_get_progress_resp_data data);
-	void signetdevStartupResp(signetdevCmdRespInfo info, int device_state, int root_block_ver, QByteArray hashfn, QByteArray salt);
+	void signetdevStartupResp(signetdevCmdRespInfo info, signetdev_startup_resp_data resp);
 	void signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray block);
 	void signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
 

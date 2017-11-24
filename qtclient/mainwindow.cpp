@@ -92,8 +92,8 @@ MainWindow::MainWindow(QWidget *parent) :
 		this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 	connect(app, SIGNAL(signetdevGetProgressResp(signetdevCmdRespInfo, signetdev_get_progress_resp_data)),
 		this, SLOT(signetdevGetProgressResp(signetdevCmdRespInfo, signetdev_get_progress_resp_data)));
-	connect(app, SIGNAL(signetdevStartupResp(signetdevCmdRespInfo, int, int, QByteArray, QByteArray)),
-		this, SLOT(signetdevStartupResp(signetdevCmdRespInfo,int, int, QByteArray, QByteArray)));
+	connect(app, SIGNAL(signetdevStartupResp(signetdevCmdRespInfo, signetdev_startup_resp_data)),
+		this, SLOT(signetdevStartupResp(signetdevCmdRespInfo, signetdev_startup_resp_data)));
 	connect(app, SIGNAL(signetdevReadBlockResp(signetdevCmdRespInfo, QByteArray)),
 		this, SLOT(signetdevReadBlockResp(signetdevCmdRespInfo, QByteArray)));
 	connect(app, SIGNAL(signetdevReadAllIdResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)),
@@ -560,7 +560,7 @@ void MainWindow::signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByte
 	}
 }
 
-void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, int device_state, int root_block_ver, QByteArray hashfn, QByteArray salt)
+void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, signetdev_startup_resp_data resp)
 {
 	if (info.token != m_signetdevCmdToken) {
 		return;
@@ -568,21 +568,25 @@ void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, int device_stat
 	m_signetdevCmdToken = -1;
 	int code = info.resp_code;
 	SignetApplication *app = SignetApplication::get();
-	QByteArray salt_copy = salt;
+	QByteArray salt;
 	int keyLength;
 	int saltLength;
-	if (root_block_ver == 1) {
+	int root_block_format = resp.root_block_format;
+	int device_state = resp.device_state;
+	int db_format = resp.db_format;
+	if (root_block_format == 1) {
 		saltLength = AES_128_KEY_SIZE;
 		keyLength = AES_128_KEY_SIZE;
 	} else {
 		saltLength = AES_256_KEY_SIZE;
 		keyLength = AES_256_KEY_SIZE;
 	}
-	salt_copy.truncate(saltLength);
+	salt = QByteArray((const char *)resp.salt, saltLength);
 	app->setSaltLength(saltLength);
-	app->setSalt(salt_copy);
-	app->setHashfn(hashfn);
+	app->setSalt(salt);
+	app->setHashfn(QByteArray((const char *)resp.hashfn, HASH_FN_SZ));
 	app->setKeyLength(keyLength);
+	app->setDBFormat(db_format);
 
 	if (m_restoreFile) {
 		m_restoreFile->close();

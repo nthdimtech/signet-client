@@ -55,6 +55,7 @@ private:
 	QByteArray m_salt;
 	int m_keyLength;
 	int m_saltLength;
+	int m_DBFormat;
 public:
 	QByteArray getHashfn()
 	{
@@ -74,6 +75,11 @@ public:
 	int getSaltLength()
 	{
 		return m_keyLength;
+	}
+
+	int getDBFormat()
+	{
+		return m_DBFormat;
 	}
 
 	void setHashfn(QByteArray hashfn)
@@ -96,6 +102,11 @@ public:
 		m_saltLength = saltLength;
 	}
 
+	void setDBFormat(int DBFormat)
+	{
+		m_DBFormat = DBFormat;
+	}
+
 	static void generateKey(const QString &password, QByteArray &key, const QByteArray &hashfn, const QByteArray &salt, int keyLength);
 signals:
 	void deviceOpened();
@@ -103,9 +114,10 @@ signals:
 	void connectionError();
 	void signetdevCmdResp(const signetdevCmdRespInfo info);
 	void signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_get_progress_resp_data resp);
-	void signetdevStartupResp(signetdevCmdRespInfo info, int device_state, int root_block_ver, QByteArray hashfn, QByteArray salt);
+	void signetdevStartupResp(signetdevCmdRespInfo info, signetdev_startup_resp_data resp);
 	void signetdevReadIdResp(signetdevCmdRespInfo info, QByteArray data, QByteArray mask);
 	void signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
+	void signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
 	void signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray block);
 	void signetdevEvent(int event_type);
 	void signetdevTimerEvent(int seconds_remaining);

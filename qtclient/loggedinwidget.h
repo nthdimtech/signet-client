@@ -139,7 +139,7 @@ class LoggedInWidget : public QWidget
 
 	int m_id;
 	int m_taskIntent;
-	void getEntryDone(int id, int code, block *);
+	void getEntryDone(int id, int code, block *, bool task);
 	int esdbTypeToIndex(int type);
 	int esdbEntryToIndex(esdbEntry *entry);
 	EsdbActionBar *getActionBarByEntry(esdbEntry *entry);
@@ -149,8 +149,7 @@ public:
 	enum ID_TASK {
 		ID_TASK_NONE,
 		ID_TASK_DELETE,
-		ID_TASK_READ,
-		ID_TASK_READ_POPULATE,
+		ID_TASK_READ
 	} m_idTask;
 	explicit LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, QWidget *parent = 0);
 	~LoggedInWidget();
@@ -166,6 +165,8 @@ public slots:
 	void entryChanged(int id);
 	void signetdevReadIdResp(signetdevCmdRespInfo info, QByteArray data, QByteArray mask);
 	void signetdevCmdResp(signetdevCmdRespInfo info);
+	void signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
+	void signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
 	void entryCreated(EsdbActionBar *actionBar, esdbEntry *acct);
 	void abortProxy();
 	void filterEditPressed();

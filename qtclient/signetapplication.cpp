@@ -135,18 +135,14 @@ void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int c
 	}
 	break;
 	case SIGNETDEV_CMD_STARTUP: {
-		int device_state = 0;
-		int root_block_ver = 0;
 		QByteArray hashfn;
 		QByteArray salt;
+		signetdev_startup_resp_data resp;
 		if (resp_data) {
-			signetdev_startup_resp_data *resp = (signetdev_startup_resp_data *)resp_data;
-			device_state = resp->device_state;
-			root_block_ver = resp->root_block_format;
-			hashfn = QByteArray((const char *)resp->hashfn, sizeof(resp->hashfn));
-			salt = QByteArray((const char *)resp->salt, sizeof(resp->salt));
+			signetdev_startup_resp_data *resp_ = (signetdev_startup_resp_data *)resp_data;
+			resp = *resp_;
 		}
-		this_->signetdevStartupResp(info, device_state, root_block_ver, hashfn, salt);
+		this_->signetdevStartupResp(info, resp);
 	}
 	break;
 	case SIGNETDEV_CMD_READ_ID: {
