@@ -72,7 +72,7 @@ void NewGeneric::createButtonPressed()
 	g->typeName = m_typeDesc->name;
 	m_entry = g;
 	g->toBlock(&blk);
-	::signetdev_write_id_async(NULL, &m_signetdevCmdToken,
+	::signetdev_update_uid_async(NULL, &m_signetdevCmdToken,
 				   g->id,
 				   blk.data.size(),
 				   (const u8 *)blk.data.data(),

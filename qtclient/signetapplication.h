@@ -116,6 +116,7 @@ signals:
 	void signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_get_progress_resp_data resp);
 	void signetdevStartupResp(signetdevCmdRespInfo info, signetdev_startup_resp_data resp);
 	void signetdevReadIdResp(signetdevCmdRespInfo info, QByteArray data, QByteArray mask);
+	void signetdevReadUIdResp(signetdevCmdRespInfo info, QByteArray data, QByteArray mask);
 	void signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
 	void signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
 	void signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray block);

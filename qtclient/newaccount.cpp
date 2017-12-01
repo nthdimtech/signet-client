@@ -33,8 +33,7 @@ NewAccount::NewAccount(int id, const QString &name, QWidget *parent) : QDialog(p
 
 	setWindowTitle("New account");
 
-	m_genericFieldsEditor = new GenericFieldsEditor(m_fields,
-					QList<fieldSpec>());
+	m_genericFieldsEditor = new GenericFieldsEditor(m_fields, QList<fieldSpec>());
 
 	QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
 	layout->setAlignment(Qt::AlignTop);
@@ -110,7 +109,8 @@ void NewAccount::create_button_pressed()
 	m_genericFieldsEditor->saveFields();
 	m_acct->fields = m_fields;
 	m_acct->toBlock(&blk);
-	::signetdev_write_id_async(NULL, &m_signetdev_cmd_token,
+
+	::signetdev_update_uid_async(NULL, &m_signetdev_cmd_token,
 				   m_acct->id,
 				   blk.data.size(),
 				   (const u8 *)blk.data.data(),
@@ -133,6 +133,7 @@ void NewAccount::signetdev_cmd_resp(signetdevCmdRespInfo info)
 	switch (code) {
 	case OKAY: {
 		switch (info.cmd) {
+		case SIGNETDEV_CMD_UPDATE_UID:
 		case SIGNETDEV_CMD_WRITE_ID:
 			emit accountCreated(m_acct);
 			close();

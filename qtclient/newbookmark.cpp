@@ -60,7 +60,7 @@ void NewBookmark::createButtonPressed()
 	bm->url = m_urlField->text();
 
 	bm->toBlock(&blk);
-	::signetdev_write_id_async(NULL, &m_signetdevCmdToken,
+	::signetdev_update_uid_async(NULL, &m_signetdevCmdToken,
 				   bm->id,
 				   blk.data.size(),
 				   (const u8 *)blk.data.data(),

@@ -284,9 +284,9 @@ void MainWindow::signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray bl
 		}
 		m_backupBlock++;
 		m_backupProgress->setMinimum(0);
-		m_backupProgress->setMaximum(MAX_ID);
+		m_backupProgress->setMaximum(NUM_STORAGE_BLOCKS-1);
 		m_backupProgress->setValue(m_backupBlock);
-		if (m_backupBlock > MAX_ID) {
+		if (m_backupBlock > NUM_STORAGE_BLOCKS) {
 			::signetdev_end_device_backup_async(NULL, &m_signetdevCmdToken);
 		} else {
 			::signetdev_read_block_async(NULL, &m_signetdevCmdToken, m_backupBlock);
@@ -482,56 +482,56 @@ void MainWindow::signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByte
 		m_backupProgress->setValue(m_backupProgress->maximum() - info.messages_remaining);
 	}
 
-	if (id >= MIN_ID) {
-	block *blk = new block();
-	blk->data = data;
-	blk->mask = mask;
-	esdbEntry_1 tmp(id);
-	tmp.fromBlock(blk);
+	if (id >= MIN_UID && id <= MAX_UID) {
+		block *blk = new block();
+		blk->data = data;
+		blk->mask = mask;
+		esdbEntry_1 tmp(id);
+		tmp.fromBlock(blk);
 
-	esdbTypeModule *typeModule = NULL;
-	QString typeName;
+		esdbTypeModule *typeModule = NULL;
+		QString typeName;
 
-	switch (tmp.type) {
-	case ESDB_TYPE_ACCOUNT:
-		typeModule = m_accountTypeModule;
-		typeName = typeModule->name();
-		break;
-	case ESDB_TYPE_BOOKMARK:
-		typeModule = m_bookmarkTypeModule;
-		typeName = typeModule->name();
-		break;
-	case ESDB_TYPE_GENERIC:
-		typeModule = m_genericTypeModule;
-		break;
-	}
-	if (typeModule != NULL) {
-		esdbEntry *entry = typeModule->decodeEntry(id, tmp.revision, NULL, blk);
-		if (tmp.type == ESDB_TYPE_GENERIC) {
-			generic *g = (generic *)entry;
-			typeName = g->typeName;
+		switch (tmp.type) {
+		case ESDB_TYPE_ACCOUNT:
+			typeModule = m_accountTypeModule;
+			typeName = typeModule->name();
+			break;
+		case ESDB_TYPE_BOOKMARK:
+			typeModule = m_bookmarkTypeModule;
+			typeName = typeModule->name();
+			break;
+		case ESDB_TYPE_GENERIC:
+			typeModule = m_genericTypeModule;
+			break;
 		}
+		if (typeModule != NULL) {
+			esdbEntry *entry = typeModule->decodeEntry(id, tmp.revision, NULL, blk);
+			if (tmp.type == ESDB_TYPE_GENERIC) {
+				generic *g = (generic *)entry;
+				typeName = g->typeName;
+			}
 
-		if (entry) {
-			exportType &exportType = m_exportData[typeName];
-			QVector<genericField> fields;
-			entry->getFields(fields);
-			for (genericField x : fields) {
-				auto iter = m_exportFieldMap.find(x.name);
-				if (iter == m_exportFieldMap.end()) {
-					m_exportField.push_back(x.name);
-					m_exportFieldMap[x.name] = m_exportField.size() - 1;
+			if (entry) {
+				exportType &exportType = m_exportData[typeName];
+				QVector<genericField> fields;
+				entry->getFields(fields);
+				for (genericField x : fields) {
+					auto iter = m_exportFieldMap.find(x.name);
+					if (iter == m_exportFieldMap.end()) {
+						m_exportField.push_back(x.name);
+						m_exportFieldMap[x.name] = m_exportField.size() - 1;
+					}
+				}
+				exportType.m_data.push_back(QVector<QString>());
+				QVector<QString> &csvEntry = exportType.m_data.back();
+				csvEntry.resize(m_exportField.size() + 1);
+				for (genericField x : fields) {
+					int index = m_exportFieldMap[x.name];
+					csvEntry[index] = x.value;
 				}
 			}
-			exportType.m_data.push_back(QVector<QString>());
-			QVector<QString> &csvEntry = exportType.m_data.back();
-			csvEntry.resize(m_exportField.size() + 1);
-			for (genericField x : fields) {
-				int index = m_exportFieldMap[x.name];
-				csvEntry[index] = x.value;
-			}
 		}
-	}
 	}
 	if (!info.messages_remaining) {
 		QTextStream out(m_backupFile);

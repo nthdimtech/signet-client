@@ -163,9 +163,8 @@ signals:
 public slots:
 	void open();
 	void entryChanged(int id);
-	void signetdevReadIdResp(signetdevCmdRespInfo info, QByteArray data, QByteArray mask);
+	void signetdevReadUIdResp(signetdevCmdRespInfo info, QByteArray data, QByteArray mask);
 	void signetdevCmdResp(signetdevCmdRespInfo info);
-	void signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
 	void signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
 	void entryCreated(EsdbActionBar *actionBar, esdbEntry *acct);
 	void abortProxy();

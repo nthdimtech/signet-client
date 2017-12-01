@@ -112,16 +112,16 @@ void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int c
 
 	SignetApplication *this_ = (SignetApplication *)cb_param;
 	switch(cmd) {
-	case SIGNETDEV_CMD_READ_ALL_ID: {
+	case SIGNETDEV_CMD_READ_ALL_UIDS: {
 		if (resp_data) {
-			signetdev_read_all_id_resp_data *resp = (signetdev_read_all_id_resp_data *)resp_data;
+			signetdev_read_all_uids_resp_data *resp = (signetdev_read_all_uids_resp_data *)resp_data;
 			QByteArray data((char *)resp->data, resp->size);
 			QByteArray mask((char *)resp->mask, resp->size);
-			this_->signetdevReadAllIdResp(info, resp->id, data, mask);
+			this_->signetdevReadAllUIdsResp(info, resp->uid, data, mask);
 		} else {
 			QByteArray data;
 			QByteArray mask;
-			this_->signetdevReadAllIdResp(info, -1, data, mask);
+			this_->signetdevReadAllUIdsResp(info, -1, data, mask);
 		}
 	} break;
 	case SIGNETDEV_CMD_READ_BLOCK: {
@@ -145,16 +145,16 @@ void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int c
 		this_->signetdevStartupResp(info, resp);
 	}
 	break;
-	case SIGNETDEV_CMD_READ_ID: {
+	case SIGNETDEV_CMD_READ_UID: {
 		if (resp_data) {
-			signetdev_read_id_resp_data *resp = (signetdev_read_id_resp_data *)resp_data;
+			signetdev_read_uid_resp_data *resp = (signetdev_read_uid_resp_data *)resp_data;
 			QByteArray data((char *)resp->data, resp->size);
 			QByteArray mask((char *)resp->mask, resp->size);
-			this_->signetdevReadIdResp(info, data, mask);
+			this_->signetdevReadUIdResp(info, data, mask);
 		} else {
 			QByteArray data;
 			QByteArray mask;
-			this_->signetdevReadIdResp(info, data, mask);
+			this_->signetdevReadUIdResp(info, data, mask);
 		}
 	}
 	break;

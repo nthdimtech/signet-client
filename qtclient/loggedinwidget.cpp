@@ -200,11 +200,8 @@ int iconAccount::matchQuality(esdbEntry *entry)
 	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)), this,
 		SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 
-	connect(app, SIGNAL(signetdevReadIdResp(signetdevCmdRespInfo, QByteArray, QByteArray)), this,
-		SLOT(signetdevReadIdResp(signetdevCmdRespInfo, QByteArray, QByteArray)));
-
-	connect(app, SIGNAL(signetdevReadAllIdResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)), this,
-		SLOT(signetdevReadAllIdResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)));
+	connect(app, SIGNAL(signetdevReadUIdResp(signetdevCmdRespInfo, QByteArray, QByteArray)), this,
+		SLOT(signetdevReadUIdResp(signetdevCmdRespInfo, QByteArray, QByteArray)));
 
 	connect(app, SIGNAL(signetdevReadAllUIdsResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)), this,
 		SLOT(signetdevReadAllUIdsResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)));
@@ -287,17 +284,10 @@ int iconAccount::matchQuality(esdbEntry *entry)
 	m_loadingProgress->setMinimum(0);
 	m_loadingProgress->setMaximum(1);
 
-	switch (app->getDBFormat()) {
-	case 1:
-		::signetdev_read_all_id_async(NULL, &m_signetdevCmdToken, 0);
-		break;
-	case 2:
-		::signetdev_read_all_uids_async(NULL, &m_signetdevCmdToken, 0);
-		break;
-	}
+	::signetdev_read_all_uids_async(NULL, &m_signetdevCmdToken, 1);
 }
 
-void LoggedInWidget::signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask)
+void LoggedInWidget::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int uid, QByteArray data, QByteArray mask)
 {
 	if (info.token != m_signetdevCmdToken) {
 		return;
@@ -318,11 +308,11 @@ void LoggedInWidget::signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, Q
 		return;
 	}
 
-	if (code == OKAY && id != -1) {
+	if (code == OKAY && uid != -1) {
 		block *b = new block();
 		b->data = data;
 		b->mask = mask;
-		getEntryDone(id, code, b, false);
+		getEntryDone(uid, code, b, false);
 	}
 
 	if (m_loadingProgress->maximum() == 1) {
@@ -345,11 +335,6 @@ void LoggedInWidget::signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, Q
 	if (do_abort) {
 		abort();
 	}
-}
-
-void LoggedInWidget::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int uid, QByteArray data, QByteArray mask)
-{
-	//TODO
 }
 
 void LoggedInWidget::currentTypeIndexChanged(int idx)
@@ -392,10 +377,10 @@ void LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent)
 	m_taskIntent = intent;
 	switch (m_idTask) {
 	case ID_TASK_DELETE:
-		::signetdev_delete_id_async(NULL, &m_signetdevCmdToken, m_id);
+		::signetdev_update_uid_async(NULL, &m_signetdevCmdToken, m_id, 0, NULL, NULL);
 		break;
 	case ID_TASK_READ:
-		::signetdev_read_id_async(NULL, &m_signetdevCmdToken, m_id, 0);
+		::signetdev_read_uid_async(NULL, &m_signetdevCmdToken, m_id, 0);
 		break;
 	default:
 		break;
@@ -455,8 +440,20 @@ void LoggedInWidget::signetdevCmdResp(signetdevCmdRespInfo info)
 		}
 		m_idTask = ID_TASK_NONE;
 		} break;
-	case ID_TASK_READ:
-		m_idTask = ID_TASK_NONE;
+	case SIGNETDEV_CMD_UPDATE_UID: {
+		if (m_idTask == ID_TASK_DELETE) {
+			EsdbActionBar *bar = getActiveActionBar();
+			bar->idTaskComplete(m_id, m_taskIntent);
+			if (code == OKAY) {
+				m_entries.erase(m_entries.find(m_id));
+				//TODO: too long line
+				m_entriesByType.at(m_activeType)->erase(m_entriesByType.at(m_activeType)->find(m_id));
+				populateEntryList(m_activeType, m_filterEdit->text());
+			}
+			m_idTask = ID_TASK_NONE;
+		}
+		} break;
+	default:
 		break;
 	}
 
@@ -465,8 +462,7 @@ void LoggedInWidget::signetdevCmdResp(signetdevCmdRespInfo info)
 	}
 }
 
-void LoggedInWidget::signetdevReadIdResp(signetdevCmdRespInfo info,
-	QByteArray data,  QByteArray mask)
+void LoggedInWidget::signetdevReadUIdResp(signetdevCmdRespInfo info, QByteArray data, QByteArray mask)
 {
 	if (info.token != m_signetdevCmdToken) {
 		return;
@@ -771,19 +767,20 @@ void LoggedInWidget::filterEditPressed()
 
 void LoggedInWidget::newEntryUI()
 {
-	int entriesValid[MAX_ID+1];
-	for (int i = MIN_ID; i <= MAX_ID; i++) {
+	int entriesValid[MAX_UID+1];
+	//TODO: optimize this
+	for (int i = MIN_UID; i <= MAX_UID; i++) {
 		entriesValid[i] = 0;
 	}
 	for (auto entry : m_entries) {
 		entriesValid[entry->id] = 1;
 	}
 	int id;
-	for (id = MIN_ID; id <= MAX_ID; id++) {
+	for (id = MIN_UID; id <= MAX_UID; id++) {
 		if (!entriesValid[id])
 			break;
 	}
-	if (id > MAX_ID) {
+	if (id > MAX_UID) {
 		SignetApplication::messageBoxError(QMessageBox::Warning,
 						   "Account creation failed",
 						   "No space left on device",
