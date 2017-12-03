@@ -23,7 +23,7 @@ NewBookmark::NewBookmark(int id, const QString &name, QWidget *parent) :
 {
 	setWindowModality(Qt::WindowModal);
 	SignetApplication *app = SignetApplication::get();
-	connect(app, SIGNAL(signetdev_cmd_resp(signetdevCmdRespInfo)),
+	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
 		this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 
 	QBoxLayout *nameLayout = new QBoxLayout(QBoxLayout::LeftToRight);
@@ -49,7 +49,7 @@ NewBookmark::NewBookmark(int id, const QString &name, QWidget *parent) :
 void NewBookmark::createButtonPressed()
 {
 	QString action = "add bookmark \"" + m_nameField->text() + "\"";
-	m_buttonWaitDialog = new ButtonWaitDialog("Add account", action, this);
+	m_buttonWaitDialog = new ButtonWaitDialog("Add bookmark", action, this);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(addEntryFinished(int)));
 	m_buttonWaitDialog->show();
 
