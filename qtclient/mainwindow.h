@@ -154,6 +154,7 @@ private:
 	void settingsChanged();
 	void showEvent(QShowEvent *event);
 	void backupDevice(QString fileName);
+	QString backupFileBaseName();
 #ifdef _WIN32
 	bool nativeEvent(const QByteArray &eventType, void *message, long *result);
 #endif
@@ -173,7 +174,7 @@ public slots:
 	void signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_get_progress_resp_data data);
 	void signetdevStartupResp(signetdevCmdRespInfo info, signetdev_startup_resp_data resp);
 	void signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray block);
-	void signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
+	void signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
 
 	void wipeDeviceDialogFinished(int code);
 	void connectionError();

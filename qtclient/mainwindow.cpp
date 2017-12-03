@@ -96,12 +96,11 @@ MainWindow::MainWindow(QWidget *parent) :
 		this, SLOT(signetdevStartupResp(signetdevCmdRespInfo, signetdev_startup_resp_data)));
 	connect(app, SIGNAL(signetdevReadBlockResp(signetdevCmdRespInfo, QByteArray)),
 		this, SLOT(signetdevReadBlockResp(signetdevCmdRespInfo, QByteArray)));
-	connect(app, SIGNAL(signetdevReadAllIdResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)),
-		this, SLOT(signetdevReadAllIdResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)));
+	connect(app, SIGNAL(signetdevReadAllUIdsResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)),
+		this, SLOT(signetdevReadAllUIdsResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)));
 	connect(app, SIGNAL(connectionError()),
 		this, SLOT(connectionError()));
 
-	QStyle *style = app->style();
 	QObject::connect(&m_resetTimer, SIGNAL(timeout()), this, SLOT(resetTimer()));
 
 	QObject::connect(&m_connectingTimer, SIGNAL(timeout()), this, SLOT(connectingTimer()));
@@ -109,16 +108,16 @@ MainWindow::MainWindow(QWidget *parent) :
 	this->setMenuBar(bar);
 	m_fileMenu = bar->addMenu("File");
 	m_settingsAction = m_fileMenu->addAction("Settings");
-	m_saveAction = m_fileMenu->addAction(style->standardIcon(QStyle::SP_DialogSaveButton)
-, "Save");
+	//m_saveAction = m_fileMenu->addAction(style->standardIcon(QStyle::SP_DialogSaveButton), "Save");
 
-	m_importAction = m_fileMenu->addAction("Import");
+	//m_importAction = m_fileMenu->addAction("Import");
 	m_exportMenu = m_fileMenu->addMenu("Export");
+	m_exportMenu->setVisible(false);
 
 	m_exportCSVAction = m_exportMenu->addAction("CSV");
 	QAction *quit_action = m_fileMenu->addAction("Exit");
 	QObject::connect(quit_action, SIGNAL(triggered(bool)), this, SLOT(quit()));
-	connect(m_saveAction, SIGNAL(triggered(bool)), this, SLOT(backupDeviceUi()));
+	//connect(m_saveAction, SIGNAL(triggered(bool)), this, SLOT(backupDeviceUi()));
 
 	connect(m_settingsAction, SIGNAL(triggered(bool)), this,
 		SLOT(openSettingsUi()));
@@ -128,17 +127,17 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	m_deviceMenu = bar->addMenu("Device");
 
-	m_backupAction = m_deviceMenu->addAction("Backup device");
+	m_logoutAction = m_deviceMenu->addAction("Lock");
+	QObject::connect(m_logoutAction, SIGNAL(triggered(bool)),
+			 this, SLOT(logoutUi()));
+
+	m_backupAction = m_deviceMenu->addAction("Backup to file");
 	QObject::connect(m_backupAction, SIGNAL(triggered(bool)),
 			 this, SLOT(backupDeviceUi()));
 
-	m_restoreAction = m_deviceMenu->addAction("Restore device");
+	m_restoreAction = m_deviceMenu->addAction("Restore from file");
 	QObject::connect(m_restoreAction, SIGNAL(triggered(bool)),
 			 this, SLOT(restoreDeviceUi()));
-
-	m_logoutAction = m_deviceMenu->addAction("Logout");
-	QObject::connect(m_logoutAction, SIGNAL(triggered(bool)),
-			 this, SLOT(logoutUi()));
 
 	m_changePasswordAction = m_deviceMenu->addAction("Change master password");
 	QObject::connect(m_changePasswordAction, SIGNAL(triggered(bool)),
@@ -156,8 +155,8 @@ MainWindow::MainWindow(QWidget *parent) :
 	QObject::connect(m_updateFirmwareAction, SIGNAL(triggered(bool)),
 			 this, SLOT(updateFirmwareUi()));
 
-	m_saveAction->setVisible(false);
-	m_importAction->setVisible(false);
+	//m_saveAction->setVisible(false);
+	//m_importAction->setVisible(false);
 	m_logoutAction->setVisible(false);
 	m_eraseDeviceAction->setVisible(false);
 	m_wipeDeviceAction->setVisible(false);
@@ -278,7 +277,7 @@ void MainWindow::signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray bl
 		int rc;
 		rc = m_backupFile->write(block);
 		if (rc == -1) {
-			QMessageBox * box = SignetApplication::messageBoxError(QMessageBox::Critical, "Backup device", "Failed to write to backup file", this);
+			QMessageBox * box = SignetApplication::messageBoxError(QMessageBox::Critical, "Backup database to file", "Failed to write to backup file", this);
 			connect(box, SIGNAL(finished(int)), this, SLOT(backupError()));
 			return;
 		}
@@ -286,7 +285,7 @@ void MainWindow::signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray bl
 		m_backupProgress->setMinimum(0);
 		m_backupProgress->setMaximum(NUM_STORAGE_BLOCKS-1);
 		m_backupProgress->setValue(m_backupBlock);
-		if (m_backupBlock > NUM_STORAGE_BLOCKS) {
+		if (m_backupBlock > (NUM_STORAGE_BLOCKS-1)) {
 			::signetdev_end_device_backup_async(NULL, &m_signetdevCmdToken);
 		} else {
 			::signetdev_read_block_async(NULL, &m_signetdevCmdToken, m_backupBlock);
@@ -348,9 +347,9 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 		if (code == OKAY) {
 			m_restoreBlock++;
 			m_restoreProgress->setMinimum(0);
-			m_restoreProgress->setMaximum(MAX_ID);
+			m_restoreProgress->setMaximum(NUM_DATA_BLOCKS);
 			m_restoreProgress->setValue(m_restoreBlock);
-			if (m_restoreBlock < MAX_ID) {
+			if (m_restoreBlock < MAX_DATA_BLOCK) {
 				QByteArray block(BLK_SIZE, 0);
 				int sz = m_restoreFile->read(block.data(), block.length());
 				if (sz == BLK_SIZE) {
@@ -391,7 +390,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 			enterDeviceState(STATE_RESTORING);
 			m_restoreBlock = 0;
 			m_restoreProgress->setMinimum(0);
-			m_restoreProgress->setMaximum(MAX_ID);
+			m_restoreProgress->setMaximum(NUM_DATA_BLOCKS);
 			m_restoreProgress->setValue(m_restoreBlock);
 			QByteArray block(BLK_SIZE, 0);
 			int sz = m_restoreFile->read(block.data(), block.length());
@@ -461,7 +460,7 @@ void MainWindow::backupError()
 #include "generic.h"
 #include <QVector>
 
-void MainWindow::signetdevReadAllIdResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask)
+void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask)
 {
 	if (info.token != m_signetdevCmdToken) {
 		return;
@@ -713,15 +712,20 @@ void MainWindow::saveSettings()
 	configFile.close();
 }
 
+QString MainWindow::backupFileBaseName()
+{
+	QDateTime currentTime = QDateTime::currentDateTime();
+	return "signet-" +
+		QString::number(currentTime.date().year()) + "-" +
+		QString::number(currentTime.date().month()) + "-" +
+		QString::number(currentTime.date().day());
+}
+
 void MainWindow::settingsChanged()
 {
 	QDateTime currentTime = QDateTime::currentDateTime();
-
 	if (m_settings.localBackups) {
-		QString backupFileName = m_settings.localBackupPath + "/" +
-				QString::number(currentTime.date().year()) + "-" +
-				QString::number(currentTime.date().month()) + "-" +
-				QString::number(currentTime.date().day()) + ".sdb";
+		QString backupFileName = m_settings.localBackupPath + "/" + backupFileBaseName() + ".sdb";
 		QDir backupPath(m_settings.localBackupPath);
 		if (!backupPath.exists()) {
 			QString dirName = backupPath.dirName();
@@ -755,7 +759,7 @@ void MainWindow::settingsChanged()
 				int rc = box->exec();
 				box->deleteLater();
 				if (rc == QMessageBox::Yes) {
-					backupDevice(backupFileName);
+					backupDeviceUi();
 					return;
 				}
 			}
@@ -982,7 +986,7 @@ void MainWindow::enterDeviceState(int state)
 		layout->addWidget(m_connectingLabel);
 
 		m_deviceMenu->setDisabled(true);
-		m_fileMenu->setDisabled(false);
+		m_fileMenu->setDisabled(true);
 		connecting_widget->setLayout(layout);
 		setCentralWidget(connecting_widget);
 	}
@@ -1000,7 +1004,7 @@ void MainWindow::enterDeviceState(int state)
 		layout->addWidget(m_wipeProgress);
 		m_wipingWidget->setLayout(layout);
 		m_deviceMenu->setDisabled(true);
-		m_fileMenu->setDisabled(false);
+		m_fileMenu->setDisabled(true);
 		setCentralWidget(m_wipingWidget);
 		::signetdev_get_progress_async(NULL, &m_signetdevCmdToken, 0, WIPING);
 	}
@@ -1008,7 +1012,7 @@ void MainWindow::enterDeviceState(int state)
 	case STATE_LOGGED_IN_LOADING_ACCOUNTS: {
 		m_loggedIn = true;
 		m_deviceMenu->setDisabled(true);
-		m_fileMenu->setDisabled(false);
+		m_fileMenu->setDisabled(true);
 		QLabel *loading_label = new QLabel("Loading...");
 		loading_label->setStyleSheet("font-weight: bold");
 
@@ -1046,7 +1050,7 @@ void MainWindow::enterDeviceState(int state)
 		layout->addWidget(m_backupProgress);
 		m_backupWidget->setLayout(layout);
 		m_deviceMenu->setDisabled(true);
-		m_fileMenu->setDisabled(false);
+		m_fileMenu->setDisabled(true);
 		m_loggedInStack->addWidget(m_backupWidget);
 		m_loggedInStack->setCurrentWidget(m_backupWidget);
 	}
@@ -1061,7 +1065,7 @@ void MainWindow::enterDeviceState(int state)
 		layout->addWidget(m_backupProgress);
 		m_backupWidget->setLayout(layout);
 		m_deviceMenu->setDisabled(true);
-		m_fileMenu->setDisabled(false);
+		m_fileMenu->setDisabled(true);
 		m_loggedInStack->addWidget(m_backupWidget);
 		m_loggedInStack->setCurrentWidget(m_backupWidget);
 	}
@@ -1076,7 +1080,7 @@ void MainWindow::enterDeviceState(int state)
 		layout->addWidget(m_restoreProgress);
 		m_restoreWidget->setLayout(layout);
 		m_deviceMenu->setDisabled(true);
-		m_fileMenu->setDisabled(false);
+		m_fileMenu->setDisabled(true);
 		setCentralWidget(m_restoreWidget);
 	}
 	break;
@@ -1090,7 +1094,7 @@ void MainWindow::enterDeviceState(int state)
 		layout->addWidget(m_firmwareUpdateProgress);
 		m_firmwareUpdateWidget->setLayout(layout);
 		m_deviceMenu->setDisabled(true);
-		m_fileMenu->setDisabled(false);
+		m_fileMenu->setDisabled(true);
 		QByteArray erase_pages_;
 		QByteArray page_mask(512, 0);
 
@@ -1124,22 +1128,16 @@ void MainWindow::enterDeviceState(int state)
 		m_loggedIn = false;
 		m_deviceMenu->setDisabled(false);
 		m_fileMenu->setDisabled(false);
-		m_logoutAction->setVisible(false);
-
-		m_backupAction->setVisible(true);
-		m_backupAction->setDisabled(true);
 
 		m_restoreAction->setVisible(true);
-		m_restoreAction->setDisabled(false);
-
-		m_wipeDeviceAction->setVisible(false);
-
-		m_changePasswordAction->setVisible(false);
-
 		m_eraseDeviceAction->setVisible(true);
-		m_eraseDeviceAction->setDisabled(false);
+		m_eraseDeviceAction->setText("Initialize");
 		m_eraseDeviceAction->setText("Initialize");
 
+		m_logoutAction->setVisible(false);
+		m_backupAction->setVisible(false);
+		m_wipeDeviceAction->setVisible(false);
+		m_changePasswordAction->setVisible(false);
 		m_updateFirmwareAction->setVisible(false);
 
 		m_uninitPrompt = new QWidget();
@@ -1160,24 +1158,14 @@ void MainWindow::enterDeviceState(int state)
 		m_loggedIn = false;
 		m_deviceMenu->setDisabled(false);
 		m_fileMenu->setDisabled(false);
-		m_logoutAction->setVisible(false);
-
-		m_backupAction->setVisible(true);
-		m_backupAction->setDisabled(true);
-
 		m_restoreAction->setVisible(true);
-		m_restoreAction->setDisabled(false);
-
 		m_wipeDeviceAction->setVisible(true);
-		m_wipeDeviceAction->setDisabled(false);
-
 		m_changePasswordAction->setVisible(true);
-		m_changePasswordAction->setDisabled(false);
-
 		m_eraseDeviceAction->setVisible(true);
-		m_eraseDeviceAction->setDisabled(false);
-		m_eraseDeviceAction->setText("Reset device");
+		m_eraseDeviceAction->setText("Reinitialize");
 
+		m_backupAction->setVisible(false);
+		m_logoutAction->setVisible(false);
 		m_updateFirmwareAction->setVisible(false);
 
 		LoginWindow *login_window = new LoginWindow(this);
@@ -1193,25 +1181,13 @@ void MainWindow::enterDeviceState(int state)
 		m_deviceMenu->setDisabled(false);
 		m_fileMenu->setDisabled(false);
 		m_logoutAction->setVisible(true);
-		m_logoutAction->setDisabled(false);
-
 		m_backupAction->setVisible(true);
-		m_backupAction->setDisabled(false);
-
-		m_restoreAction->setVisible(true);
-		m_restoreAction->setDisabled(true);
-
-		m_wipeDeviceAction->setVisible(true);
-		m_wipeDeviceAction->setDisabled(true);
-
 		m_changePasswordAction->setVisible(true);
-		m_changePasswordAction->setDisabled(false);
-
-		m_eraseDeviceAction->setVisible(true);
-		m_eraseDeviceAction->setDisabled(true);
-		m_eraseDeviceAction->setText("Reinitialize");
-
 		m_updateFirmwareAction->setVisible(true);
+
+		m_restoreAction->setVisible(false);
+		m_wipeDeviceAction->setVisible(false);
+		m_eraseDeviceAction->setVisible(false);
 
 		loadSettings();
 
@@ -1224,13 +1200,8 @@ void MainWindow::enterDeviceState(int state)
 
 	bool fileActionsVisible = m_loggedIn;
 	bool fileActionsEnabled = (m_deviceState == STATE_LOGGED_IN);
-	m_saveAction->setVisible(fileActionsVisible);
-	m_importAction->setVisible(fileActionsVisible);
-	m_settingsAction->setVisible(fileActionsVisible);
-	m_saveAction->setEnabled(fileActionsEnabled);
-	m_importAction->setEnabled(fileActionsEnabled);
-	m_exportCSVAction->setEnabled(fileActionsEnabled);
-	m_settingsAction->setEnabled(fileActionsEnabled);
+	m_exportMenu->menuAction()->setVisible(fileActionsEnabled);
+	m_settingsAction->setVisible(fileActionsEnabled);
 }
 
 void MainWindow::openSettingsUi()
@@ -1431,7 +1402,7 @@ void MainWindow::backupDevice(QString fileName)
 		SignetApplication::messageBoxError(QMessageBox::Warning, "Backup device", "Failed to create destination file", this);
 		return;
 	}
-	m_buttonWaitDialog = new ButtonWaitDialog("Backup device", "start backing up device", this);
+	m_buttonWaitDialog = new ButtonWaitDialog("Backup device to file", "start backing up device", this);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 	m_buttonWaitDialog->show();
 	::signetdev_begin_device_backup_async(NULL, &m_signetdevCmdToken);
@@ -1439,10 +1410,22 @@ void MainWindow::backupDevice(QString fileName)
 
 void MainWindow::backupDeviceUi()
 {
-	QFileDialog fd(this);
+	QString backupFileName = m_settings.localBackupPath + "/" + backupFileBaseName() + ".sdb";
+	QDir backupPath(m_settings.localBackupPath);
+	if (!backupPath.exists()) {
+		QString dirName = backupPath.dirName();
+		if (backupPath.cdUp()) {
+			backupPath.mkdir(dirName);
+			backupPath.setPath(m_settings.localBackupPath);
+		}
+	}
+
+	QFileDialog fd(this, "Backup device to file");
 	QStringList filters;
 	filters.append("*.sdb");
 	filters.append("*");
+	fd.setDirectory(m_settings.localBackupPath);
+	fd.selectFile(backupFileName);
 	fd.setNameFilters(filters);
 	fd.setFileMode(QFileDialog::AnyFile);
 	fd.setAcceptMode(QFileDialog::AcceptSave);
@@ -1458,12 +1441,19 @@ void MainWindow::backupDeviceUi()
 
 void MainWindow::exportCSVUi()
 {
-	QFileDialog fd(this);
+	QFileDialog fd(this, "Export device to CSV file");
 	QStringList filters;
 	filters.append("*.csv");
 	filters.append("*.txt");
 	filters.append("*");
+
+	QString fileName = backupFileBaseName();
+	QString documentsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+	QString backupFileName = documentsPath + "/" + fileName + ".csv";
+
 	fd.setNameFilters(filters);
+	fd.setDirectory(documentsPath);
+	fd.selectFile(fileName);
 	fd.setFileMode(QFileDialog::AnyFile);
 	fd.setAcceptMode(QFileDialog::AcceptSave);
 	fd.setDefaultSuffix(QString("csv"));
@@ -1479,16 +1469,16 @@ void MainWindow::exportCSVUi()
 		SignetApplication::messageBoxError(QMessageBox::Warning, "Export to CSV", "Failed to create CSV file", this);
 		return;
 	}
-	m_buttonWaitDialog = new ButtonWaitDialog("Export CSV", "export to CSV", this, true);
+	m_buttonWaitDialog = new ButtonWaitDialog("Export database to CSV", "export to CSV", this, true);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 	m_buttonWaitDialog->show();
 	m_startedExport = true;
-	::signetdev_read_all_id_async(NULL, &m_signetdevCmdToken, 1);
+	::signetdev_read_all_uids_async(NULL, &m_signetdevCmdToken, 0);
 }
 
 void MainWindow::restoreDeviceUi()
 {
-	QFileDialog fd(this);
+	QFileDialog fd(this, "Restore device from file");
 	QStringList filters;
 	filters.append("*.sdb");
 	filters.append("*");
@@ -1507,16 +1497,16 @@ void MainWindow::restoreDeviceUi()
 	bool result = m_restoreFile->open(QFile::ReadWrite);
 	if (!result) {
 		delete m_restoreFile;
-		SignetApplication::messageBoxError(QMessageBox::Warning, "Restore device", "Failed to open backup file", this);
+		SignetApplication::messageBoxError(QMessageBox::Warning, "Restore device from file", "Failed to open backup file", this);
 		return;
 	}
-	if (m_restoreFile->size() != BLK_SIZE * (MAX_ID + 1)) {
+	if (m_restoreFile->size() != BLK_SIZE * (NUM_DATA_BLOCKS + 1)) {
 		delete m_restoreFile;
-		SignetApplication::messageBoxError(QMessageBox::Warning, "Restore device", "Backup file has wrong size", this);
+		SignetApplication::messageBoxError(QMessageBox::Warning, "Restore device from file", "Backup file has wrong size", this);
 		return;
 	}
 
-	m_buttonWaitDialog = new ButtonWaitDialog("Restore device", "start restoring device", this);
+	m_buttonWaitDialog = new ButtonWaitDialog("Restore device from file", "start restoring device", this);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 	m_buttonWaitDialog->show();
 	::signetdev_begin_device_restore_async(NULL, &m_signetdevCmdToken);
