@@ -266,7 +266,9 @@ signetdevServer::signetdevServer(QObject *parent) :
 	m_commandMap.insert("WRITE_BLOCK", SIGNETDEV_CMD_WRITE_BLOCK);
 	m_commandMap.insert("WRITE_FLASH", SIGNETDEV_CMD_WRITE_FLASH);
 	m_commandMap.insert("ERASE_PAGES", SIGNETDEV_CMD_ERASE_PAGES);
+#if 0
 	m_commandMap.insert("READ_ALL_ID", SIGNETDEV_CMD_READ_ALL_ID);
+#endif
 	m_commandMap.insert("ENTER_MOBILE_MODE", SIGNETDEV_CMD_ENTER_MOBILE_MODE);
 
 	m_invCommandRespMap.insert(OKAY, "OKAY");
@@ -382,10 +384,12 @@ void signetdevServer::commandRespS(void *cb_param, void *cmd_user_param, int cmd
 	this_->m_deviceState = info.end_device_state;
 
 	switch(cmd) {
+#if 0
 	case SIGNETDEV_CMD_READ_ALL_ID: {
 		const signetdev_read_all_id_resp_data *resp = (const signetdev_read_all_id_resp_data *)resp_data;
 		this_->signetdevReadAllIdResp(info, resp);
 	} break;
+#endif
 	case SIGNETDEV_CMD_READ_BLOCK: {
 		this_->signetdevReadBlockResp(info, (const char *)resp_data);
 	} break;
@@ -397,10 +401,12 @@ void signetdevServer::commandRespS(void *cb_param, void *cmd_user_param, int cmd
 		const signetdev_startup_resp_data *resp = (const signetdev_startup_resp_data *)resp_data;
 		this_->signetdevStartupResp(info, resp);
 	} break;
+#if 0
 	case SIGNETDEV_CMD_READ_ID: {
 		const signetdev_read_id_resp_data *resp = (const signetdev_read_id_resp_data *)resp_data;
 		this_->signetdevReadIdResp(info, resp);
 	} break;
+#endif
 	default:
 		this_->signetdevCmdResp(info);
 		break;
