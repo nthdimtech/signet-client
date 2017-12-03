@@ -535,23 +535,7 @@ void LoggedInWidget::selectEntry(esdbEntry *entry)
 
 void LoggedInWidget::customContextMenuRequested(QPoint pt)
 {
-	/*
-	QPoint globalPos = m_searchListbox->mapToGlobal(pt);
-	QMenu ctx;
-	QAction *login = ctx.addAction("Login");
-	QAction *open = ctx.addAction("Open");
-	QAction *browse = ctx.addAction("Browse");
-	QAction *type_username = ctx.addAction("Type username");
-	QAction *type_password = ctx.addAction("Type password");
-	QAction *del = ctx.addAction("Delete");
-	connect(login, SIGNAL(triggered(bool)), this, SLOT(type_account_user_pass_ui()));
-	connect(open, SIGNAL(triggered(bool)), this, SLOT(open_account_ui()));
-	connect(browse, SIGNAL(triggered(bool)), this, SLOT(browse_url_ui()));
-	connect(type_username, SIGNAL(triggered(bool)), this, SLOT(type_account_user_ui()));
-	connect(type_password, SIGNAL(triggered(bool)), this, SLOT(type_account_pass_ui()));
-	connect(del, SIGNAL(triggered(bool)), this, SLOT(delete_account_ui()));
-	ctx.exec(globalPos);
-	*/
+	Q_UNUSED(pt);
 	esdbEntry *entry = m_selectedEntry;
 	if (m_selectedEntry) {
 		EsdbActionBar *bar = getActionBarByEntry(entry);

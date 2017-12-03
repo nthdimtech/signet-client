@@ -45,11 +45,8 @@ ResetDevice::ResetDevice(bool destructive, QWidget *parent) :
 	QObject::connect(m_keyGenerator, SIGNAL(finished()), this, SLOT(keyGenerated()));
 
 	setWindowModality(Qt::WindowModal);
-	if (m_destructive) {
-		setWindowTitle("Reset device");
-	} else {
-		setWindowTitle("Initialize device");
-	}
+
+	setWindowTitle("Initialize device");
 
 	SignetApplication *app = SignetApplication::get();
 	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),

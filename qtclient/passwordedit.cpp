@@ -10,11 +10,13 @@
 #include <QLabel>
 #include <random>
 
-PasswordEdit::PasswordEdit(QWidget *parent) : QWidget(parent)
+PasswordEdit::PasswordEdit(QWidget *parent) :
+	QWidget(parent),
+	m_signetdevCmdToken(-1)
 {
 
 	m_generatePassword = new QPushButton("Generate");
-	connect(m_generatePassword, SIGNAL(pressed()), this, SLOT(generate_password()));
+	connect(m_generatePassword, SIGNAL(pressed()), this, SLOT(generatePassword()));
 	m_passwordField = new DatabaseField("password", 140, m_generatePassword);
 
 	m_numGenChars = new QSpinBox();
@@ -48,9 +50,14 @@ PasswordEdit::PasswordEdit(QWidget *parent) : QWidget(parent)
 	layout()->addWidget(m_passwordField);
 	layout()->addWidget(m_generateOptions);
 
-	connect(m_numGenChars, SIGNAL(valueChanged(int)), this, SLOT(generate_password()));
-	connect(m_genSymbols, SIGNAL(stateChanged(int)), this, SLOT(generate_password()));
-	connect(m_genSymbolSet, SIGNAL(textChanged(QString)), this, SLOT(generate_password()));
+	SignetApplication *app = SignetApplication::get();
+
+	connect(app, SIGNAL(signetdevGetRandBits(signetdevCmdRespInfo,QByteArray)),
+		this, SLOT(signetdevGetRandBits(signetdevCmdRespInfo,QByteArray)));
+
+	connect(m_numGenChars, SIGNAL(valueChanged(int)), this, SLOT(generatePassword()));
+	connect(m_genSymbols, SIGNAL(stateChanged(int)), this, SLOT(generatePassword()));
+	connect(m_genSymbolSet, SIGNAL(textChanged(QString)), this, SLOT(generatePassword()));
 	connect(m_passwordField, SIGNAL(textEdited(QString)), this, SLOT(passwordTextEdited(QString)));
 }
 
@@ -65,7 +72,31 @@ void PasswordEdit::setPassword(const QString &pass)
 	m_generateOptions->hide();
 }
 
-void PasswordEdit::generate_password()
+void PasswordEdit::generatePassword()
+{
+	m_generatePassword->setDisabled(true);
+	m_generatingDialog = new QDialog(this);
+	m_generatingDialog->setWindowTitle("Password generate");
+	m_generatingDialog->setModal(true);
+	m_generatingDialog->setLayout(new QHBoxLayout());
+	m_generatingDialog->layout()->addWidget(new QLabel("Collecting random data from Signet..."));
+	m_generatingDialog->show();
+	::signetdev_get_rand_bits_async(NULL, &m_signetdevCmdToken, m_numGenChars->value());
+}
+
+void PasswordEdit::signetdevGetRandBits(signetdevCmdRespInfo info, QByteArray block)
+{
+	if (info.token != m_signetdevCmdToken) {
+		return;
+	}
+	m_signetdevCmdToken = -1;
+	m_generatingDialog->done(0);
+	m_generatingDialog->deleteLater();
+	m_generatePassword->setDisabled(false);
+	generatePasswordComplete(block);
+}
+
+void PasswordEdit::generatePasswordComplete(QByteArray rand)
 {
 	m_generateOptions->show();
 	int num_chars = m_numGenChars->value();
@@ -146,8 +177,11 @@ void PasswordEdit::generate_password()
 				continue;
 			sets[i].current_count = 0;
 		}
-		while (result.size() < num_chars) {
+		for (int i = 0; i < num_chars; i++) {
 			unsigned int k = dev();
+			if (i < rand.size()) {
+				k += (u8)rand.data()[i];
+			}
 			k = k % charset.size();
 			QChar c = charset[k];
 			for (int i = 0; i < 4; i++) {

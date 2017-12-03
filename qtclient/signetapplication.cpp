@@ -124,6 +124,12 @@ void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int c
 			this_->signetdevReadAllUIdsResp(info, -1, data, mask);
 		}
 	} break;
+	case SIGNETDEV_CMD_GET_RAND_BITS: {
+		signetdev_get_rand_bits_resp_data *resp = (signetdev_get_rand_bits_resp_data *)resp_data;
+		QByteArray data((const char *)resp->data, resp->size);
+		this_->signetdevGetRandBits(info, data);
+	}
+	break;
 	case SIGNETDEV_CMD_READ_BLOCK: {
 		QByteArray blk((const char *)resp_data, BLK_SIZE);
 		this_->signetdevReadBlockResp(info, blk);

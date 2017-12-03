@@ -11,6 +11,8 @@ class QCheckBox;
 class QLineEdit;
 class CommThread;
 
+#include "signetapplication.h"
+
 class PasswordEdit : public QWidget
 {
 	Q_OBJECT
@@ -19,7 +21,10 @@ class PasswordEdit : public QWidget
 	QPushButton *m_generatePassword;
 	QSpinBox *m_numGenChars;
 	QCheckBox *m_genSymbols;
+	QDialog *m_generatingDialog;
 	QLineEdit *m_genSymbolSet;
+	void generatePasswordComplete(QByteArray block);
+	int m_signetdevCmdToken;
 public:
 	explicit PasswordEdit(QWidget *parent = 0);
 	QString password() const;
@@ -27,8 +32,9 @@ public:
 signals:
 	void textEdited(QString);
 public slots:
-	void generate_password();
+	void generatePassword();
 private slots:
+	void signetdevGetRandBits(signetdevCmdRespInfo info, QByteArray block);
 	void passwordTextEdited(QString str);
 };
 

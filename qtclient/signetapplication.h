@@ -118,6 +118,7 @@ signals:
 	void signetdevReadUIdResp(signetdevCmdRespInfo info, QByteArray data, QByteArray mask);
 	void signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
 	void signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray block);
+	void signetdevGetRandBits(signetdevCmdRespInfo info, QByteArray block);
 	void signetdevEvent(int event_type);
 	void signetdevTimerEvent(int seconds_remaining);
 public slots:
