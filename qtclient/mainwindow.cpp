@@ -555,6 +555,13 @@ void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QBy
 		m_backupFile->close();
 		delete m_backupFile;
 		m_backupFile = NULL;
+		QMessageBox *box = new QMessageBox(QMessageBox::Information,
+						"Export database to CSV",
+						"Export successful",
+						QMessageBox::Ok,
+						this);
+		box->exec();
+		box->deleteLater();
 		enterDeviceState(STATE_LOGGED_IN);
 	}
 }
