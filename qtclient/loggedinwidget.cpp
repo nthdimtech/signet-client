@@ -45,6 +45,9 @@ extern "C" {
 #include "generic.h"
 #include "mainwindow.h"
 
+#define USE_USER_DEFINED_TYPES 0
+#define USE_MISC_TYPE 1
+
 int iconAccount::matchQuality(esdbEntry *entry)
 {
 	int quality = 0;
@@ -165,34 +168,40 @@ int iconAccount::matchQuality(esdbEntry *entry)
 	genericTypeDesc *genericTypeDesc_;
 	esdbGenericModule *genericModule;
 
-	genericTypeDesc_ = new genericTypeDesc();
-	genericTypeDesc_->name = "Credit card";
-	genericTypeDesc_->fields.push_back(fieldSpec("Card Number","text"));
-	genericTypeDesc_->fields.push_back(fieldSpec("Exp month","integer"));
-	genericTypeDesc_->fields.push_back(fieldSpec("Exp year","integer"));
-	genericTypeDesc_->fields.push_back(fieldSpec("CCV","text"));
-	genericModule = new esdbGenericModule(genericTypeDesc_, this);
-	m_dataTypeModules.push_back(genericModule);
+	if (USE_USER_DEFINED_TYPES) {
+		genericTypeDesc_ = new genericTypeDesc();
+		genericTypeDesc_->name = "Credit card";
+		genericTypeDesc_->fields.push_back(fieldSpec("Card Number","text"));
+		genericTypeDesc_->fields.push_back(fieldSpec("Exp month","integer"));
+		genericTypeDesc_->fields.push_back(fieldSpec("Exp year","integer"));
+		genericTypeDesc_->fields.push_back(fieldSpec("CCV","text"));
+		genericModule = new esdbGenericModule(genericTypeDesc_, this);
+		m_dataTypeModules.push_back(genericModule);
 
-	genericTypeDesc_ = new genericTypeDesc();
-	genericTypeDesc_->name = "Contact";
-	genericTypeDesc_->fields.push_back(fieldSpec("Phone","text"));
-	genericTypeDesc_->fields.push_back(fieldSpec("Email","text"));
-	genericTypeDesc_->fields.push_back(fieldSpec("Address 1","text"));
-	genericTypeDesc_->fields.push_back(fieldSpec("Address 2","text"));
-	genericTypeDesc_->fields.push_back(fieldSpec("City","text"));
-	genericModule = new esdbGenericModule(genericTypeDesc_, this);
-	m_dataTypeModules.push_back(genericModule);
+		genericTypeDesc_ = new genericTypeDesc();
+		genericTypeDesc_->name = "Contact";
+		genericTypeDesc_->fields.push_back(fieldSpec("Phone","text"));
+		genericTypeDesc_->fields.push_back(fieldSpec("Email","text"));
+		genericTypeDesc_->fields.push_back(fieldSpec("Address 1","text"));
+		genericTypeDesc_->fields.push_back(fieldSpec("Address 2","text"));
+		genericTypeDesc_->fields.push_back(fieldSpec("City","text"));
+		genericModule = new esdbGenericModule(genericTypeDesc_, this);
+		m_dataTypeModules.push_back(genericModule);
+	}
 
-	genericTypeDesc_ = new genericTypeDesc();
-	genericTypeDesc_->name = "Misc";
-	genericModule = new esdbGenericModule(genericTypeDesc_, this, false, false);
-	m_dataTypeModules.push_back(genericModule);
+	if (USE_MISC_TYPE) {
+		genericTypeDesc_ = new genericTypeDesc();
+		genericTypeDesc_->name = "Misc";
+		genericModule = new esdbGenericModule(genericTypeDesc_, this, false, false);
+		m_dataTypeModules.push_back(genericModule);
+	}
 
-	genericTypeDesc_ = new genericTypeDesc();
-	genericTypeDesc_->name = "User type";
-	genericModule = new esdbGenericModule(genericTypeDesc_, this);
-	m_dataTypeModules.push_back(genericModule);
+	if (USE_USER_DEFINED_TYPES) {
+		genericTypeDesc_ = new genericTypeDesc();
+		genericTypeDesc_->name = "User type";
+		genericModule = new esdbGenericModule(genericTypeDesc_, this);
+		m_dataTypeModules.push_back(genericModule);
+	}
 
 	SignetApplication *app = SignetApplication::get();
 	connect(app, SIGNAL(focusChanged(QWidget*,QWidget*)), this, SLOT(focusChanged(QWidget*,QWidget*)));
@@ -260,7 +269,6 @@ int iconAccount::matchQuality(esdbEntry *entry)
 	for (auto dataType : m_dataTypeModules) {
 		m_viewSelector->addItem(dataType->m_name);
 	}
-	m_viewSelector->insertSeparator(6);
 	m_viewSelector->setCurrentIndex(m_activeType);
 	connect(m_viewSelector, SIGNAL(currentIndexChanged(int)), this, SLOT(currentTypeIndexChanged(int)));
 
@@ -339,9 +347,6 @@ void LoggedInWidget::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int uid
 
 void LoggedInWidget::currentTypeIndexChanged(int idx)
 {
-	if (idx >= 7) { //TODO: bad magic number
-		idx--;
-	}
 	m_activeType = idx;
 	m_searchListbox->setModel(m_esdbModel.at(idx));
 	m_selectedEntry = NULL;
@@ -530,6 +535,7 @@ void LoggedInWidget::selectEntry(esdbEntry *entry)
 
 void LoggedInWidget::customContextMenuRequested(QPoint pt)
 {
+	/*
 	QPoint globalPos = m_searchListbox->mapToGlobal(pt);
 	QMenu ctx;
 	QAction *login = ctx.addAction("Login");
@@ -545,6 +551,13 @@ void LoggedInWidget::customContextMenuRequested(QPoint pt)
 	connect(type_password, SIGNAL(triggered(bool)), this, SLOT(type_account_pass_ui()));
 	connect(del, SIGNAL(triggered(bool)), this, SLOT(delete_account_ui()));
 	ctx.exec(globalPos);
+	*/
+	esdbEntry *entry = m_selectedEntry;
+	if (m_selectedEntry) {
+		EsdbActionBar *bar = getActionBarByEntry(entry);
+		if (bar)
+			bar->defaultAction(entry);
+	}
 }
 
 
@@ -842,28 +855,31 @@ void LoggedInWidget::entryCreated(EsdbActionBar *actionBar, esdbEntry *entry)
 		if (typeIndex >= 0) {
 			(*m_entriesByType.at(typeIndex))[entry->id] = entry;
 			populateEntryList(typeIndex, m_filterEdit->text());
-			QString typeName = m_dataTypeModules.at(typeIndex)->m_name;
-			if (!typeName.compare("User types", Qt::CaseInsensitive)) {
-				generic *g = (generic *)entry;
-				genericTypeDesc *genericTypeDesc_ = new genericTypeDesc();
-				genericTypeDesc_->name = g->name;
-				for (int i = 0; i < g->fields.fieldCount(); i++) {
-					auto field = g->fields.getField(i);
-					genericTypeDesc_->fields.push_back(fieldSpec(field.name,field.value));
+			if (USE_USER_DEFINED_TYPES) {
+				//TODO: need to also handle user types already stored in database
+				QString typeName = m_dataTypeModules.at(typeIndex)->m_name;
+				if (!typeName.compare("User types", Qt::CaseInsensitive)) {
+					generic *g = (generic *)entry;
+					genericTypeDesc *genericTypeDesc_ = new genericTypeDesc();
+					genericTypeDesc_->name = g->name;
+					for (int i = 0; i < g->fields.fieldCount(); i++) {
+						auto field = g->fields.getField(i);
+						genericTypeDesc_->fields.push_back(fieldSpec(field.name,field.value));
+					}
+					esdbGenericModule *genericModule;
+					genericModule = new esdbGenericModule(genericTypeDesc_, this);
+					m_dataTypeModules.push_back(genericModule);
+					auto data = new QMap<int, esdbEntry *>();
+					m_entriesByType.push_back(data);
+					auto filteredList = new QList<esdbEntry *>();
+					m_filteredLists.push_back(filteredList);
+					auto esdbModel = new EsdbModel(genericModule, filteredList);
+					m_esdbModel.push_back(esdbModel);
+					EsdbActionBar *actionBar = genericModule->newActionBar();
+					connect(actionBar, SIGNAL(background()), this, SIGNAL(background()));
+					m_actionBarStack->addWidget(actionBar);
+					m_viewSelector->addItem(g->name);
 				}
-				esdbGenericModule *genericModule;
-				genericModule = new esdbGenericModule(genericTypeDesc_, this);
-				m_dataTypeModules.push_back(genericModule);
-				auto data = new QMap<int, esdbEntry *>();
-				m_entriesByType.push_back(data);
-				auto filteredList = new QList<esdbEntry *>();
-				m_filteredLists.push_back(filteredList);
-				auto esdbModel = new EsdbModel(genericModule, filteredList);
-				m_esdbModel.push_back(esdbModel);
-				EsdbActionBar *actionBar = genericModule->newActionBar();
-				connect(actionBar, SIGNAL(background()), this, SIGNAL(background()));
-				m_actionBarStack->addWidget(actionBar);
-				m_viewSelector->addItem(g->name);
 			}
 		}
 	}
