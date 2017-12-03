@@ -8,6 +8,7 @@
 #include <QCheckBox>
 #include <QUrl>
 #include <QDesktopServices>
+#include <QCloseEvent>
 #include <passwordedit.h>
 
 #include "databasefield.h"
@@ -27,7 +28,9 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 	m_signetdevCmdToken(-1),
 	m_saveButton(NULL),
 	m_undoChangesButton(NULL),
-	m_settingFields(false)
+	m_settingFields(false),
+	m_changesMade(false),
+	m_closeOnSave(false)
 {
 	setWindowModality(Qt::WindowModal);
 	SignetApplication *app = SignetApplication::get();
@@ -105,7 +108,7 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 	setLayout(main_layout);
 
 	connect(m_saveButton, SIGNAL(pressed(void)), this, SLOT(savePressed(void)));
-	connect(close_button, SIGNAL(pressed(void)), this, SLOT(closePressed(void)));
+	connect(close_button, SIGNAL(pressed(void)), this, SLOT(close(void)));
 }
 
 void EditAccount::accountNameEdited()
@@ -190,6 +193,7 @@ void EditAccount::undoChangesUi()
 	m_saveButton->setDisabled(true);
 	m_undoChangesButton->setDisabled(true);
 	m_accountNameWarning->hide();
+	m_changesMade = false;
 }
 
 void EditAccount::textEdited()
@@ -197,12 +201,28 @@ void EditAccount::textEdited()
 	if (!m_settingFields) {
 		m_saveButton->setDisabled(false);
 		m_undoChangesButton->setDisabled(false);
+		m_changesMade = true;
 	}
 }
 
-void EditAccount::closePressed()
+void EditAccount::closeEvent(QCloseEvent *event)
 {
-	close();
+	if (m_changesMade) {
+		QMessageBox *box = new QMessageBox(QMessageBox::Question, windowTitle(),
+					       "You have made changes. Do you want to save them",
+					       QMessageBox::Yes |
+					       QMessageBox::No,
+					       this);
+		int rc = box->exec();
+		box->deleteLater();
+		if (rc == QMessageBox::Yes) {
+			m_closeOnSave = true;
+			event->ignore();
+			savePressed();
+			return;
+		}
+	}
+	event->accept();
 }
 
 void EditAccount::savePressed()
@@ -242,4 +262,8 @@ void EditAccount::editAccountFinished(int code)
 	}
 	m_buttonDialog->deleteLater();
 	m_buttonDialog = NULL;
+	m_changesMade = false;
+	if (m_closeOnSave) {
+		close();
+	}
 }

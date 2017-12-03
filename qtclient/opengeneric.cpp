@@ -7,6 +7,7 @@
 #include <QString>
 #include <QCheckBox>
 #include <QDesktopServices>
+#include <QCloseEvent>
 
 #include "databasefield.h"
 #include "account.h"
@@ -28,7 +29,9 @@ OpenGeneric::OpenGeneric(generic *generic, genericTypeDesc *typeDesc, QWidget *p
 	m_buttonWaitDialog(NULL),
 	m_fields(generic->fields),
 	m_signetdevCmdToken(-1),
-	m_settingFields(false)
+	m_settingFields(false),
+	m_changesMade(false),
+	m_closeOnSave(false)
 {
 	setWindowModality(Qt::WindowModal);
 	SignetApplication *app = SignetApplication::get();
@@ -82,7 +85,27 @@ OpenGeneric::OpenGeneric(generic *generic, genericTypeDesc *typeDesc, QWidget *p
 	setLayout(mainLayout);
 
 	connect(m_saveButton, SIGNAL(pressed(void)), this, SLOT(savePressed(void)));
-	connect(closeButton, SIGNAL(pressed(void)), this, SLOT(closePressed(void)));
+	connect(closeButton, SIGNAL(pressed(void)), this, SLOT(close(void)));
+}
+
+void OpenGeneric::closeEvent(QCloseEvent *event)
+{
+	if (m_changesMade) {
+		QMessageBox *box = new QMessageBox(QMessageBox::Question, windowTitle(),
+					       "You have made changes. Do you want to save them",
+					       QMessageBox::Yes |
+					       QMessageBox::No,
+					       this);
+		int rc = box->exec();
+		box->deleteLater();
+		if (rc == QMessageBox::Yes) {
+			m_closeOnSave = true;
+			event->ignore();
+			savePressed();
+			return;
+		}
+	}
+	event->accept();
 }
 
 void OpenGeneric::signetdevCmdResp(signetdevCmdRespInfo info)
@@ -107,6 +130,10 @@ void OpenGeneric::signetdevCmdResp(signetdevCmdRespInfo info)
 			emit accountChanged(m_generic->id);
 			m_saveButton->setDisabled(true);
 			m_undoChangesButton->setDisabled(true);
+			m_changesMade = false;
+			if (m_closeOnSave) {
+				close();
+			}
 			break;
 		}
 	}
@@ -139,6 +166,7 @@ void OpenGeneric::undoChangesUI()
 	m_settingFields = false;
 	m_saveButton->setDisabled(true);
 	m_undoChangesButton->setDisabled(true);
+	m_changesMade = false;
 }
 
 void OpenGeneric::edited()
@@ -146,12 +174,8 @@ void OpenGeneric::edited()
 	if (!m_settingFields) {
 		m_saveButton->setDisabled(false);
 		m_undoChangesButton->setDisabled(false);
+		m_changesMade = true;
 	}
-}
-
-void OpenGeneric::closePressed()
-{
-	close();
 }
 
 void OpenGeneric::savePressed()

@@ -36,6 +36,9 @@ class EditAccount : public QDialog
 	void setAccountValues();
 	GenericFieldsEditor *m_genericFieldsEditor;
 	bool m_settingFields;
+	void closeEvent(QCloseEvent *);
+	bool m_changesMade;
+	bool m_closeOnSave;
 public:
 	EditAccount(account *acct, QWidget *parent = 0);
 	virtual ~EditAccount();
@@ -48,7 +51,6 @@ public slots:
 	void accountNameEdited();
 	void browseUrl();
 	void textEdited();
-	void closePressed();
 	void savePressed();
 	void undoChangesUi();
 };

@@ -34,6 +34,9 @@ class OpenGeneric : public QDialog
 	genericFields m_fields;
 	int m_signetdevCmdToken;
 	bool m_settingFields;
+	bool m_changesMade;
+	bool m_closeOnSave;
+	void closeEvent(QCloseEvent *);
 public:
 	OpenGeneric(generic *generic, genericTypeDesc *typeDesc, QWidget *parent = 0);
 	virtual ~OpenGeneric();
@@ -44,7 +47,6 @@ public slots:
 	void signetdevCmdResp(signetdevCmdRespInfo info);
 	void saveGenericFinished(int);
 	void edited();
-	void closePressed();
 	void savePressed();
 	void undoChangesUI();
 };
