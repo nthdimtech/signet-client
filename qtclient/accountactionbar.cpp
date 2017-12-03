@@ -160,14 +160,16 @@ void AccountActionBar::browseUrlUI()
 	esdbEntry *entry = selectedEntry();
 	if (entry) {
 		QUrl url(entry->getUrl());
-		if (!url.scheme().size()) {
-			url.setScheme("HTTP");
+		if (url.isValid()) {
+			if (!url.scheme().size()) {
+				url.setScheme("HTTP");
+			}
+			m_quickTypeState = QUICKTYPE_STATE_BROWSE;
+			if (m_quickTypeMode) {
+				background();
+			}
+			QDesktopServices::openUrl(url);
 		}
-		m_quickTypeState = QUICKTYPE_STATE_BROWSE;
-		if (m_quickTypeMode) {
-			background();
-		}
-		QDesktopServices::openUrl(url);
 	}
 }
 
