@@ -1143,10 +1143,13 @@ void MainWindow::enterDeviceState(int state)
 		m_uninitPrompt = new QWidget();
 		QVBoxLayout *layout = new QVBoxLayout();
 		layout->setAlignment(Qt::AlignTop);
-		QPushButton *init_button = new QPushButton("Initialize");
-		QPushButton *restore_button = new QPushButton("Restore from file");
-		layout->addWidget(new QLabel("This device is uninitialized.\n\nSelect an option below enable the device\n"));
+		QPushButton *init_button = new QPushButton("Initialize for the first time");
+		QPushButton *restore_button = new QPushButton("Initialize from a backup file");
+		layout->addWidget(new QLabel("This device is uninitialized.\n\nSelect an option below to initialize the device.\n"));
 		layout->addWidget(init_button);
+		QLabel *orText = new QLabel("OR");
+		orText->setAlignment(Qt::AlignCenter);
+		layout->addWidget(orText);
 		layout->addWidget(restore_button);
 		m_uninitPrompt->setLayout(layout);
 		connect(init_button, SIGNAL(pressed()), this, SLOT(eraseDeviceUi()));
@@ -1198,7 +1201,6 @@ void MainWindow::enterDeviceState(int state)
 		break;
 	}
 
-	bool fileActionsVisible = m_loggedIn;
 	bool fileActionsEnabled = (m_deviceState == STATE_LOGGED_IN);
 	m_exportMenu->menuAction()->setVisible(fileActionsEnabled);
 	m_settingsAction->setVisible(fileActionsEnabled);
