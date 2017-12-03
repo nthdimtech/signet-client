@@ -31,7 +31,6 @@ LoginWindow::LoginWindow(QWidget *parent) : QWidget(parent),
 	QObject::connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
 			 this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 
-	this->setWindowTitle("Login");
 	QLayout *top_layout = new QBoxLayout(QBoxLayout::TopToBottom);
 	QLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight);
 	QLabel *password_label = new QLabel("Password");
@@ -41,14 +40,15 @@ LoginWindow::LoginWindow(QWidget *parent) : QWidget(parent),
 	m_incorrectPassword->hide();
 	m_passwordInput = new QLineEdit();
 	m_passwordInput->setEchoMode(QLineEdit::Password);
-	m_loginButton = new QPushButton("Login");
+	m_loginButton = new QPushButton("Unlock");
 	m_loginButton->setAutoDefault(true);
 
-	m_preparingLabel = new QLabel("Generating login key...");
+	m_preparingLabel = new QLabel("Generating authorization key...");
 	m_preparingLabel->hide();
 
 	layout->addWidget(password_label);
 	layout->addWidget(m_passwordInput);
+	top_layout->addWidget(new QLabel("Enter your master password"));
 	top_layout->addItem(layout);
 	top_layout->addWidget(m_incorrectPassword);
 	top_layout->addWidget(m_preparingLabel);
@@ -77,7 +77,7 @@ void LoginWindow::keyGenerated()
 		if (m_preparingLogin) {
 			m_preparingLogin = false;
 			updateWidgetState();
-			m_buttonWait = new ButtonWaitDialog("Login","login", this);
+			m_buttonWait = new ButtonWaitDialog("Unlock","unlock", this);
 			connect(m_buttonWait, SIGNAL(finished(int)), this, SLOT(loginFinished(int)));
 			m_buttonWait->show();
 			::signetdev_login_async(NULL, &m_signetdevCmdToken,
