@@ -132,7 +132,7 @@ void EditAccount::signetdevCmdResp(signetdevCmdRespInfo info)
 	switch (code) {
 	case OKAY: {
 		switch (info.cmd) {
-		case SIGNETDEV_CMD_WRITE_ID:
+		case SIGNETDEV_CMD_UPDATE_UID:
 			m_acct->acctName = m_accountNameEdit->text();
 			m_acct->userName = m_usernameField->text();
 			m_acct->password = m_passwordEdit->password();
@@ -248,7 +248,7 @@ void EditAccount::savePressed()
 	acct.fields = m_acct->fields;
 	block blk;
 	acct.toBlock(&blk);
-	::signetdev_write_id_async(NULL, &m_signetdevCmdToken,
+	::signetdev_update_uid_async(NULL, &m_signetdevCmdToken,
 				   m_acct->id,
 				   blk.data.size(),
 				   (const u8 *)blk.data.data(),

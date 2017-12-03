@@ -432,19 +432,6 @@ void LoggedInWidget::signetdevCmdResp(signetdevCmdRespInfo info)
 	switch (info.cmd) {
 	case SIGNETDEV_CMD_TYPE:
 		break;
-	case SIGNETDEV_CMD_DELETE_ID: {
-		EsdbActionBar *bar = getActiveActionBar();
-		bar->idTaskComplete(m_id, m_taskIntent);
-		if (code == OKAY) {
-			m_entries.erase(m_entries.find(m_id));
-			//TODO: too long line
-			m_entriesByType.at(m_activeType)->erase(m_entriesByType.at(m_activeType)->find(m_id));
-			populateEntryList(m_activeType, m_filterEdit->text());
-		} else {
-			m_idTask = ID_TASK_NONE;
-		}
-		m_idTask = ID_TASK_NONE;
-		} break;
 	case SIGNETDEV_CMD_UPDATE_UID: {
 		if (m_idTask == ID_TASK_DELETE) {
 			EsdbActionBar *bar = getActiveActionBar();

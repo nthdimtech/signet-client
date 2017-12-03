@@ -95,7 +95,7 @@ void NewGeneric::signetdevCmdResp(signetdevCmdRespInfo info)
 	switch (code) {
 	case OKAY: {
 		switch (info.cmd) {
-		case SIGNETDEV_CMD_WRITE_ID:
+		case SIGNETDEV_CMD_UPDATE_UID:
 			emit entryCreated(m_entry);
 			close();
 			break;

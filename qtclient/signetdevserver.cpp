@@ -113,6 +113,8 @@ void signetdevServer::sendActiveCommand()
 		signetdev_startup_async(this, &m_activeCommand->serverToken);
 		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
+//TODO: update for DB2
+#if 0
 	case SIGNETDEV_CMD_DELETE_ID:
 		signetdev_delete_id_async(this,
 			&m_activeCommand->serverToken,
@@ -142,6 +144,7 @@ void signetdevServer::sendActiveCommand()
 			(const u8 *)mask.data());
 		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		} break;
+#endif
 	case SIGNETDEV_CMD_TYPE: {
 		QString keys = getStringParam("keys");
 		QByteArray keysUTF8 = keys.toUtf8();
@@ -250,9 +253,12 @@ signetdevServer::signetdevServer(QObject *parent) :
 	m_commandMap.insert("END_DEVICE_RESTORE", SIGNETDEV_CMD_END_DEVICE_RESTORE);
 	m_commandMap.insert("BEGIN_UPDATE_FIRMWARE", SIGNETDEV_CMD_BEGIN_UPDATE_FIRMWARE);
 	m_commandMap.insert("RESET_DEVICE", SIGNETDEV_CMD_RESET_DEVICE);
+#if 0
+	//TODO: update for DB2
 	m_commandMap.insert("READ_ID", SIGNETDEV_CMD_READ_ID);
 	m_commandMap.insert("WRITE_ID", SIGNETDEV_CMD_WRITE_ID);
 	m_commandMap.insert("DELETE_ID", SIGNETDEV_CMD_DELETE_ID);
+#endif
 	m_commandMap.insert("TYPE", SIGNETDEV_CMD_TYPE);
 	m_commandMap.insert("CHANGE_MASTER_PASSWORD", SIGNETDEV_CMD_CHANGE_MASTER_PASSWORD);
 	m_commandMap.insert("BEGIN_INITIALIZE_DEVICE", SIGNETDEV_CMD_BEGIN_INITIALIZE_DEVICE);

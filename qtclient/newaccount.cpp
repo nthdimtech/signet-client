@@ -134,7 +134,6 @@ void NewAccount::signetdev_cmd_resp(signetdevCmdRespInfo info)
 	case OKAY: {
 		switch (info.cmd) {
 		case SIGNETDEV_CMD_UPDATE_UID:
-		case SIGNETDEV_CMD_WRITE_ID:
 			emit accountCreated(m_acct);
 			close();
 			break;

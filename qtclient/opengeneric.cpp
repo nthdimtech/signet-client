@@ -124,7 +124,7 @@ void OpenGeneric::signetdevCmdResp(signetdevCmdRespInfo info)
 	switch (code) {
 	case OKAY: {
 		switch (info.cmd) {
-		case SIGNETDEV_CMD_WRITE_ID:
+		case SIGNETDEV_CMD_UPDATE_UID:
 			m_generic->name = m_genericNameEdit->text();
 			m_generic->fields = m_fields;
 			emit accountChanged(m_generic->id);
@@ -193,7 +193,7 @@ void OpenGeneric::savePressed()
 	g.typeName = m_typeDesc->name;
 	g.fields = m_fields;
 	g.toBlock(&blk);
-	::signetdev_write_id_async(NULL, &m_signetdevCmdToken,
+	::signetdev_update_uid_async(NULL, &m_signetdevCmdToken,
 				   m_generic->id,
 				   blk.data.size(),
 				   (const u8 *)blk.data.data(),
