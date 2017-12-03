@@ -33,6 +33,7 @@ public slots:
 	void typeFieldUi();
 	void copyFieldUi();
 	void typeFieldFinished(int code);
+	void retryTypeData();
 };
 
 #endif // DATABASEFIELD_H

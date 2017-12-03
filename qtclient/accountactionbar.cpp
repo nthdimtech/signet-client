@@ -299,10 +299,9 @@ void AccountActionBar::idTaskComplete(int id, int intent)
 {
 	Q_UNUSED(id);
 	Q_UNUSED(intent);
-	if (m_buttonWaitDialog)
-		m_buttonWaitDialog->done(QMessageBox::Ok);
-	else
-		accessAccountFinished(QMessageBox::Ok);
+	if (!m_buttonWaitDialog) {
+		m_parent->finishTask(m_accessUsername && m_accessPassword);
+	}
 }
 
 void AccountActionBar::getEntryDone(esdbEntry *entry, int intent)
@@ -310,13 +309,12 @@ void AccountActionBar::getEntryDone(esdbEntry *entry, int intent)
 	switch (intent) {
 	case TYPE_DATA: {
 		account *acct = static_cast<account *>(entry);
-		QApplication *app = static_cast<QApplication *>(QApplication::instance());
-		if (app->focusWidget()) {
+		if (QApplication::focusWindow()) {
 			QMessageBox *box = SignetApplication::messageBoxError(
 					       QMessageBox::Warning,
 					       "Signet",
 					       "A destination text area must be selected for typing to start\n\n"
-					       "Close this window and try again.", m_buttonWaitDialog);
+					       "Click OK and try again.", m_buttonWaitDialog ? (QWidget *)m_buttonWaitDialog : (QWidget *)this);
 			connect(box, SIGNAL(finished(int)), this, SLOT(retryTypeData()));
 			m_id = entry->id;
 			break;
@@ -383,5 +381,8 @@ void AccountActionBar::getEntryDone(esdbEntry *entry, int intent)
 
 void AccountActionBar::retryTypeData()
 {
+	if (m_buttonWaitDialog) {
+		m_buttonWaitDialog->resetTimeout();
+	}
 	m_parent->beginIDTask(m_id, LoggedInWidget::ID_TASK_READ, TYPE_DATA);
 }

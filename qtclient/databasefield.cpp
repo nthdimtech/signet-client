@@ -64,6 +64,14 @@ void DatabaseField::setText(const QString &s)
 	m_fieldEdit->setText(s);
 }
 
+void DatabaseField::retryTypeData()
+{
+	if (m_buttonWait) {
+		m_buttonWait->resetTimeout();
+	}
+	::signetdev_button_wait_async(NULL, &m_signetdevCmdToken);
+}
+
 void DatabaseField::signetdevCmdResp(signetdevCmdRespInfo info)
 {
 	if (info.token != m_signetdevCmdToken) {
@@ -73,14 +81,20 @@ void DatabaseField::signetdevCmdResp(signetdevCmdRespInfo info)
 
 	int code = info.resp_code;
 
-	if (m_buttonWait)
-		m_buttonWait->done(QMessageBox::Ok);
-
 	switch (code) {
 	case OKAY:
 		switch (info.cmd) {
 		case SIGNETDEV_CMD_BUTTON_WAIT: {
 			QByteArray keys = m_fieldEdit->text().toLatin1();
+			if (QApplication::focusWindow()) {
+				QMessageBox *box = SignetApplication::messageBoxError(
+						       QMessageBox::Warning,
+						       "Signet",
+						       "A destination text area must be selected for typing to start\n\n"
+						       "Click OK and try again.", m_buttonWait ? (QWidget *)m_buttonWait : (QWidget *)this);
+				connect(box, SIGNAL(finished(int)), this, SLOT(retryTypeData()));
+				break;
+			}
 			::signetdev_type_async(NULL, &m_signetdevCmdToken,
 					       (u8 *)keys.data(), keys.length());
 		}
@@ -93,8 +107,12 @@ void DatabaseField::signetdevCmdResp(signetdevCmdRespInfo info)
 	case BUTTON_PRESS_TIMEOUT:
 	case SIGNET_ERROR_DISCONNECT:
 	case SIGNET_ERROR_QUIT:
+		if (m_buttonWait)
+			m_buttonWait->done(QMessageBox::Ok);
 		break;
 	default:
+		if (m_buttonWait)
+			m_buttonWait->done(QMessageBox::Ok);
 		abort();
 		return;
 	}

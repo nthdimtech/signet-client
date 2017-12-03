@@ -25,6 +25,12 @@ void ButtonWaitDialog::updateText()
 	setText(QString("Push ") + (m_longPress ? "and HOLD" : "") + " button on device to " + m_action + "\n\nTimeout in " + QString::number(m_timeLeft) + " seconds");
 }
 
+void ButtonWaitDialog::resetTimeout()
+{
+	m_timeLeft = sTimeoutPeriod;
+	updateText();
+}
+
 void ButtonWaitDialog::signetdevTimerEvent(int val)
 {
 	m_timeLeft = val;
