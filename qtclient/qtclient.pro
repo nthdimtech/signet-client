@@ -21,7 +21,7 @@ macx {
 LIBS += -framework CoreFoundation
 }
 
-SOURCES += main.cpp\
+SOURCES += main.cpp \
     mainwindow.cpp \
     loginwindow.cpp \
     newaccount.cpp \
@@ -158,6 +158,8 @@ RESOURCES = resources.qrc
 
 DISTFILES += signet.rc
 
-LIBS += -L$$PWD/../../signet-firmware/signetdev -lsignetdev
-INCLUDEPATH += $$PWD/../../signet-firmware
-DEPENDPATH += $$PWD/../../signet-firmware
+CONFIG(release, debug|release):LIBS += -L$$PWD/../signet-firmware/signetdev/build/release
+CONFIG(debug, debug|release):LIBS += -L$$PWD/../signet-firmware/signetdev/build/debug
+LIBS += -lsignetdev
+INCLUDEPATH += $$PWD/../signet-firmware
+DEPENDPATH += $$PWD/../signet-firmware
