@@ -154,8 +154,8 @@ RESOURCES = resources.qrc
 
 DISTFILES += signet.rc
 
-CONFIG(release, debug|release):LIBS += -L$$PWD/../signet-firmware/signetdev/build/release
-CONFIG(debug, debug|release):LIBS += -L$$PWD/../signet-firmware/signetdev/build/debug
+CONFIG(release, debug|release):LIBS += -L$$PWD/../signet-firmware/build-signetdev-$$QT_ARCH/release
+CONFIG(debug, debug|release):LIBS += -L$$PWD/../signet-firmware/build-signetdev-$$QT_ARCH/debug
 LIBS += -lsignetdev
 
 win32 {
