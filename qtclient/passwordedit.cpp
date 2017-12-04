@@ -12,6 +12,7 @@
 
 PasswordEdit::PasswordEdit(QWidget *parent) :
 	QWidget(parent),
+	m_generatingDialog(NULL),
 	m_signetdevCmdToken(-1)
 {
 
@@ -90,8 +91,11 @@ void PasswordEdit::signetdevGetRandBits(signetdevCmdRespInfo info, QByteArray bl
 		return;
 	}
 	m_signetdevCmdToken = -1;
-	m_generatingDialog->done(0);
-	m_generatingDialog->deleteLater();
+	if (m_generatingDialog) {
+		m_generatingDialog->done(OKAY);
+		m_generatingDialog->deleteLater();
+		m_generatingDialog = NULL;
+	}
 	m_generatePassword->setDisabled(false);
 	generatePasswordComplete(block);
 }
