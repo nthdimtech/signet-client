@@ -7,3 +7,7 @@
 [submodule "crosstool-ng"]
 	path = firmware/crosstool-ng
 	url = https://github.com/crosstool-ng/crosstool-ng.git
+[submodule "signet-firmware"]
+	path = signet-firmware
+	url = ../signet-firmware
+	branch = db2
