@@ -13,10 +13,6 @@ TEMPLATE = app
 QMAKE_CFLAGS += -DUSE_RAW_HID -msse4.1
 QMAKE_CXXFLAGS += -std=c++11 -DUSE_RAW_HID -msse4.1
 
-win32 {
-LIBS += -lhid -lsetupapi
-}
-
 macx {
 LIBS += -framework CoreFoundation
 }
@@ -161,5 +157,10 @@ DISTFILES += signet.rc
 CONFIG(release, debug|release):LIBS += -L$$PWD/../signet-firmware/signetdev/build/release
 CONFIG(debug, debug|release):LIBS += -L$$PWD/../signet-firmware/signetdev/build/debug
 LIBS += -lsignetdev
+
+win32 {
+LIBS += -lhid -lsetupapi
+}
+
 INCLUDEPATH += $$PWD/../signet-firmware
 DEPENDPATH += $$PWD/../signet-firmware
