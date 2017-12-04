@@ -95,6 +95,9 @@ void DatabaseField::signetdevCmdResp(signetdevCmdRespInfo info)
 				connect(box, SIGNAL(finished(int)), this, SLOT(retryTypeData()));
 				break;
 			}
+			if (m_buttonWait) {
+				m_buttonWait->done(OKAY);
+			}
 			::signetdev_type_async(NULL, &m_signetdevCmdToken,
 					       (u8 *)keys.data(), keys.length());
 		}
