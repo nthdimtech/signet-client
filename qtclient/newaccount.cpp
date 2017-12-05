@@ -57,11 +57,18 @@ NewAccount::NewAccount(int id, const QString &name, QWidget *parent) : QDialog(p
 
 	m_email_field = new DatabaseField("email", 140);
 
-	QPushButton *create_button = new QPushButton("Create");
-	connect(create_button, SIGNAL(pressed()), this, SLOT(create_button_pressed()));
-	create_button->setDefault(true);
+	QPushButton *createButton = new QPushButton("Create");
+	connect(createButton, SIGNAL(pressed()), this, SLOT(create_button_pressed()));
+	createButton->setDefault(true);
+
+	QPushButton *closeButton = new QPushButton("Close");
+	connect(closeButton, SIGNAL(pressed()), this, SLOT(close()));
 
 	m_password_edit = new PasswordEdit();
+
+	QHBoxLayout *buttons = new QHBoxLayout();
+	buttons->addWidget(createButton);
+	buttons->addWidget(closeButton);
 
 	layout->addLayout(account_name_layout);
 	layout->addWidget(m_account_name_warning);
@@ -70,7 +77,7 @@ NewAccount::NewAccount(int id, const QString &name, QWidget *parent) : QDialog(p
 	layout->addWidget(m_password_edit);
 	layout->addWidget(m_url_field);
 	layout->addWidget(m_genericFieldsEditor);
-	layout->addWidget(create_button);
+	layout->addLayout(buttons);
 
 	setLayout(layout);
 

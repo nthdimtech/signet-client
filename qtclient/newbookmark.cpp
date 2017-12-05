@@ -37,12 +37,19 @@ NewBookmark::NewBookmark(int id, const QString &name, QWidget *parent) :
 	connect(createButton, SIGNAL(pressed()), this, SLOT(createButtonPressed()));
 	createButton->setDefault(true);
 
+	QPushButton *closeButton = new QPushButton("Close");
+	connect(closeButton, SIGNAL(pressed()), this, SLOT(close()));
+
+	QHBoxLayout *buttons = new QHBoxLayout();
+	buttons->addWidget(createButton);
+	buttons->addWidget(closeButton);
+
 	setWindowTitle("New bookmark");
 	QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
 	layout->setAlignment(Qt::AlignTop);
 	layout->addLayout(nameLayout);
 	layout->addWidget(m_urlField);
-	layout->addWidget(createButton);
+	layout->addLayout(buttons);
 	setLayout(layout);
 }
 
