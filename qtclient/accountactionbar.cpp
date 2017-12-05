@@ -295,17 +295,27 @@ void AccountActionBar::accessAccountFinished(int code)
 	m_parent->finishTask(m_accessUsername && m_accessPassword);
 }
 
-void AccountActionBar::idTaskComplete(int id, int intent)
+void AccountActionBar::idTaskComplete(int id, int task, int intent)
 {
 	Q_UNUSED(id);
 	Q_UNUSED(intent);
 	if (!m_buttonWaitDialog) {
 		m_parent->finishTask(m_accessUsername && m_accessPassword);
 	}
+	if (task == LoggedInWidget::ID_TASK_DELETE) {
+		if (m_buttonWaitDialog) {
+			m_buttonWaitDialog->done(QMessageBox::Ok);
+		}
+	}
 }
 
 void AccountActionBar::getEntryDone(esdbEntry *entry, int intent)
 {
+	if (!entry) {
+		if (m_buttonWaitDialog) {
+			m_buttonWaitDialog->done(QMessageBox::Ok);
+		}
+	}
 	switch (intent) {
 	case TYPE_DATA: {
 		account *acct = static_cast<account *>(entry);

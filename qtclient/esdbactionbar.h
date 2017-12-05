@@ -34,7 +34,7 @@ public:
 	{
 		Q_UNUSED(entry);
 	}
-	virtual void idTaskComplete(int id, int intent)
+	virtual void idTaskComplete(int id, int task, int intent)
 	{
 		Q_UNUSED(id);
 		Q_UNUSED(intent);

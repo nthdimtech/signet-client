@@ -181,7 +181,7 @@ int GenericActionBar::esdbType()
 	return ESDB_TYPE_GENERIC;
 }
 
-void GenericActionBar::idTaskComplete(int id, int intent)
+void GenericActionBar::idTaskComplete(int id, int task, int intent)
 {
 	Q_UNUSED(id);
 	Q_UNUSED(intent);

@@ -55,7 +55,7 @@ signals:
 public:
 	AccountActionBar(LoggedInWidget *parent);
 	void getEntryDone(esdbEntry *entry, int intent);
-	void idTaskComplete(int id, int intent);
+	void idTaskComplete(int id, int task, int intent);
 public slots:
 	void retryTypeData();
 	void newAccountFinished(int);

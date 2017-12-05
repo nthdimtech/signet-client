@@ -435,7 +435,7 @@ void LoggedInWidget::signetdevCmdResp(signetdevCmdRespInfo info)
 	case SIGNETDEV_CMD_UPDATE_UID: {
 		if (m_idTask == ID_TASK_DELETE) {
 			EsdbActionBar *bar = getActiveActionBar();
-			bar->idTaskComplete(m_id, m_taskIntent);
+			bar->idTaskComplete(m_id, m_idTask, m_taskIntent);
 			if (code == OKAY) {
 				m_entries.erase(m_entries.find(m_id));
 				//TODO: too long line
@@ -652,17 +652,19 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 
 	int exists = m_entries.count(id);
 
+	EsdbActionBar *bar = NULL;
+
 	if (exists && task) {
 		entry = m_entries[id];
-		EsdbActionBar *bar = getActionBarByEntry(entry);
-		if (bar)
-			bar->idTaskComplete(id, m_taskIntent);
+		bar = getActionBarByEntry(entry);
 	}
 
 	if (code != OKAY && code != ID_INVALID && code != BUTTON_PRESS_CANCELED && code != BUTTON_PRESS_TIMEOUT) {
 		if (code != SIGNET_ERROR_DISCONNECT && code != SIGNET_ERROR_QUIT) {
 			emit abort();
 		}
+		if (bar)
+			bar->idTaskComplete(id, m_idTask, m_taskIntent);
 		return;
 	}
 
@@ -673,8 +675,8 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 		if (module) {
 			entry = module->decodeEntry(id, tmp.revision, entry, blk);
 			if (entry) {
-				EsdbActionBar *bar = getActionBarByEntry(entry);
 				if (bar) {
+					bar->idTaskComplete(id, m_idTask, m_taskIntent);
 					bar->getEntryDone(entry, m_taskIntent);
 				} else {
 					//TODO

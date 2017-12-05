@@ -11,9 +11,17 @@ ButtonWaitDialog::ButtonWaitDialog(QString title, QString action, QWidget *paren
 	m_longPress(longPress)
 {
 	setWindowModality(Qt::WindowModal);
+
 	QPixmap pm(":/images/button_press.png");
 	setIconPixmap(pm.scaledToHeight(40));
 	updateText();
+
+	/*
+	void TranslucentWindow::setNoActivate() {
+	long exStyle = GetWindowLong(GetForegroundWindow(), GWL_EXSTYLE) | WS_EX_NOACTIVATE;
+	SetWindowLong(GetForegroundWindow(), GWL_EXSTYLE, exStyle);
+	}
+	*/
 
 	SignetApplication *app = SignetApplication::get();
 	connect(app, SIGNAL(signetdevTimerEvent(int)),
