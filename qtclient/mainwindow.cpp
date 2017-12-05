@@ -638,6 +638,16 @@ void MainWindow::showEvent(QShowEvent *event)
 	}
 }
 
+
+void MainWindow::messageReceived(QString message)
+{
+	if (message == QString("open")) {
+		open();
+	} else if (message == QString("close")) {
+		quit();
+	}
+}
+
 void MainWindow::quit()
 {
 	m_quitting = true;
@@ -993,7 +1003,7 @@ void MainWindow::enterDeviceState(int state)
 		layout->addWidget(m_connectingLabel);
 
 		m_deviceMenu->setDisabled(true);
-		m_fileMenu->setDisabled(true);
+		m_fileMenu->setDisabled(false);
 		connecting_widget->setLayout(layout);
 		setCentralWidget(connecting_widget);
 	}

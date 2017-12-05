@@ -178,6 +178,7 @@ public slots:
 
 	void wipeDeviceDialogFinished(int code);
 	void connectionError();
+	void messageReceived(QString);
 	void open();
 	void abort();
 	void quit();

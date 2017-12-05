@@ -2,6 +2,7 @@
 #include "mainwindow.h"
 
 #include <QMenu>
+#include <QDesktopWidget>
 
 extern "C" {
 #include "signetdev/host/signetdev.h"
@@ -180,11 +181,13 @@ void SignetApplication::init()
 
 	m_main_window = new MainWindow();
 
+	//TODO: really we want to center the window here but that makes it too large for some reason
+	m_main_window->move(desktop()->width()/2, desktop()->height()/2);
 
 	connect(this, SIGNAL(connectionError()), m_main_window, SLOT(connectionError()));
 
 	QObject::connect(m_main_window, SIGNAL(destroyed(QObject*)), this, SLOT(mainDestroyed()));
-	QObject::connect(this, SIGNAL(messageReceived(QString)), m_main_window, SLOT(open()));
+	QObject::connect(this, SIGNAL(messageReceived(QString)), m_main_window, SLOT(messageReceived(QString)));
 	QObject::connect(&m_systray, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
 			 this, SLOT(trayActivated(QSystemTrayIcon::ActivationReason)));
 	QObject::connect(this, SIGNAL(signetdevEvent(int)), m_main_window, SLOT(signetDevEvent(int)));
