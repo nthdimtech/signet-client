@@ -31,7 +31,7 @@ void SignetApplication::connectionErrorS(void *this_)
 }
 
 SignetApplication::SignetApplication(int &argc, char **argv) :
-	QtSingleApplication(argc, argv)
+	QtSingleApplication("qtsingle-app-signetdev-" + QString(USB_VENDOR_ID) + "-" + QString(USB_SIGNET_DESKTOP_PRODUCT_ID) ,argc, argv)
 {
 	g_singleton = this;
 	qRegisterMetaType<signetdevCmdRespInfo>();
