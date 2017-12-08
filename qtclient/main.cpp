@@ -6,12 +6,13 @@ int main(int argc, char **argv)
 	if (a.isRunning()) {
 		QIcon signetIcon = QIcon(":/images/signet.png");
 		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Signet",
-						   "An instance of the Signet client is already running",
+						   "A Signet client is already running."
+						   "Only one instance of the client can run at the same time.",
 						   0,
 						   NULL,
 						   Qt::WindowStaysOnTopHint);
-		QPushButton *closeItButton = box->addButton("Close it", QMessageBox::RejectRole);
-		box->addButton("Open it", QMessageBox::AcceptRole);
+		QPushButton *closeItButton = box->addButton("Replace running instance", QMessageBox::RejectRole);
+		box->addButton("Switch to running instance", QMessageBox::AcceptRole);
 		box->setWindowIcon(signetIcon);
 		box->exec();
 		QAbstractButton *clickedButton = box->clickedButton();
