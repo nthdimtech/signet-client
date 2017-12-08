@@ -74,55 +74,55 @@ void signetdevServer::sendActiveCommand()
 	}
 	switch (m_activeCommand->command) {
 	case SIGNETDEV_CMD_LOGOUT:
-		signetdev_logout_async(this, &m_activeCommand->serverToken);
+		signetdev_logout(this, &m_activeCommand->serverToken);
 		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_WIPE:
-		signetdev_wipe_async(this, &m_activeCommand->serverToken);
+		signetdev_wipe(this, &m_activeCommand->serverToken);
 		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_BUTTON_WAIT:
-		signetdev_button_wait_async(this, &m_activeCommand->serverToken);
+		signetdev_button_wait(this, &m_activeCommand->serverToken);
 		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_BEGIN_DEVICE_BACKUP:
-		signetdev_begin_device_backup_async(this, &m_activeCommand->serverToken);
+		signetdev_begin_device_backup(this, &m_activeCommand->serverToken);
 		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_END_DEVICE_BACKUP:
-		signetdev_end_device_backup_async(this, &m_activeCommand->serverToken);
+		signetdev_end_device_backup(this, &m_activeCommand->serverToken);
 		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_BEGIN_DEVICE_RESTORE:
-		signetdev_begin_device_restore_async(this, &m_activeCommand->serverToken);
+		signetdev_begin_device_restore(this, &m_activeCommand->serverToken);
 		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_END_DEVICE_RESTORE:
-		signetdev_end_device_restore_async(this, &m_activeCommand->serverToken);
+		signetdev_end_device_restore(this, &m_activeCommand->serverToken);
 		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_BEGIN_UPDATE_FIRMWARE:
-		signetdev_begin_update_firmware_async(this, &m_activeCommand->serverToken);
+		signetdev_begin_update_firmware(this, &m_activeCommand->serverToken);
 		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_RESET_DEVICE:
-		signetdev_reset_device_async(this, &m_activeCommand->serverToken);
+		signetdev_reset_device(this, &m_activeCommand->serverToken);
 		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_STARTUP:
-		signetdev_startup_async(this, &m_activeCommand->serverToken);
+		signetdev_startup(this, &m_activeCommand->serverToken);
 		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 //TODO: update for DB2
 #if 0
 	case SIGNETDEV_CMD_DELETE_ID:
-		signetdev_delete_id_async(this,
+		signetdev_delete_id(this,
 			&m_activeCommand->serverToken,
 			getIntParam("id", -1));
 		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		break;
 	case SIGNETDEV_CMD_READ_ID:
-		signetdev_read_id_async(this,
+		signetdev_read_id(this,
 			&m_activeCommand->serverToken,
 			getIntParam("id", -1),
 			getIntParam("masked", -1));
@@ -136,7 +136,7 @@ void signetdevServer::sendActiveCommand()
 			//TODO: protocol error
 			break;
 		}
-		signetdev_write_id_async(this,
+		signetdev_write_id(this,
 			&m_activeCommand->serverToken,
 			getIntParam("id", -1),
 			data.size(),
@@ -148,7 +148,7 @@ void signetdevServer::sendActiveCommand()
 	case SIGNETDEV_CMD_TYPE: {
 		QString keys = getStringParam("keys");
 		QByteArray keysUTF8 = keys.toUtf8();
-		signetdev_type_async(this,
+		signetdev_type(this,
 			&m_activeCommand->serverToken,
 			(const u8 *)keysUTF8.data(),
 			keysUTF8.size());
@@ -159,7 +159,7 @@ void signetdevServer::sendActiveCommand()
 		QByteArray hashFn = getBinaryParam("hashFn");
 		QByteArray salt = getBinaryParam("salt");
 		QByteArray randData = getBinaryParam("randData");
-		signetdev_begin_initialize_device_async(this,
+		signetdev_begin_initialize_device(this,
 			&m_activeCommand->serverToken,
 			(const u8 *)key.data(), key.length(),
 			(const u8 *)hashFn.data(), hashFn.length(),
@@ -168,7 +168,7 @@ void signetdevServer::sendActiveCommand()
 		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		} break;
 	case SIGNETDEV_CMD_READ_BLOCK:
-		signetdev_read_block_async(this,
+		signetdev_read_block(this,
 			&m_activeCommand->serverToken,
 			getIntParam("idx"));
 		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
@@ -179,7 +179,7 @@ void signetdevServer::sendActiveCommand()
 			//TODO: protocol error
 			break;
 		}
-		signetdev_write_block_async(this,
+		signetdev_write_block(this,
 			&m_activeCommand->serverToken,
 			getIntParam("idx"),
 			(const u8 *)data.data());

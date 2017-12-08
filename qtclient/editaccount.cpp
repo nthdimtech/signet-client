@@ -248,7 +248,7 @@ void EditAccount::savePressed()
 	acct.fields = m_acct->fields;
 	block blk;
 	acct.toBlock(&blk);
-	::signetdev_update_uid_async(NULL, &m_signetdevCmdToken,
+	::signetdev_update_uid(NULL, &m_signetdevCmdToken,
 				   m_acct->id,
 				   blk.data.size(),
 				   (const u8 *)blk.data.data(),

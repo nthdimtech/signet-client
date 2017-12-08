@@ -192,7 +192,7 @@ bool MainWindow::nativeEvent(const QByteArray & eventType, void *message, long *
 
 void MainWindow::deviceOpened()
 {
-	::signetdev_startup_async(NULL, &m_signetdevCmdToken);
+	::signetdev_startup(NULL, &m_signetdevCmdToken);
 }
 
 void MainWindow::deviceClosed()
@@ -214,7 +214,7 @@ void MainWindow::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_g
 			m_wipeProgress->setRange(0, data.total_progress_maximum);
 			m_wipeProgress->setValue(data.total_progress);
 			m_wipeProgress->update();
-			::signetdev_get_progress_async(NULL, &m_signetdevCmdToken, data.total_progress, WIPING);
+			::signetdev_get_progress(NULL, &m_signetdevCmdToken, data.total_progress, WIPING);
 			break;
 		case INVALID_STATE:
 			enterDeviceState(STATE_UNINITIALIZED);
@@ -232,7 +232,7 @@ void MainWindow::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_g
 			m_firmwareUpdateProgress->setRange(0, data.total_progress_maximum);
 			m_firmwareUpdateProgress->setValue(data.total_progress);
 			m_firmwareUpdateProgress->update();
-			::signetdev_get_progress_async(NULL, &m_signetdevCmdToken, data.total_progress, ERASING_PAGES);
+			::signetdev_get_progress(NULL, &m_signetdevCmdToken, data.total_progress, ERASING_PAGES);
 			break;
 		case INVALID_STATE: {
 			m_firmwareUpdateStage->setText("Writing firmware data...");
@@ -286,9 +286,9 @@ void MainWindow::signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray bl
 		m_backupProgress->setMaximum(NUM_STORAGE_BLOCKS-1);
 		m_backupProgress->setValue(m_backupBlock);
 		if (m_backupBlock > (NUM_STORAGE_BLOCKS-1)) {
-			::signetdev_end_device_backup_async(NULL, &m_signetdevCmdToken);
+			::signetdev_end_device_backup(NULL, &m_signetdevCmdToken);
 		} else {
-			::signetdev_read_block_async(NULL, &m_signetdevCmdToken, m_backupBlock);
+			::signetdev_read_block(NULL, &m_signetdevCmdToken, m_backupBlock);
 		}
 	}
 	break;
@@ -328,7 +328,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 	switch (info.cmd) {
 	case SIGNETDEV_CMD_ERASE_PAGES:
 		if (code == OKAY) {
-			::signetdev_get_progress_async(NULL, &m_signetdevCmdToken, 0, ERASING_PAGES);
+			::signetdev_get_progress(NULL, &m_signetdevCmdToken, 0, ERASING_PAGES);
 		}
 		break;
 	case SIGNETDEV_CMD_WRITE_FLASH:
@@ -337,7 +337,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 			m_firmwareUpdateProgress->setValue(m_totalWritten);
 			m_firmwareUpdateProgress->update();
 			if (m_writingSectionIter == m_fwSections.end()) {
-				::signetdev_reset_device_async(NULL, &m_signetdevCmdToken);
+				::signetdev_reset_device(NULL, &m_signetdevCmdToken);
 			} else {
 				sendFirmwareWriteCmd();
 			}
@@ -353,13 +353,13 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 				QByteArray block(BLK_SIZE, 0);
 				int sz = m_restoreFile->read(block.data(), block.length());
 				if (sz == BLK_SIZE) {
-					::signetdev_write_block_async(NULL, &m_signetdevCmdToken, m_restoreBlock, block.data());
+					::signetdev_write_block(NULL, &m_signetdevCmdToken, m_restoreBlock, block.data());
 				} else {
 					QMessageBox *box = SignetApplication::messageBoxError(QMessageBox::Critical, "Restore device", "Failed to read from source file", this);
 					connect(box, SIGNAL(finished(int)), this, SLOT(restoreError()));
 				}
 			} else {
-				::signetdev_end_device_restore_async(NULL, &m_signetdevCmdToken);
+				::signetdev_end_device_restore(NULL, &m_signetdevCmdToken);
 			}
 		}
 		break;
@@ -370,7 +370,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 			m_backupPrevState = m_deviceState;
 			enterDeviceState(STATE_BACKING_UP);
 			m_backupBlock = 0;
-			::signetdev_read_block_async(NULL, &m_signetdevCmdToken, m_backupBlock);
+			::signetdev_read_block(NULL, &m_signetdevCmdToken, m_backupBlock);
 		} else {
 			do_abort = do_abort && (code != BUTTON_PRESS_CANCELED && code != BUTTON_PRESS_TIMEOUT);
 		}
@@ -395,7 +395,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 			QByteArray block(BLK_SIZE, 0);
 			int sz = m_restoreFile->read(block.data(), block.length());
 			if (sz == BLK_SIZE) {
-				::signetdev_write_block_async(NULL, &m_signetdevCmdToken, m_restoreBlock, block.data());
+				::signetdev_write_block(NULL, &m_signetdevCmdToken, m_restoreBlock, block.data());
 			} else {
 				QMessageBox *box = SignetApplication::messageBoxError(QMessageBox::Critical, "Restore device", "Failed to read from source file", this);
 				connect(box, SIGNAL(finished(int)), this, SLOT(restoreError()));
@@ -406,7 +406,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 		break;
 	case SIGNETDEV_CMD_END_DEVICE_RESTORE:
 		if (code == OKAY) {
-			::signetdev_startup_async(NULL, &m_signetdevCmdToken);
+			::signetdev_startup(NULL, &m_signetdevCmdToken);
 		}
 		break;
 	case SIGNETDEV_CMD_LOGOUT:
@@ -448,12 +448,12 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 
 void MainWindow::restoreError()
 {
-	::signetdev_end_device_restore_async(NULL, &m_signetdevCmdToken);
+	::signetdev_end_device_restore(NULL, &m_signetdevCmdToken);
 }
 
 void MainWindow::backupError()
 {
-	::signetdev_end_device_backup_async(NULL, &m_signetdevCmdToken);
+	::signetdev_end_device_backup(NULL, &m_signetdevCmdToken);
 }
 
 #include "genericfields.h"
@@ -682,7 +682,7 @@ MainWindow::~MainWindow()
 void MainWindow::logoutUi()
 {
 	if (m_deviceState == STATE_LOGGED_IN) {
-		::signetdev_logout_async(NULL, &m_signetdevCmdToken);
+		::signetdev_logout(NULL, &m_signetdevCmdToken);
 	}
 }
 
@@ -1023,7 +1023,7 @@ void MainWindow::enterDeviceState(int state)
 		m_deviceMenu->setDisabled(true);
 		m_fileMenu->setDisabled(true);
 		setCentralWidget(m_wipingWidget);
-		::signetdev_get_progress_async(NULL, &m_signetdevCmdToken, 0, WIPING);
+		::signetdev_get_progress(NULL, &m_signetdevCmdToken, 0, WIPING);
 	}
 	break;
 	case STATE_LOGGED_IN_LOADING_ACCOUNTS: {
@@ -1135,7 +1135,7 @@ void MainWindow::enterDeviceState(int state)
 				erase_pages_.push_back(i);
 			}
 		}
-		::signetdev_erase_pages_async(NULL, &m_signetdevCmdToken,
+		::signetdev_erase_pages(NULL, &m_signetdevCmdToken,
 					      erase_pages_.size(),
 					      (u8 *)erase_pages_.data());
 		setCentralWidget(m_firmwareUpdateWidget);
@@ -1279,7 +1279,7 @@ void MainWindow::sendFirmwareWriteCmd()
 	}
 	void *data = m_writingSectionIter->contents.data() + (m_writingAddr - section_lma);
 
-	::signetdev_write_flash_async(NULL, &m_signetdevCmdToken, m_writingAddr, data, write_size);
+	::signetdev_write_flash(NULL, &m_signetdevCmdToken, m_writingAddr, data, write_size);
 	if (advance) {
 		m_writingSectionIter++;
 		if (m_writingSectionIter != m_fwSections.end()) {
@@ -1374,7 +1374,7 @@ void MainWindow::updateFirmwareUi()
 		m_buttonWaitDialog = new ButtonWaitDialog("Update firmware", "update firmware", this);
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 		m_buttonWaitDialog->show();
-		::signetdev_begin_update_firmware_async(NULL, &m_signetdevCmdToken);
+		::signetdev_begin_update_firmware(NULL, &m_signetdevCmdToken);
 	} else {
 		SignetApplication::messageBoxError(QMessageBox::Warning, "Update firmware", "Firmware file not valid", this);
 	}
@@ -1401,7 +1401,7 @@ void MainWindow::wipeDeviceDialogFinished(int result)
 	m_buttonWaitDialog = new ButtonWaitDialog("Wipe device", "wipe device", this);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 	m_buttonWaitDialog->show();
-	::signetdev_wipe_async(NULL, &m_signetdevCmdToken);
+	::signetdev_wipe(NULL, &m_signetdevCmdToken);
 }
 
 void MainWindow::operationFinished(int code)
@@ -1424,7 +1424,7 @@ void MainWindow::backupDevice(QString fileName)
 	m_buttonWaitDialog = new ButtonWaitDialog("Backup device to file", "start backing up device", this);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 	m_buttonWaitDialog->show();
-	::signetdev_begin_device_backup_async(NULL, &m_signetdevCmdToken);
+	::signetdev_begin_device_backup(NULL, &m_signetdevCmdToken);
 }
 
 void MainWindow::aboutUi()
@@ -1498,7 +1498,7 @@ void MainWindow::exportCSVUi()
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 	m_buttonWaitDialog->show();
 	m_startedExport = true;
-	::signetdev_read_all_uids_async(NULL, &m_signetdevCmdToken, 0);
+	::signetdev_read_all_uids(NULL, &m_signetdevCmdToken, 0);
 }
 
 void MainWindow::restoreDeviceUi()
@@ -1534,5 +1534,5 @@ void MainWindow::restoreDeviceUi()
 	m_buttonWaitDialog = new ButtonWaitDialog("Restore device from file", "start restoring device", this);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 	m_buttonWaitDialog->show();
-	::signetdev_begin_device_restore_async(NULL, &m_signetdevCmdToken);
+	::signetdev_begin_device_restore(NULL, &m_signetdevCmdToken);
 }

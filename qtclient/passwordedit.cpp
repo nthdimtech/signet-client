@@ -82,7 +82,7 @@ void PasswordEdit::generatePassword()
 	m_generatingDialog->setLayout(new QHBoxLayout());
 	m_generatingDialog->layout()->addWidget(new QLabel("Collecting random data from Signet..."));
 	m_generatingDialog->show();
-	::signetdev_get_rand_bits_async(NULL, &m_signetdevCmdToken, m_numGenChars->value());
+	::signetdev_get_rand_bits(NULL, &m_signetdevCmdToken, m_numGenChars->value());
 }
 
 void PasswordEdit::signetdevGetRandBits(signetdevCmdRespInfo info, QByteArray block)

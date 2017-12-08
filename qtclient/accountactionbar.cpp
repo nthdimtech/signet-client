@@ -346,7 +346,7 @@ void AccountActionBar::getEntryDone(esdbEntry *entry, int intent)
 
 			}
 		}
-		::signetdev_type_async(NULL, &m_signetdevCmdToken,
+		::signetdev_type(NULL, &m_signetdevCmdToken,
 				       (u8 *)keys.data(), keys.length());
 	}
 	break;

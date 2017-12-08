@@ -292,7 +292,7 @@ int iconAccount::matchQuality(esdbEntry *entry)
 	m_loadingProgress->setMinimum(0);
 	m_loadingProgress->setMaximum(1);
 
-	::signetdev_read_all_uids_async(NULL, &m_signetdevCmdToken, 1);
+	::signetdev_read_all_uids(NULL, &m_signetdevCmdToken, 1);
 }
 
 void LoggedInWidget::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int uid, QByteArray data, QByteArray mask)
@@ -382,10 +382,10 @@ void LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent)
 	m_taskIntent = intent;
 	switch (m_idTask) {
 	case ID_TASK_DELETE:
-		::signetdev_update_uid_async(NULL, &m_signetdevCmdToken, m_id, 0, NULL, NULL);
+		::signetdev_update_uid(NULL, &m_signetdevCmdToken, m_id, 0, NULL, NULL);
 		break;
 	case ID_TASK_READ:
-		::signetdev_read_uid_async(NULL, &m_signetdevCmdToken, m_id, 0);
+		::signetdev_read_uid(NULL, &m_signetdevCmdToken, m_id, 0);
 		break;
 	default:
 		break;

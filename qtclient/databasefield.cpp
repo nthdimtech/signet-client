@@ -69,7 +69,7 @@ void DatabaseField::retryTypeData()
 	if (m_buttonWait) {
 		m_buttonWait->resetTimeout();
 	}
-	::signetdev_button_wait_async(NULL, &m_signetdevCmdToken);
+	::signetdev_button_wait(NULL, &m_signetdevCmdToken);
 }
 
 void DatabaseField::signetdevCmdResp(signetdevCmdRespInfo info)
@@ -98,7 +98,7 @@ void DatabaseField::signetdevCmdResp(signetdevCmdRespInfo info)
 			if (m_buttonWait) {
 				m_buttonWait->done(OKAY);
 			}
-			::signetdev_type_async(NULL, &m_signetdevCmdToken,
+			::signetdev_type(NULL, &m_signetdevCmdToken,
 					       (u8 *)keys.data(), keys.length());
 		}
 		break;
@@ -126,7 +126,7 @@ void DatabaseField::typeFieldUi()
 	m_buttonWait = new ButtonWaitDialog("Type " + m_name, "type " + m_name, (QWidget *)this->parent());
 	connect(m_buttonWait, SIGNAL(finished(int)), this, SLOT(typeFieldFinished(int)));
 	m_buttonWait->show();
-	::signetdev_button_wait_async(NULL, &m_signetdevCmdToken);
+	::signetdev_button_wait(NULL, &m_signetdevCmdToken);
 }
 
 void DatabaseField::typeFieldFinished(int rc)

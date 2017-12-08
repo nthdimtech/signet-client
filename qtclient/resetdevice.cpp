@@ -136,7 +136,7 @@ void ResetDevice::keyGenerated()
 		memcpy(rand_data + i, &x,
 		       std::min((int)sizeof(unsigned int), sz - i));
 	}
-	::signetdev_begin_initialize_device_async(NULL, &m_signetdevCmdToken,
+	::signetdev_begin_initialize_device(NULL, &m_signetdevCmdToken,
 		(const u8 *)m_keyGenerator->getKey().data(), m_keyGenerator->getKey().length(),
 		(const u8 *)m_keyGenerator->getHashfn().data(), m_keyGenerator->getHashfn().length(),
 		(const u8 *)m_keyGenerator->getSalt().data(), m_keyGenerator->getSalt().length(),
@@ -199,7 +199,7 @@ void ResetDevice::signetdevCmdResp(signetdevCmdRespInfo info)
 		if (m_warningMessage) {
 			m_warningMessage->hide();
 		}
-		::signetdev_get_progress_async(NULL, &m_signetdevCmdToken, 0, INITIALIZING);
+		::signetdev_get_progress(NULL, &m_signetdevCmdToken, 0, INITIALIZING);
 		break;
 	case BUTTON_PRESS_TIMEOUT:
 	case BUTTON_PRESS_CANCELED:
@@ -239,7 +239,7 @@ void ResetDevice::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_
 			m_randomDataProgressBar->setValue(data.progress[1]);
 			m_randomDataProgressBar->update();
 		}
-		::signetdev_get_progress_async(NULL, &m_signetdevCmdToken, data.total_progress, INITIALIZING);
+		::signetdev_get_progress(NULL, &m_signetdevCmdToken, data.total_progress, INITIALIZING);
 		break;
 	case INVALID_STATE: {
 		SignetApplication *app = SignetApplication::get();

@@ -117,7 +117,7 @@ void NewAccount::create_button_pressed()
 	m_acct->fields = m_fields;
 	m_acct->toBlock(&blk);
 
-	::signetdev_update_uid_async(NULL, &m_signetdev_cmd_token,
+	::signetdev_update_uid(NULL, &m_signetdev_cmd_token,
 				   m_acct->id,
 				   blk.data.size(),
 				   (const u8 *)blk.data.data(),

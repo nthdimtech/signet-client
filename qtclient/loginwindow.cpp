@@ -80,7 +80,7 @@ void LoginWindow::keyGenerated()
 			m_buttonWait = new ButtonWaitDialog("Unlock","unlock", this);
 			connect(m_buttonWait, SIGNAL(finished(int)), this, SLOT(loginFinished(int)));
 			m_buttonWait->show();
-			::signetdev_login_async(NULL, &m_signetdevCmdToken,
+			::signetdev_login(NULL, &m_signetdevCmdToken,
 						(u8 *)m_keyGenerator->getKey().data(),
 						m_keyGenerator->getKey().length());
 		}
