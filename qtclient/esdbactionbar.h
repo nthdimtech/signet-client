@@ -37,6 +37,7 @@ public:
 	virtual void idTaskComplete(int id, int task, int intent)
 	{
 		Q_UNUSED(id);
+		Q_UNUSED(task);
 		Q_UNUSED(intent);
 	}
 

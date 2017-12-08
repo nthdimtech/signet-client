@@ -185,6 +185,7 @@ void GenericActionBar::idTaskComplete(int id, int task, int intent)
 {
 	Q_UNUSED(id);
 	Q_UNUSED(intent);
+	Q_UNUSED(task);
 	if (m_buttonWaitDialog)
 		m_buttonWaitDialog->done(QMessageBox::Ok);
 
