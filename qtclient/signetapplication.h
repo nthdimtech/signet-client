@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QMessageBox>
 #include <QtSingleApplication>
+#include <qdatetime.h>
 #include <qmetatype.h>
 #include "systemtray.h"
 
@@ -57,6 +58,22 @@ private:
 	int m_saltLength;
 	int m_DBFormat;
 public:
+	static QDate getReleaseDate() {
+		return QDate(2017,12,10);
+	}
+
+	void getClientVersion(int &major, int &minor, int &step) {
+		major = 0;
+		minor = 9;
+		step = 4;
+	}
+
+	void getFirmwareVersion(int &major, int &minor, int &step) {
+		major = 1;
+		minor = 0;
+		step = 1;
+	}
+
 	QByteArray getHashfn()
 	{
 		return m_hashfn;

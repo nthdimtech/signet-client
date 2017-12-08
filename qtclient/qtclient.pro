@@ -72,7 +72,8 @@ SOURCES += main.cpp \
     typedesceditor.cpp \
     configuremachine.cpp \
     signetdevserver.cpp \
-    signetdevserverconnection.cpp
+    signetdevserverconnection.cpp \
+    about.cpp
 
 win32 {
 SOURCES += qtsingleapplication/src/qtlockedfile_win.cpp
@@ -141,7 +142,8 @@ HEADERS  += mainwindow.h \
     typedesceditor.h \
     configuremachine.h \
     signetdevserver.h \
-    signetdevserverconnection.h
+    signetdevserverconnection.h \
+    about.h
 
 INCLUDEPATH+=../scrypt
 INCLUDEPATH+=qtsingleapplication/src

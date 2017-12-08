@@ -26,6 +26,7 @@
 #include <QDateTime>
 #include <QStorageInfo>
 
+#include "about.h"
 #include "loggedinwidget.h"
 #include "account.h"
 #include "esdbmodel.h"
@@ -108,16 +109,13 @@ MainWindow::MainWindow(QWidget *parent) :
 	this->setMenuBar(bar);
 	m_fileMenu = bar->addMenu("File");
 	m_settingsAction = m_fileMenu->addAction("Settings");
-	//m_saveAction = m_fileMenu->addAction(style->standardIcon(QStyle::SP_DialogSaveButton), "Save");
 
-	//m_importAction = m_fileMenu->addAction("Import");
 	m_exportMenu = m_fileMenu->addMenu("Export");
 	m_exportMenu->setVisible(false);
 
 	m_exportCSVAction = m_exportMenu->addAction("CSV");
 	QAction *quit_action = m_fileMenu->addAction("Exit");
 	QObject::connect(quit_action, SIGNAL(triggered(bool)), this, SLOT(quit()));
-	//connect(m_saveAction, SIGNAL(triggered(bool)), this, SLOT(backupDeviceUi()));
 
 	connect(m_settingsAction, SIGNAL(triggered(bool)), this,
 		SLOT(openSettingsUi()));
@@ -155,8 +153,10 @@ MainWindow::MainWindow(QWidget *parent) :
 	QObject::connect(m_updateFirmwareAction, SIGNAL(triggered(bool)),
 			 this, SLOT(updateFirmwareUi()));
 
-	//m_saveAction->setVisible(false);
-	//m_importAction->setVisible(false);
+	QMenu *helpMenu = bar->addMenu("Help");
+	QAction *about_action = helpMenu->addAction("About");
+	connect(about_action, SIGNAL(triggered(bool)), this, SLOT(aboutUi()));
+
 	m_logoutAction->setVisible(false);
 	m_eraseDeviceAction->setVisible(false);
 	m_wipeDeviceAction->setVisible(false);
@@ -1425,6 +1425,12 @@ void MainWindow::backupDevice(QString fileName)
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 	m_buttonWaitDialog->show();
 	::signetdev_begin_device_backup_async(NULL, &m_signetdevCmdToken);
+}
+
+void MainWindow::aboutUi()
+{
+	QDialog *dlg = new About(this);
+	dlg->exec();
 }
 
 void MainWindow::backupDeviceUi()

@@ -1,0 +1,69 @@
+#include "about.h"
+
+#include <QVBoxLayout>
+#include <QPushButton>
+#include <QLabel>
+#include <QDesktopServices>
+#include <QUrl>
+
+#include "signetapplication.h"
+
+About::About(QWidget *parent):
+	QDialog(parent)
+{
+	setWindowModality(Qt::WindowModal);
+	setWindowTitle("About Signet");
+	QHBoxLayout *top = new QHBoxLayout();
+	QLabel *graphic = new QLabel();
+	graphic->setMargin(5);
+	graphic->setPixmap(QPixmap(":/images/signet.png"));
+	graphic->setScaledContents(true);
+	graphic->setFixedSize(128, 128);
+	graphic->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	graphic->setAlignment(Qt::AlignLeft);
+	top->addWidget(graphic);
+
+	QVBoxLayout *right = new QVBoxLayout();
+	top->addLayout(right);
+	top->setAlignment(Qt::AlignTop);
+	setLayout(top);
+
+	SignetApplication *app = SignetApplication::get();
+
+	QDate date = app->getReleaseDate();
+	int maj;
+	int min;
+	int step;
+	app->getClientVersion(maj, min, step);
+
+	QLabel *title = new QLabel(QString("Signet client ") +
+				   QString::number(maj) + "." +
+				   QString::number(min) + "." +
+				   QString::number(step));
+
+	title->setStyleSheet("font-weight: bold");
+
+	QLabel *releaseDate = new QLabel(QString("Released ") +
+					     date.toString());;
+
+	right->addWidget(title);
+	right->addWidget(releaseDate);
+
+	QHBoxLayout *buttons = new QHBoxLayout();
+	buttons->setAlignment(Qt::AlignBottom);
+	QPushButton *closeButton = new QPushButton("Close");
+	closeButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	QPushButton *checkNewVersionButton = new QPushButton("Check for new version");
+	checkNewVersionButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+	buttons->addWidget(checkNewVersionButton);
+	buttons->addWidget(closeButton);
+	right->addLayout(buttons);
+	connect(closeButton, SIGNAL(clicked(bool)), this, SLOT(close()));
+	connect(checkNewVersionButton, SIGNAL(clicked(bool)), this, SLOT(checkNewVersion()));
+}
+
+void About::checkNewVersion()
+{
+	QUrl url("https://nthdimtech.com/signet-releases");
+	QDesktopServices::openUrl(url);
+}
