@@ -82,7 +82,7 @@ void LoginWindow::keyGenerated()
 			m_buttonWait->show();
 			::signetdev_login(NULL, &m_signetdevCmdToken,
 						(u8 *)m_keyGenerator->getKey().data(),
-						m_keyGenerator->getKey().length());
+						m_keyGenerator->getKey().length(), 0);
 		}
 	}
 }
