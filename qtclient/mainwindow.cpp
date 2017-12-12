@@ -735,6 +735,7 @@ void MainWindow::saveSettings()
 	obj.insert("removableBackupVolume", QJsonValue(m_settings.removableBackupVolume));
 	obj.insert("removableBackupInterval", QJsonValue(m_settings.removableBackupInterval));
 	obj.insert("lastRemoveableBackup", QJsonValue(m_settings.lastRemoveableBackup.toString()));
+	obj.insert("lastUpdatePrompt", QJsonValue(m_settings.lastUpdatePrompt.toString()));
 	doc.setObject(obj);
 	QByteArray datum = doc.toJson();
 	configFile.write(datum);
@@ -948,6 +949,36 @@ void MainWindow::loadSettings()
 		m_settings.lastRemoveableBackup = QDateTime();
 	}
 
+	QJsonValue lastUpdatePrompt = obj.value("lastUpdatePrompt");
+	if (lastUpdatePrompt.isString()) {
+		m_settings.lastUpdatePrompt = QDateTime::fromString(lastUpdatePrompt.toString());
+	} else {
+		m_settings.lastUpdatePrompt = QDateTime();
+	}
+
+	SignetApplication *app = SignetApplication::get();
+
+	QDateTime current = QDateTime::currentDateTime();
+	QDateTime release = QDateTime(app->getReleaseDate());
+	QDateTime prompt = m_settings.lastUpdatePrompt;
+
+	if ((release.daysTo(current) > 30) &&
+			(!prompt.isValid() ||
+				(prompt.daysTo(current) > 30))) {
+		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Client update check",
+			"This client is more than 30 days old. Check for a new version?",
+			QMessageBox::No | QMessageBox::Yes,
+			this);
+		int rc = box->exec();
+		m_settings.lastUpdatePrompt = current;
+		saveSettings();
+		box->deleteLater();
+		if (rc == QMessageBox::Yes) {
+			QUrl url("https://nthdimtech.com/signet-releases");
+			QDesktopServices::openUrl(url);
+		}
+	}
+
 	if (!configFile.exists()) {
 		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Machine not configured",
 			    "It appears you have not used Signet on this system before.\n\nWould you like to set its configuration?",
@@ -962,6 +993,7 @@ void MainWindow::loadSettings()
 		}
 		saveSettings();
 	}
+
 	settingsChanged();
 }
 

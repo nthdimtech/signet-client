@@ -53,6 +53,7 @@ struct appSettings {
 	QString removableBackupVolume;
 	int removableBackupInterval;
 	QDateTime lastRemoveableBackup;
+	QDateTime lastUpdatePrompt;
 };
 
 struct exportType {
