@@ -36,7 +36,6 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 {
 	g_singleton = this;
 	qRegisterMetaType<signetdevCmdRespInfo>();
-	qRegisterMetaType<signetdev_read_id_resp_data>();
 	qRegisterMetaType<signetdev_startup_resp_data>();
 	qRegisterMetaType<signetdev_get_progress_resp_data>();
 }

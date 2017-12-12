@@ -564,31 +564,6 @@ void signetdevServer::signetdevStartupResp(const signetdevCmdRespInfo &info, con
 	}
 }
 
-void signetdevServer::signetdevReadIdResp(const signetdevCmdRespInfo &info, const signetdev_read_id_resp_data *resp)
-{
-	if (info.token == m_activeCommand->serverToken) {
-		QJsonObject params;
-		QByteArray data((char *)(resp->data), resp->size);
-		QByteArray mask((char *)(resp->mask), (resp->size+7)/8);
-		params.insert("data", QJsonValue(QString::fromUtf8(data.toBase64())));
-		params.insert("mask", QJsonValue(QString::fromUtf8(data.toBase64())));
-		sendCommandResponse(info, params);
-	}
-}
-
-void signetdevServer::signetdevReadAllIdResp(const signetdevCmdRespInfo &info, const signetdev_read_all_id_resp_data *resp)
-{
-	if (info.token == m_activeCommand->serverToken) {
-		QJsonObject params;
-		QByteArray data((char *)(resp->data), resp->size);
-		QByteArray mask((char *)(resp->mask), (resp->size+7)/8);
-		params.insert("id", QJsonValue(resp->id));
-		params.insert("data", QJsonValue(QString::fromUtf8(data.toBase64())));
-		params.insert("mask", QJsonValue(QString::fromUtf8(data.toBase64())));
-		sendCommandResponse(info, params);
-	}
-}
-
 void signetdevServer::signetdevReadBlockResp(const signetdevCmdRespInfo &info, const char *data)
 {
 	if (info.token == m_activeCommand->serverToken) {

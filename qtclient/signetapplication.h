@@ -27,7 +27,6 @@ extern "C" {
 }
 
 Q_DECLARE_METATYPE(signetdevCmdRespInfo)
-Q_DECLARE_METATYPE(signetdev_read_id_resp_data)
 Q_DECLARE_METATYPE(signetdev_startup_resp_data)
 Q_DECLARE_METATYPE(signetdev_get_progress_resp_data)
 
