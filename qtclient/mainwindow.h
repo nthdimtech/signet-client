@@ -198,6 +198,7 @@ public slots:
 	void openSettingsUi();
 	void exportCSVUi();
 	void aboutUi();
+	void startOnlineHelp();
 };
 
 #endif // MAINWINDOW_H

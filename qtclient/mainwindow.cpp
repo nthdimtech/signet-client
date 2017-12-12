@@ -154,6 +154,10 @@ MainWindow::MainWindow(QWidget *parent) :
 			 this, SLOT(updateFirmwareUi()));
 
 	QMenu *helpMenu = bar->addMenu("Help");
+
+	QAction *onlineHelpAction = helpMenu->addAction("Online help");
+	connect(onlineHelpAction, SIGNAL(triggered(bool)), this, SLOT(startOnlineHelp()));
+
 	QAction *about_action = helpMenu->addAction("About");
 	connect(about_action, SIGNAL(triggered(bool)), this, SLOT(aboutUi()));
 
@@ -164,6 +168,14 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_backupAction->setVisible(false);
 	m_restoreAction->setVisible(false);
 	enterDeviceState(STATE_NEVER_SHOWN);
+}
+
+#include <QDesktopServices>
+
+void MainWindow::startOnlineHelp()
+{
+	QUrl url("https://nthdimtech.com/signet-help");
+	QDesktopServices::openUrl(url);
 }
 
 void MainWindow::connectionError()
