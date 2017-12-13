@@ -1,5 +1,7 @@
 #include "signetapplication.h"
 
+#include <QThread>
+
 int main(int argc, char **argv)
 {
 	SignetApplication a(argc, argv);
@@ -35,6 +37,7 @@ int main(int argc, char **argv)
 					box = NULL;
 					return 0;
 				}
+				QThread::usleep(100000);
 			}
 		} else {
 			a.sendMessage("open");
