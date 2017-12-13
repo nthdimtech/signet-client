@@ -139,6 +139,7 @@ class LoggedInWidget : public QWidget
 
 	int m_id;
 	int m_taskIntent;
+	EsdbActionBar *m_taskActionBar;
 	void getEntryDone(int id, int code, block *, bool task);
 	int esdbTypeToIndex(int type);
 	int esdbEntryToIndex(esdbEntry *entry);
@@ -154,7 +155,7 @@ public:
 	explicit LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, QWidget *parent = 0);
 	~LoggedInWidget();
 	void finishTask(bool deselect = true);
-	void beginIDTask(int id, enum ID_TASK task, int intent);
+	void beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar);
 	void getSelectedAccountRect(QRect &r);
 signals:
 	void abort();

@@ -33,7 +33,7 @@ class BookmarkActionBar : public EsdbActionBar
 	void defaultAction(esdbEntry *entry);
 	void newInstanceUI(int id, const QString &name);
 	void getEntryDone(esdbEntry *entry, int intent);
-	void idTaskComplete(int id, int intent);
+	void idTaskComplete(int id, int task, int intent);
 
 	enum intent {
 		NONE

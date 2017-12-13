@@ -215,7 +215,7 @@ void AccountActionBar::deleteAccountUI()
 			m_parent);
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(deleteAccountFinished(int)));
 		m_buttonWaitDialog->show();
-		m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_DELETE, NONE);
+		m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_DELETE, NONE, this);
 	}
 }
 
@@ -238,7 +238,7 @@ void AccountActionBar::openAccount(account *acct)
 	    m_parent);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(openAccountFinished(int)));
 	m_buttonWaitDialog->show();
-	m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, OPEN_ACCOUNT);
+	m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, OPEN_ACCOUNT, this);
 }
 
 void AccountActionBar::openAccountFinished(int code)
@@ -280,7 +280,7 @@ void AccountActionBar::accessAccount(account *acct, bool username, bool password
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(accessAccountFinished(int)));
 		m_buttonWaitDialog->show();
 	}
-	m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, TYPE_DATA);
+	m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, TYPE_DATA, this);
 }
 
 void AccountActionBar::accessAccountFinished(int code)
@@ -394,5 +394,5 @@ void AccountActionBar::retryTypeData()
 	if (m_buttonWaitDialog) {
 		m_buttonWaitDialog->resetTimeout();
 	}
-	m_parent->beginIDTask(m_id, LoggedInWidget::ID_TASK_READ, TYPE_DATA);
+	m_parent->beginIDTask(m_id, LoggedInWidget::ID_TASK_READ, TYPE_DATA, this);
 }

@@ -110,11 +110,11 @@ void BookmarkActionBar::deleteEntryUI()
 		m_parent->selectEntry(NULL);
 		int id = entry->id;
 		m_buttonWaitDialog = new ButtonWaitDialog("Delete bookmark",
-		        QString("delete bookmark \"") + entry->getTitle() + QString("\""),
-		        m_parent);
+			QString("delete bookmark \"") + entry->getTitle() + QString("\""),
+			m_parent);
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(deleteEntryFinished(int)));
 		m_buttonWaitDialog->show();
-		m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_DELETE, NONE);
+		m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_DELETE, NONE, this);
 	}
 }
 
@@ -134,7 +134,7 @@ void BookmarkActionBar::getEntryDone(esdbEntry *entry, int intent)
 	Q_UNUSED(intent);
 }
 
-void BookmarkActionBar::idTaskComplete(int id, int intent)
+void BookmarkActionBar::idTaskComplete(int id, int task, int intent)
 {
 	Q_UNUSED(id);
 	Q_UNUSED(intent);

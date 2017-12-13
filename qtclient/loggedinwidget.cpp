@@ -375,11 +375,12 @@ void LoggedInWidget::signetDevEvent(int code)
 	}
 }
 
-void LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent)
+void LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar)
 {
 	m_id = id;
 	m_idTask = task;
 	m_taskIntent = intent;
+	m_taskActionBar = bar;
 	switch (m_idTask) {
 	case ID_TASK_DELETE:
 		::signetdev_update_uid(NULL, &m_signetdevCmdToken, m_id, 0, NULL, NULL);
@@ -460,34 +461,12 @@ void LoggedInWidget::signetdevReadUIdResp(signetdevCmdRespInfo info, QByteArray 
 		return;
 	}
 	m_signetdevCmdToken = -1;
-	bool do_abort = false;
 	int code = info.resp_code;
-
-	switch (code) {
-	case OKAY:
-	case ID_INVALID:
-	case BUTTON_PRESS_CANCELED:
-	case BUTTON_PRESS_TIMEOUT:
-	case SIGNET_ERROR_DISCONNECT:
-	case SIGNET_ERROR_QUIT:
-		break;
-	default:
-		do_abort = true;
-		return;
-	}
-
-	if (code == OKAY || code == ID_INVALID) {
-		block *b = new block();
-		b->data = data;
-		b->mask = mask;
-		getEntryDone(m_id, code, b, true);
-	} else {
-		m_idTask = ID_TASK_NONE;
-	}
-
-	if (do_abort) {
-		abort();
-	}
+	block *b = new block();
+	b->data = data;
+	b->mask = mask;
+	getEntryDone(m_id, code, b, true);
+	m_idTask = ID_TASK_NONE;
 }
 
 void LoggedInWidget::getSelectedAccountRect(QRect &r)
@@ -656,7 +635,7 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 
 	if (exists && task) {
 		entry = m_entries[id];
-		bar = getActionBarByEntry(entry);
+		bar = m_taskActionBar;
 	}
 
 	if (code != OKAY && code != ID_INVALID && code != BUTTON_PRESS_CANCELED && code != BUTTON_PRESS_TIMEOUT) {

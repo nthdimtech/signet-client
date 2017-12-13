@@ -91,7 +91,7 @@ void GenericActionBar::openEntry(esdbEntry *entry)
 		    m_parent);
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(openEntryFinished(int)));
 		m_buttonWaitDialog->show();
-		m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, OPEN_ACCOUNT);
+		m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, OPEN_ACCOUNT, this);
 	}
 }
 
@@ -142,7 +142,7 @@ void GenericActionBar::deleteEntryUI()
 			m_parent);
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(deleteEntryFinished(int)));
 		m_buttonWaitDialog->show();
-		m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_DELETE, NONE);
+		m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_DELETE, NONE, this);
 	}
 }
 
