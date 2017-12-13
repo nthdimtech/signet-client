@@ -64,13 +64,13 @@ public:
 	void getClientVersion(int &major, int &minor, int &step) {
 		major = 0;
 		minor = 9;
-		step = 4;
+		step = 5;
 	}
 
 	void getFirmwareVersion(int &major, int &minor, int &step) {
 		major = 1;
-		minor = 0;
-		step = 1;
+		minor = 1;
+		step = 3;
 	}
 
 	QByteArray getHashfn()
