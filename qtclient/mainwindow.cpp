@@ -106,7 +106,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	QObject::connect(&m_connectingTimer, SIGNAL(timeout()), this, SLOT(connectingTimer()));
 	QMenuBar *bar = new QMenuBar();
-	this->setMenuBar(bar);
+	bar->setNativeMenuBar(false);
+	setMenuBar(bar);
 	m_fileMenu = bar->addMenu("File");
 	m_settingsAction = m_fileMenu->addAction("Settings");
 
