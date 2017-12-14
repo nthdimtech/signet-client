@@ -37,6 +37,9 @@ struct block {
 	void writeString(const QString &str, bool masked);
 	QByteArray data;
 	QByteArray mask;
+	block() {
+		index = 0;
+	}
 };
 
 struct esdbEntry_1 {
