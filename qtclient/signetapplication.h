@@ -58,19 +58,19 @@ private:
 	int m_DBFormat;
 public:
 	static QDate getReleaseDate() {
-		return QDate(2017,12,10);
+		return QDate(2017,12,15);
 	}
 
 	void getClientVersion(int &major, int &minor, int &step) {
 		major = 0;
 		minor = 9;
-		step = 5;
+		step = 6;
 	}
 
 	void getFirmwareVersion(int &major, int &minor, int &step) {
 		major = 1;
-		minor = 1;
-		step = 3;
+		minor = 2;
+		step = 1;
 	}
 
 	QByteArray getHashfn()
