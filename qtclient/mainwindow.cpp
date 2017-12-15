@@ -106,7 +106,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	QObject::connect(&m_connectingTimer, SIGNAL(timeout()), this, SLOT(connectingTimer()));
 	QMenuBar *bar = new QMenuBar();
-	bar->setNativeMenuBar(false);
 	setMenuBar(bar);
 	m_fileMenu = bar->addMenu("File");
 	m_settingsAction = m_fileMenu->addAction("Settings");
@@ -1416,7 +1415,7 @@ void MainWindow::updateFirmwareUi()
 		}
 	}
 	if (valid_fw) {
-		m_buttonWaitDialog = new ButtonWaitDialog("Update firmware", "update firmware", this);
+		m_buttonWaitDialog = new ButtonWaitDialog("Update firmware", "update firmware", this, true);
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 		m_buttonWaitDialog->show();
 		::signetdev_begin_update_firmware(NULL, &m_signetdevCmdToken);
@@ -1443,7 +1442,7 @@ void MainWindow::wipeDeviceDialogFinished(int result)
 	if (result != QMessageBox::Ok) {
 		return;
 	}
-	m_buttonWaitDialog = new ButtonWaitDialog("Wipe device", "wipe device", this);
+	m_buttonWaitDialog = new ButtonWaitDialog("Wipe device", "wipe device", this, true);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 	m_buttonWaitDialog->show();
 	::signetdev_wipe(NULL, &m_signetdevCmdToken);
@@ -1466,7 +1465,7 @@ void MainWindow::backupDevice(QString fileName)
 		SignetApplication::messageBoxError(QMessageBox::Warning, "Backup device", "Failed to create destination file", this);
 		return;
 	}
-	m_buttonWaitDialog = new ButtonWaitDialog("Backup device to file", "start backing up device", this);
+	m_buttonWaitDialog = new ButtonWaitDialog("Backup device to file", "start backing up device", this, true);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 	m_buttonWaitDialog->show();
 	::signetdev_begin_device_backup(NULL, &m_signetdevCmdToken);
@@ -1576,7 +1575,7 @@ void MainWindow::restoreDeviceUi()
 		return;
 	}
 
-	m_buttonWaitDialog = new ButtonWaitDialog("Restore device from file", "start restoring device", this);
+	m_buttonWaitDialog = new ButtonWaitDialog("Restore device from file", "start restoring device", this, true);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 	m_buttonWaitDialog->show();
 	::signetdev_begin_device_restore(NULL, &m_signetdevCmdToken);

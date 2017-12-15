@@ -125,7 +125,7 @@ void ResetDevice::keyGenerated()
 {
 	std::random_device rd;
 	m_generatingKeyLabel->hide();
-	m_buttonPrompt = new ButtonWaitDialog(m_destructive ? "Reset device" : "Initialize device", m_destructive ? "reset device" : "initialize device", this);
+	m_buttonPrompt = new ButtonWaitDialog(m_destructive ? "Reset device" : "Initialize device", m_destructive ? "reset device" : "initialize device", this, true);
 	connect(m_buttonPrompt, SIGNAL(finished(int)), this, SLOT(resetButtonPromptFinished(int)));
 	m_buttonPrompt->show();
 

@@ -112,7 +112,7 @@ void ChangeMasterPassword::keyGenerated()
 		m_generatingNewKey = false;
 		m_newKey = m_keyGenerator->getKey();
 		m_generatingKeys->hide();
-		m_buttonDialog = new ButtonWaitDialog("Change Master Password", "change master password", this);
+		m_buttonDialog = new ButtonWaitDialog("Change Master Password", "change master password", this, true);
 		connect(m_buttonDialog, SIGNAL(finished(int)), this, SLOT(changePasswordFinished(int)));
 		m_buttonDialog->show();
 		::signetdev_change_master_password(NULL, &m_signetdevCmdToken,
