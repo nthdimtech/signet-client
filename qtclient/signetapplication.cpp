@@ -191,7 +191,6 @@ void SignetApplication::init()
 			 this, SLOT(trayActivated(QSystemTrayIcon::ActivationReason)));
 	QObject::connect(this, SIGNAL(signetdevEvent(int)), m_main_window, SLOT(signetDevEvent(int)));
 
-	m_main_window->setWindowFlags(Qt::WindowStaysOnTopHint);
 	m_main_window->setWindowTitle("Signet");
 	QIcon app_icon = QIcon(":/images/signet.png");
 	m_main_window->setWindowIcon(app_icon);
