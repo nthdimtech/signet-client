@@ -70,7 +70,7 @@ public:
 	void getFirmwareVersion(int &major, int &minor, int &step) {
 		major = 1;
 		minor = 2;
-		step = 1;
+		step = 2;
 	}
 
 	QByteArray getHashfn()
