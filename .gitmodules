@@ -10,4 +10,3 @@
 [submodule "signet-firmware"]
 	path = signet-firmware
 	url = ../signet-firmware
-	branch = db2
