@@ -70,6 +70,8 @@ public slots:
 	void accessAccountFinished(int);
 	void openAccountFinished(int);
 	void deleteAccountFinished(int);
+	void copyUsername();
+	void copyPassword();
 };
 
 #endif // ACCOUNTACTIONBAR_H

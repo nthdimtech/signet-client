@@ -100,6 +100,8 @@ void AccountActionBar::defaultAction(esdbEntry *entry)
 	QAction *loginAction = menu->addAction("Login");
 	QAction *usernameAction = menu->addAction("Username");
 	QAction *passwordAction = menu->addAction("Password");
+	QAction *copyUsernameAction = menu->addAction("Copy username");
+	QAction *copyPasswordAction = menu->addAction("Copy password");
 	menu->addSeparator();
 	QAction *openAction = menu->addAction("Open");
 	QAction *deleteAction = menu->addAction("Delete");
@@ -110,6 +112,8 @@ void AccountActionBar::defaultAction(esdbEntry *entry)
 	connect(passwordAction, SIGNAL(triggered(bool)), this, SLOT(typeAccountPassUI()));
 	connect(openAction, SIGNAL(triggered(bool)), this, SLOT(openAccountUI()));
 	connect(deleteAction, SIGNAL(triggered(bool)), this, SLOT(deleteAccountUI()));
+	connect(copyUsernameAction, SIGNAL(triggered(bool)), this, SLOT(copyUsername()));
+	connect(copyPasswordAction, SIGNAL(triggered(bool)), this, SLOT(copyPassword()));
 	switch (m_quickTypeState) {
 	case QUICKTYPE_STATE_INITIAL:
 		menu->setActiveAction(browseAction);
@@ -227,6 +231,36 @@ void AccountActionBar::deleteAccountFinished(int code)
 	m_buttonWaitDialog->deleteLater();
 	m_buttonWaitDialog = NULL;
 	m_parent->finishTask();
+}
+
+void AccountActionBar::copyUsername()
+{
+	account *acct = (account *)selectedEntry();
+	int id = acct->id;
+	m_buttonWaitDialog = new ButtonWaitDialog(
+	    "Copy username",
+	    "Copy username \"" + acct->acctName + "\"",
+	    m_parent);
+	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(openAccountFinished(int)));
+	m_buttonWaitDialog->show();
+	m_accessUsername = true;
+	m_accessPassword = false;
+	m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, COPY_DATA, this);
+}
+
+void AccountActionBar::copyPassword()
+{
+	account *acct = (account *)selectedEntry();
+	int id = acct->id;
+	m_buttonWaitDialog = new ButtonWaitDialog(
+	    "Copy password",
+	    "Copy password \"" + acct->acctName + "\"",
+	    m_parent);
+	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(openAccountFinished(int)));
+	m_buttonWaitDialog->show();
+	m_accessUsername = false;
+	m_accessPassword = true;
+	m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, COPY_DATA, this); 
 }
 
 void AccountActionBar::openAccount(account *acct)
