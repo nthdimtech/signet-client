@@ -73,7 +73,7 @@ public:
 	void getFirmwareVersion(int &major, int &minor, int &step) {
 		major = 1;
 		minor = 2;
-		step = 2;
+		step = 3;
 	}
 
 	void getConnectedFirmwareVersion(int &major, int &minor, int &step) {
