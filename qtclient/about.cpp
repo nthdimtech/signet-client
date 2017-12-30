@@ -8,7 +8,7 @@
 
 #include "signetapplication.h"
 
-About::About(QWidget *parent):
+About::About(bool connectedDevice, QWidget *parent):
 	QDialog(parent)
 {
 	setWindowModality(Qt::WindowModal);
@@ -31,23 +31,39 @@ About::About(QWidget *parent):
 	SignetApplication *app = SignetApplication::get();
 
 	QDate date = app->getReleaseDate();
-	int maj;
-	int min;
-	int step;
-	app->getClientVersion(maj, min, step);
+	int clientMajVer, clientMinVer, clientStepVer;
+	int firmwareMajVer, firmwareMinVer, firmwareStepVer;
+	int deviceFirwmareMajVer, deviceFirwmareMinVer, deviceFirwmareStepVer;
+	app->getClientVersion(clientMajVer, clientMinVer, clientStepVer);
+	app->getFirmwareVersion(firmwareMajVer, firmwareMinVer,firmwareStepVer);
+	app->getConnectedFirmwareVersion(deviceFirwmareMajVer, deviceFirwmareMinVer, deviceFirwmareStepVer);
 
 	QLabel *title = new QLabel(QString("Signet client ") +
-				   QString::number(maj) + "." +
-				   QString::number(min) + "." +
-				   QString::number(step));
+				   QString::number(clientMajVer) + "." +
+				   QString::number(clientMinVer) + "." +
+				   QString::number(clientStepVer));
 
 	title->setStyleSheet("font-weight: bold");
 
 	QLabel *releaseDate = new QLabel(QString("Released ") +
-					     date.toString());;
+					     date.toString());
+
+	QLabel *targetFirmware = new QLabel(QString("Target firmware version ") +
+				   QString::number(firmwareMajVer) + "." +
+				   QString::number(firmwareMinVer) + "." +
+				   QString::number(firmwareStepVer));
 
 	right->addWidget(title);
 	right->addWidget(releaseDate);
+	right->addWidget(targetFirmware);
+
+	if (connectedDevice) {
+		QLabel *deviceFirmware = new QLabel(QString("Device firmware version ") +
+					   QString::number(deviceFirwmareMajVer) + "." +
+					   QString::number(deviceFirwmareMinVer) + "." +
+					   QString::number(deviceFirwmareStepVer));
+		right->addWidget(deviceFirmware);
+	}
 
 	QHBoxLayout *buttons = new QHBoxLayout();
 	buttons->setAlignment(Qt::AlignBottom);

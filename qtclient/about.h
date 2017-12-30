@@ -7,7 +7,7 @@ class About : public QDialog
 {
 	Q_OBJECT
 public:
-	About(QWidget *parent);
+	About(bool connectedDevice, QWidget *parent);
 public slots:
 	void checkNewVersion();
 };

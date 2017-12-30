@@ -1483,7 +1483,9 @@ void MainWindow::backupDevice(QString fileName)
 
 void MainWindow::aboutUi()
 {
-	QDialog *dlg = new About(this);
+	bool connected = (m_deviceState == STATE_LOGGED_IN) || (m_deviceState == STATE_LOGGED_OUT)
+			|| (m_deviceState == STATE_UNINITIALIZED);
+	QDialog *dlg = new About(connected ,this);
 	dlg->exec();
 }
 
