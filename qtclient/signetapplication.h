@@ -56,6 +56,9 @@ private:
 	int m_keyLength;
 	int m_saltLength;
 	int m_DBFormat;
+	int m_fwVersionMaj;
+	int m_fwVersionMin;
+	int m_fwVersionStep;
 public:
 	static QDate getReleaseDate() {
 		return QDate(2017,12,15);
@@ -71,6 +74,18 @@ public:
 		major = 1;
 		minor = 2;
 		step = 2;
+	}
+
+	void getConnectedFirmwareVersion(int &major, int &minor, int &step) {
+		major = m_fwVersionMaj;
+		minor = m_fwVersionMin;
+		step = m_fwVersionStep;
+	}
+
+	void setConnectedFirmwareVersion(int major, int minor, int step) {
+		m_fwVersionMaj = major;
+		m_fwVersionMin = minor;
+		m_fwVersionStep = step;
 	}
 
 	QByteArray getHashfn()

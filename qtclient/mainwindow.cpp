@@ -605,6 +605,7 @@ void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, signetdev_start
 	app->setHashfn(QByteArray((const char *)resp.hashfn, HASH_FN_SZ));
 	app->setKeyLength(keyLength);
 	app->setDBFormat(db_format);
+	app->setConnectedFirmwareVersion(resp.fw_major_version, resp.fw_minor_version, resp.fw_step_version);
 
 	if (m_restoreFile) {
 		m_restoreFile->close();
@@ -1223,7 +1224,15 @@ void MainWindow::enterDeviceState(int state)
 		m_loggedIn = false;
 		m_deviceMenu->setDisabled(false);
 		m_fileMenu->setDisabled(false);
-		m_restoreAction->setVisible(true);
+		int fwMaj, fwMin, fwStep;
+		SignetApplication::get()->getConnectedFirmwareVersion(fwMaj, fwMin, fwStep);
+		if (fwMaj == 1 && fwMin == 2 && fwStep == 1) {
+			//Version 1.2.1 has a glitch that causes a lockup when starting
+			// a restore from the logged out state
+			m_restoreAction->setVisible(false);
+		} else {
+			m_restoreAction->setVisible(true);
+		}
 		m_wipeDeviceAction->setVisible(true);
 		m_changePasswordAction->setVisible(true);
 		m_eraseDeviceAction->setVisible(true);
