@@ -58,6 +58,8 @@ class KeyboardLayoutTester : public QMainWindow
 	QVector<signetdev_phy_key> m_keysEmitted;
 	QVector<signetdev_phy_key> m_deadKeys;
 	bool m_skipGeneratingRAlt;
+	bool m_keysTyped;
+	bool m_keyRecieved;
 public:
 	explicit KeyboardLayoutTester(const QVector<struct signetdev_key> &currentLayout, QWidget *parent = 0);
 	void focusInEvent(QFocusEvent* e);

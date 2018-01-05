@@ -107,7 +107,7 @@ KeyboardLayoutTester::KeyboardLayoutTester(const QVector<struct signetdev_key> &
 	setWindowTitle("Keyboard layout configuration");
 	setAttribute(Qt::WA_InputMethodEnabled, true);
 	connect(SignetApplication::get(),
-		SIGNAL(sigsignetdevCmdResp(signetdevCmdRespInfo)),
+		SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
 		this,
 		SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 	connect(&m_keyTimer,
@@ -127,6 +127,7 @@ KeyboardLayoutTester::KeyboardLayoutTester(const QVector<struct signetdev_key> &
 	m_applyButton->setEnabled(false);
 
 	connect(closeButton, SIGNAL(pressed()), this, SLOT(close()));
+	connect(this, SIGNAL(close()), this, SLOT(deleteLater()));
 	connect(m_configureButton, SIGNAL(pressed()), this, SLOT(configure()));
 	connect(m_applyButton, SIGNAL(pressed()), this, SLOT(apply()));
 	connect(m_resetButton, SIGNAL(pressed()), this, SLOT(reset()));
@@ -227,6 +228,8 @@ void KeyboardLayoutTester::showCurrentLayout()
 void KeyboardLayoutTester::typeKey()
 {
 	signetdev_phy_key key;
+	m_keysTyped = false;
+	m_keyRecieved = false;
 	key.modifier = m_modifierChecking;
 	key.scancode = s_scancodeSequence[m_scancodeNumChecking].code;
 	u8 codes[4] = {
@@ -353,7 +356,6 @@ void KeyboardLayoutTester::charactersTyped(QString t)
 			return;
 	}
 
-	m_timeoutCount = 0;
 	signetdev_key k;
 	k.key = t.data()[0].unicode();
 	k.phy_key[0] = m_keysEmitted.at(0);
@@ -363,7 +365,6 @@ void KeyboardLayoutTester::charactersTyped(QString t)
 		k.phy_key[1].modifier = 0;
 		k.phy_key[1].scancode = 0;
 	}
-	m_keysEmitted.clear();
 
 	scancodeInfo &codeInfo = s_scancodeSequence[m_scancodeNumChecking];
 	int row = codeInfo.row;
@@ -378,10 +379,12 @@ void KeyboardLayoutTester::charactersTyped(QString t)
 		QLabel *label = NULL;
 		label = new QLabel(t);
 		m_gridLayout->addWidget(label, row, col, 1, 1);
-		m_gridLayout->update();
 	}
 	m_layout.push_back(k);
-	typeNextKey();
+	m_keyRecieved = true;
+	if (m_keysTyped && m_keyRecieved) {
+		typeNextKey();
+	}
 }
 
 void KeyboardLayoutTester::keyPressEvent(QKeyEvent *event)
@@ -398,6 +401,8 @@ void KeyboardLayoutTester::keyPressEvent(QKeyEvent *event)
 void KeyboardLayoutTester::typeNextKey()
 {
 	if (m_testing) {
+		m_keysEmitted.clear();
+		m_timeoutCount = 0;
 		switch (m_modifierChecking) {
 		case 0:
 			m_modifierChecking = 2;
@@ -451,12 +456,12 @@ void KeyboardLayoutTester::pressTimeout()
 	m_timeoutCount++;
 
 	if (m_timeoutCount < 2) {
+		m_keysTyped = false;
+		m_keyRecieved = false;
 		m_keyTimer.start(100);
 		m_keysEmitted.append(key);
 		::signetdev_type_raw(NULL, &m_signetdevToken, codes, 2);
 	} else {
-		m_keysEmitted.clear();
-		m_timeoutCount = 0;
 		typeNextKey();
 	}
 }
@@ -468,6 +473,10 @@ void KeyboardLayoutTester::signetdevCmdResp(signetdevCmdRespInfo info)
 	m_signetdevToken = -1;
 	switch (info.cmd) {
 	case SIGNETDEV_CMD_TYPE:
+		m_keysTyped = true;
+		if (m_keysTyped && m_keyRecieved) {
+			typeNextKey();
+		}
 		break;
 	}
 }
