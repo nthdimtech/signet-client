@@ -73,7 +73,8 @@ SOURCES += main.cpp \
     configuremachine.cpp \
     signetdevserver.cpp \
     signetdevserverconnection.cpp \
-    about.cpp
+    about.cpp \
+    keyboardlayouttester.cpp
 
 win32 {
 SOURCES += qtsingleapplication/src/qtlockedfile_win.cpp
@@ -143,7 +144,8 @@ HEADERS  += mainwindow.h \
     configuremachine.h \
     signetdevserver.h \
     signetdevserverconnection.h \
-    about.h
+    about.h \
+    keyboardlayouttester.h
 
 INCLUDEPATH+=../scrypt
 INCLUDEPATH+=qtsingleapplication/src

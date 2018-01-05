@@ -85,7 +85,7 @@ void DatabaseField::signetdevCmdResp(signetdevCmdRespInfo info)
 	case OKAY:
 		switch (info.cmd) {
 		case SIGNETDEV_CMD_BUTTON_WAIT: {
-			QByteArray keys = m_fieldEdit->text().toLatin1();
+			QString keys = m_fieldEdit->text();
 			if (QApplication::focusWindow()) {
 				QMessageBox *box = SignetApplication::messageBoxError(
 						       QMessageBox::Warning,
@@ -98,8 +98,12 @@ void DatabaseField::signetdevCmdResp(signetdevCmdRespInfo info)
 			if (m_buttonWait) {
 				m_buttonWait->done(OKAY);
 			}
-			::signetdev_type(NULL, &m_signetdevCmdToken,
-					       (u8 *)keys.data(), keys.length());
+			QVector<u16> uKeys;
+			for (auto key : keys) {
+				uKeys.append(key.unicode());
+			}
+			::signetdev_type_w(NULL, &m_signetdevCmdToken,
+					       (u16 *)uKeys.data(), uKeys.length());
 		}
 		break;
 		case SIGNETDEV_CMD_TYPE:

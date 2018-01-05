@@ -25,6 +25,7 @@
 #include <QStandardPaths>
 #include <QDateTime>
 #include <QStorageInfo>
+#include <QDesktopServices>
 
 #include "about.h"
 #include "loggedinwidget.h"
@@ -133,6 +134,10 @@ MainWindow::MainWindow(QWidget *parent) :
 	QObject::connect(m_backupAction, SIGNAL(triggered(bool)),
 			 this, SLOT(backupDeviceUi()));
 
+	m_configureKeyboardLayoutAction = m_deviceMenu->addAction("Configure keyboard layout");
+	QObject::connect(m_configureKeyboardLayoutAction, SIGNAL(triggered(bool)),
+			 this, SLOT(configureKeyboardLayoutUI()));
+
 	m_restoreAction = m_deviceMenu->addAction("Restore from file");
 	QObject::connect(m_restoreAction, SIGNAL(triggered(bool)),
 			 this, SLOT(restoreDeviceUi()));
@@ -170,7 +175,22 @@ MainWindow::MainWindow(QWidget *parent) :
 	enterDeviceState(STATE_NEVER_SHOWN);
 }
 
-#include <QDesktopServices>
+#include "keyboardlayouttester.h"
+#include <QVector>
+void MainWindow::configureKeyboardLayoutUI()
+{
+	QVector<struct signetdev_key> currentLayout;
+
+	int n_keys;
+	const signetdev_key *keymap = ::signetdev_get_keymap(&n_keys);
+	for (int i = 0; i < n_keys; i++) {
+		currentLayout.append(keymap[i]);
+	}
+
+	KeyboardLayoutTester *kb = new KeyboardLayoutTester(currentLayout, this);
+	kb->setWindowModality(Qt::WindowModal);
+	kb->show();
+}
 
 void MainWindow::startOnlineHelp()
 {
@@ -1273,6 +1293,7 @@ void MainWindow::enterDeviceState(int state)
 	}
 
 	bool fileActionsEnabled = (m_deviceState == STATE_LOGGED_IN);
+	m_configureKeyboardLayoutAction->setVisible(m_loggedIn);
 	m_exportMenu->menuAction()->setVisible(fileActionsEnabled);
 	m_settingsAction->setVisible(fileActionsEnabled);
 }

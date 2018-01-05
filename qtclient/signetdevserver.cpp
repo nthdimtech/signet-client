@@ -147,11 +147,14 @@ void signetdevServer::sendActiveCommand()
 #endif
 	case SIGNETDEV_CMD_TYPE: {
 		QString keys = getStringParam("keys");
-		QByteArray keysUTF8 = keys.toUtf8();
-		signetdev_type(this,
+		QVector<u16> uKeys;
+		for (auto key : keys) {
+			uKeys.append(key.unicode());
+		}
+		signetdev_type_w(this,
 			&m_activeCommand->serverToken,
-			(const u8 *)keysUTF8.data(),
-			keysUTF8.size());
+			(const u16 *)uKeys.data(),
+			uKeys.size());
 		m_activeCommand->serverCommandState = signetdevServerCommand::SENT;
 		} break;
 	case SIGNETDEV_CMD_BEGIN_INITIALIZE_DEVICE: {

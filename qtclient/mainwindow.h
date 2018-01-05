@@ -144,6 +144,7 @@ private:
 	QAction *m_eraseDeviceAction;
 	QAction *m_changePasswordAction;
 	QAction *m_updateFirmwareAction;
+	QAction * m_configureKeyboardLayoutAction;
 	ButtonWaitDialog *m_buttonWaitDialog;
 	QMessageBox *m_wipeDeviceDialog;
 	int m_signetdevCmdToken;
@@ -199,6 +200,7 @@ public slots:
 	void openSettingsUi();
 	void exportCSVUi();
 	void aboutUi();
+	void configureKeyboardLayoutUI();
 	void startOnlineHelp();
 };
 

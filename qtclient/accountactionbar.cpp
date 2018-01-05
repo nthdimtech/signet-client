@@ -260,7 +260,7 @@ void AccountActionBar::copyPassword()
 	m_buttonWaitDialog->show();
 	m_accessUsername = false;
 	m_accessPassword = true;
-	m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, COPY_DATA, this); 
+	m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, COPY_DATA, this);
 }
 
 void AccountActionBar::openAccount(account *acct)
@@ -366,22 +366,25 @@ void AccountActionBar::getEntryDone(esdbEntry *entry, int intent)
 		if (m_buttonWaitDialog) {
 			m_buttonWaitDialog->done(QMessageBox::Ok);
 		}
-		QByteArray keys;
+		QString keys;
 		if (m_accessUsername) {
-			keys.append(acct->userName.toLatin1());
+			keys.append(acct->userName);
 		}
 		if (m_accessPassword) {
 			if (m_accessUsername) {
 				keys.append("\t");
 			}
-			keys.append(acct->password.toLatin1());
+			keys.append(acct->password);
 			if (m_accessUsername) {
 				keys.append("\n");
-
 			}
 		}
-		::signetdev_type(NULL, &m_signetdevCmdToken,
-				       (u8 *)keys.data(), keys.length());
+		QVector<u16> uKeys;
+		for (auto key : keys) {
+			uKeys.append(key.unicode());
+		}
+		::signetdev_type_w(NULL, &m_signetdevCmdToken,
+				       (u16 *)uKeys.data(), uKeys.length());
 	}
 	break;
 	case COPY_DATA: {
