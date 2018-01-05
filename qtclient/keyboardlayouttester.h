@@ -53,7 +53,11 @@ class KeyboardLayoutTester : public QMainWindow
 	void inputMethodEvent(QInputMethodEvent *event);
 	void keyPressEvent(QKeyEvent *event);
 	void initGridLayout();
+	void charactersTyped(QString t);
 	int m_timeoutCount;
+	QVector<signetdev_phy_key> m_keysEmitted;
+	QVector<signetdev_phy_key> m_deadKeys;
+	bool m_skipGeneratingRAlt;
 public:
 	explicit KeyboardLayoutTester(const QVector<struct signetdev_key> &currentLayout, QWidget *parent = 0);
 	void focusInEvent(QFocusEvent* e);

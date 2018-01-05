@@ -52,8 +52,8 @@ KeyboardLayoutTester::scancodeInfo KeyboardLayoutTester::s_scancodeSequence[] = 
 	#if 0
 	{40 /*enter*/, 14, 3},
 	{43 /*tab*/, 1, 2},
-	{44 /*space*/, 5, 0},
 	#endif
+	{44 /*space*/, 3, 5},
 	{45 /* -_ */, 12, 1},
 	{46 /* =+ */, 13, 1},
 	{47 /* [{ */, 12, 2},
@@ -226,13 +226,17 @@ void KeyboardLayoutTester::showCurrentLayout()
 
 void KeyboardLayoutTester::typeKey()
 {
+	signetdev_phy_key key;
+	key.modifier = m_modifierChecking;
+	key.scancode = s_scancodeSequence[m_scancodeNumChecking].code;
 	u8 codes[4] = {
-		m_modifierChecking,
-		s_scancodeSequence[m_scancodeNumChecking].code,
+		key.modifier,
+		key.scancode,
 		0,
 		0
 	};
 	m_keyTimer.start(100);
+	m_keysEmitted.append(key);
 	::signetdev_type_raw(NULL, &m_signetdevToken, codes, 2);
 }
 
@@ -250,6 +254,7 @@ void KeyboardLayoutTester::doStartTest()
 	m_scancodeNumChecking = 0;
 	m_modifierChecking = 0;
 	m_testing = true;
+	m_skipGeneratingRAlt = false;
 
 	m_layout.clear();
 	signetdev_key k;
@@ -323,44 +328,46 @@ void KeyboardLayoutTester::focusInEvent( QFocusEvent* e)
 void KeyboardLayoutTester::inputMethodEvent(QInputMethodEvent *event)
 {
 	event->accept();
-	if (event->commitString().size() == 0) {
-		qDebug() << "Dead key " << s_scancodeSequence[m_scancodeNumChecking].code;
-	} else {
-		qDebug() << "Dead key press" << s_scancodeSequence[m_scancodeNumChecking].code
-			 << ":" << m_modifierChecking
-			 << " " << event->commitString();
+	if (event->commitString().size()) {
+		if (m_keysEmitted.size()) {
+			m_deadKeys.append(m_keysEmitted.at(0));
+			charactersTyped(event->commitString());
+		}
 	}
-	QKeyEvent keyEvent(QEvent::KeyPress, 0, 0, event->commitString());
-	keyPressEvent(&keyEvent);
 }
 
-void KeyboardLayoutTester::keyPressEvent(QKeyEvent *event)
+void KeyboardLayoutTester::charactersTyped(QString t)
 {
-	QString t = event->text();
 	if (!m_testing)
 		return;
 
 	if (t.size() == 0)
 		return;
 
-	event->accept();
-
 	if (t.size() != 1) {
 		stopTest();
 		testMultiCharResult();
 		return;
 	} else {
-		if (t.at(0) == ' ')
+		if (t.at(0) == ' ' && m_timeoutCount > 0)
 			return;
 	}
 
 	m_timeoutCount = 0;
 	signetdev_key k;
 	k.key = t.data()[0].unicode();
+	k.phy_key[0] = m_keysEmitted.at(0);
+	if (m_keysEmitted.size() > 1) {
+		k.phy_key[1] = m_keysEmitted[1];
+	} else {
+		k.phy_key[1].modifier = 0;
+		k.phy_key[1].scancode = 0;
+	}
+	m_keysEmitted.clear();
+
 	scancodeInfo &codeInfo = s_scancodeSequence[m_scancodeNumChecking];
 	int row = codeInfo.row;
 	int col = codeInfo.column;
-
 	if (row && col) {
 		if (m_modifierChecking & 2) {
 			row += 6;
@@ -373,12 +380,19 @@ void KeyboardLayoutTester::keyPressEvent(QKeyEvent *event)
 		m_gridLayout->addWidget(label, row, col, 1, 1);
 		m_gridLayout->update();
 	}
-	k.phy_key[0].scancode = codeInfo.code;
-	k.phy_key[0].modifier = m_modifierChecking;
-	k.phy_key[1].scancode = 0;
-	k.phy_key[1].modifier = 0;
 	m_layout.push_back(k);
 	typeNextKey();
+}
+
+void KeyboardLayoutTester::keyPressEvent(QKeyEvent *event)
+{
+	QString t = event->text();
+	event->accept();
+	if (!(event->modifiers() & Qt::AltModifier)) {
+		charactersTyped(t);
+	} else {
+		m_skipGeneratingRAlt = true;
+	}
 }
 
 void KeyboardLayoutTester::typeNextKey()
@@ -389,10 +403,18 @@ void KeyboardLayoutTester::typeNextKey()
 			m_modifierChecking = 2;
 			break;
 		case 2:
-			m_modifierChecking = 0x40;
+			if (m_skipGeneratingRAlt) {
+				m_modifierChecking = 0;
+			} else {
+				m_modifierChecking = 0x40;
+			}
 			break;
 		case 0x40:
-			m_modifierChecking = 0x42;
+			if (m_skipGeneratingRAlt) {
+				m_modifierChecking = 0;
+			} else {
+				m_modifierChecking = 0x42;
+			}
 			break;
 		case 0x42:
 			m_modifierChecking = 0;
@@ -417,17 +439,23 @@ void KeyboardLayoutTester::typeNextKey()
 
 void KeyboardLayoutTester::pressTimeout()
 {
-	u8 codes[6] = {
-		0,
-		44,
+	signetdev_phy_key key;
+	key.modifier = 0;
+	key.scancode = 44; //Space
+	u8 codes[] = {
+		key.modifier,
+		key.scancode,
 		0,
 		0
 	};
 	m_timeoutCount++;
+
 	if (m_timeoutCount < 2) {
 		m_keyTimer.start(100);
+		m_keysEmitted.append(key);
 		::signetdev_type_raw(NULL, &m_signetdevToken, codes, 2);
 	} else {
+		m_keysEmitted.clear();
 		m_timeoutCount = 0;
 		typeNextKey();
 	}
