@@ -10,6 +10,8 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include <QSpinBox>
+#include <QFileDialog>
+#include <QDir>
 
 SettingsDialog::SettingsDialog(MainWindow *mainWindow, bool initial) :
 	QDialog(mainWindow),
@@ -179,5 +181,14 @@ void SettingsDialog::cancelPressed()
 
 void SettingsDialog::localBackupPathBrowse()
 {
-
+	QDir dir(m_localBackupPath->text());
+	QFileDialog fd(this, "Local backup directory");
+	fd.setDirectory(dir);
+	fd.setFileMode(QFileDialog::Directory);
+	fd.setWindowModality(Qt::WindowModal);
+	fd.exec();
+	QStringList sl = fd.selectedFiles();
+	if (sl.empty())
+		return;
+	m_localBackupPath->setText(sl.first());
 }
