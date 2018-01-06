@@ -3,6 +3,8 @@
 #include <QKeyEvent>
 #include <QTimer>
 #include <QLabel>
+#include <QBoxLayout>
+#include <QPushButton>
 
 KeyboardLayoutTester::scancodeInfo KeyboardLayoutTester::s_scancodeSequence[] = {
 
@@ -72,9 +74,6 @@ KeyboardLayoutTester::scancodeInfo KeyboardLayoutTester::s_scancodeSequence[] = 
 	{0, 0, 0} //This zero value marks the end of the sequence
 };
 
-#include <QBoxLayout>
-#include <QPushButton>
-
 void KeyboardLayoutTester::configure()
 {
 	setFocus();
@@ -86,13 +85,14 @@ void KeyboardLayoutTester::apply()
 	m_prevLayout = m_layout;
 	m_applyButton->setEnabled(false);
 	m_resetButton->setEnabled(false);
-	::signetdev_set_keymap(m_prevLayout.data(), m_prevLayout.size());
+	m_applyOnClose = true;
+	close();
 }
 
 void KeyboardLayoutTester::reset()
 {
-	m_layout = m_prevLayout;
-	apply();
+	m_applyButton->setEnabled(false);
+	m_resetButton->setEnabled(false);
 	showCurrentLayout();
 }
 
@@ -101,7 +101,8 @@ KeyboardLayoutTester::KeyboardLayoutTester(const QVector<struct signetdev_key> &
 	m_scancodeNumChecking(-1),
 	m_signetdevToken(-1),
 	m_canStartTest(false),
-	m_testing(false)
+	m_testing(false),
+	m_applyOnClose(false)
 {
 	setFocusPolicy(Qt::ClickFocus);
 	setWindowTitle("Keyboard layout configuration");
@@ -195,8 +196,6 @@ void KeyboardLayoutTester::showCurrentLayout()
 	for (int i = 0; i < m_prevLayout.size(); i++) {
 		const struct signetdev_key &k = m_prevLayout.at(i);
 		int j = 0;
-		if (k.phy_key[1].scancode != 0)
-			continue; // Skip dead key sequences
 		while (s_scancodeSequence[j].code != k.phy_key[0].scancode
 				&&
 			s_scancodeSequence[j].code) {
@@ -209,7 +208,7 @@ void KeyboardLayoutTester::showCurrentLayout()
 				QLabel *l = new QLabel(QChar((ushort)k.key));
 				l->setMinimumSize(15,15);
 				if (k.phy_key[0].modifier & 0x40) {
-					col += 14;
+					col += 15;
 				}
 				if (k.phy_key[0].modifier & 2) {
 					row += 6;
@@ -223,6 +222,11 @@ void KeyboardLayoutTester::showCurrentLayout()
 		}
 	}
 	m_grid->setLayout(m_gridLayout);
+}
+
+void KeyboardLayoutTester::closeEvent(QCloseEvent *event) {
+	closing(m_applyOnClose);
+	event->accept();
 }
 
 void KeyboardLayoutTester::typeKey()
@@ -267,12 +271,6 @@ void KeyboardLayoutTester::doStartTest()
 	k.phy_key[1].modifier = 0;
 	k.phy_key[1].scancode = 0;
 	m_layout.append(k);
-	k.key = ' ';
-	k.phy_key[0].modifier = 0;
-	k.phy_key[0].scancode = 44;
-	k.phy_key[1].modifier = 0;
-	k.phy_key[1].scancode = 0;
-	m_layout.append(k);
 	k.key = '\n';
 	k.phy_key[0].modifier = 0;
 	k.phy_key[0].scancode = 40;
@@ -289,21 +287,6 @@ void KeyboardLayoutTester::doStartTest()
 	delete m_gridLayout;
 	m_gridLayout = new QGridLayout();
 	initGridLayout();
-	for (int i = 1; i <= 14 + 15; i++) {
-		QLabel *l = new QLabel("");
-		l->setMinimumSize(15,15);
-		m_gridLayout->addWidget(l, 1, i, 1, 1);
-	}
-	for (int j = 2; j <= 5; j++) {
-		QLabel *l = new QLabel("");
-		l->setMinimumSize(15,15);
-		m_gridLayout->addWidget(l, j, 1, 1, 1);
-	}
-	for (int j = 6; j <= 6+5; j++) {
-		QLabel *l = new QLabel("");
-		l->setMinimumSize(15,15);
-		m_gridLayout->addWidget(l, j, 1, 1, 1);
-	}
 	m_grid->setLayout(m_gridLayout);
 	typeKey();
 }
@@ -322,11 +305,8 @@ void KeyboardLayoutTester::focusInEvent( QFocusEvent* e)
 		doStartTest();
 	} else if (e->lostFocus() && m_testing) {
 		stopTest();
-		testLostFocus();
 	}
 }
-
-#include <QtDebug>
 
 void KeyboardLayoutTester::inputMethodEvent(QInputMethodEvent *event)
 {
@@ -349,7 +329,6 @@ void KeyboardLayoutTester::charactersTyped(QString t)
 
 	if (t.size() != 1) {
 		stopTest();
-		testMultiCharResult();
 		return;
 	} else {
 		if (t.at(0) == ' ' && m_timeoutCount > 0)
@@ -429,7 +408,6 @@ void KeyboardLayoutTester::typeNextKey()
 			m_scancodeNumChecking++;
 			if (!s_scancodeSequence[m_scancodeNumChecking].code) {
 				stopTest();
-				testFinished();
 				m_configureButton->setEnabled(true);
 				m_applyButton->setEnabled(true);
 				m_resetButton->setEnabled(true);

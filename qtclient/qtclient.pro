@@ -70,11 +70,11 @@ SOURCES += main.cpp \
     textblockfieldedit.cpp \
     typedescedit.cpp \
     typedesceditor.cpp \
-    configuremachine.cpp \
     signetdevserver.cpp \
     signetdevserverconnection.cpp \
     about.cpp \
-    keyboardlayouttester.cpp
+    keyboardlayouttester.cpp \
+    settingsdialog.cpp
 
 win32 {
 SOURCES += qtsingleapplication/src/qtlockedfile_win.cpp
@@ -141,11 +141,12 @@ HEADERS  += mainwindow.h \
     textblockfieldedit.h \
     typedescedit.h \
     typedesceditor.h \
-    configuremachine.h \
     signetdevserver.h \
     signetdevserverconnection.h \
     about.h \
-    keyboardlayouttester.h
+    keyboardlayouttester.h \
+    localsettings.h \
+    settingsdialog.h
 
 INCLUDEPATH+=../scrypt
 INCLUDEPATH+=qtsingleapplication/src

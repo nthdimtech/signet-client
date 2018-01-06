@@ -13,6 +13,7 @@
 #include "esdbmodel.h"
 #include "systemtray.h"
 #include "signetapplication.h"
+#include "localsettings.h"
 
 struct signetdevCmdRespInfo;
 
@@ -44,18 +45,6 @@ struct fwSection {
 	QByteArray contents;
 };
 
-struct appSettings {
-	bool localBackups;
-	QString localBackupPath;
-	int localBackupInterval;
-	bool removableBackups;
-	QString removableBackupPath;
-	QString removableBackupVolume;
-	int removableBackupInterval;
-	QDateTime lastRemoveableBackup;
-	QDateTime lastUpdatePrompt;
-};
-
 struct exportType {
 	QList<QVector<QString> > m_data;
 };
@@ -63,7 +52,7 @@ struct exportType {
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
-	appSettings m_settings;
+	localSettings m_settings;
 	esdbTypeModule *m_genericTypeModule;
 	esdbTypeModule *m_accountTypeModule;
 	esdbTypeModule *m_bookmarkTypeModule;
@@ -87,7 +76,7 @@ public:
 		STATE_UPDATING_FIRMWARE,
 		STATE_EXPORTING
 	};
-	appSettings *getSettings() {
+	localSettings *getSettings() {
 		return &m_settings;
 	}
 private:
@@ -144,7 +133,6 @@ private:
 	QAction *m_eraseDeviceAction;
 	QAction *m_changePasswordAction;
 	QAction *m_updateFirmwareAction;
-	QAction * m_configureKeyboardLayoutAction;
 	ButtonWaitDialog *m_buttonWaitDialog;
 	QMessageBox *m_wipeDeviceDialog;
 	int m_signetdevCmdToken;
@@ -200,7 +188,6 @@ public slots:
 	void openSettingsUi();
 	void exportCSVUi();
 	void aboutUi();
-	void configureKeyboardLayoutUI();
 	void startOnlineHelp();
 };
 

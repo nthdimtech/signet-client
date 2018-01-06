@@ -1,5 +1,7 @@
 #include "mainwindow.h"
+#include "localsettings.h"
 
+#include <QVector>
 #include <QMessageBox>
 #include <QBoxLayout>
 #include <QPushButton>
@@ -26,6 +28,7 @@
 #include <QDateTime>
 #include <QStorageInfo>
 #include <QDesktopServices>
+#include <QJsonArray>
 
 #include "about.h"
 #include "loggedinwidget.h"
@@ -38,7 +41,7 @@
 #include "loginwindow.h"
 
 #include "signetapplication.h"
-#include "configuremachine.h"
+#include "settingsdialog.h"
 
 extern "C" {
 #include "signetdev/host/signetdev.h"
@@ -134,10 +137,6 @@ MainWindow::MainWindow(QWidget *parent) :
 	QObject::connect(m_backupAction, SIGNAL(triggered(bool)),
 			 this, SLOT(backupDeviceUi()));
 
-	m_configureKeyboardLayoutAction = m_deviceMenu->addAction("Configure keyboard layout");
-	QObject::connect(m_configureKeyboardLayoutAction, SIGNAL(triggered(bool)),
-			 this, SLOT(configureKeyboardLayoutUI()));
-
 	m_restoreAction = m_deviceMenu->addAction("Restore from file");
 	QObject::connect(m_restoreAction, SIGNAL(triggered(bool)),
 			 this, SLOT(restoreDeviceUi()));
@@ -173,23 +172,6 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_backupAction->setVisible(false);
 	m_restoreAction->setVisible(false);
 	enterDeviceState(STATE_NEVER_SHOWN);
-}
-
-#include "keyboardlayouttester.h"
-#include <QVector>
-void MainWindow::configureKeyboardLayoutUI()
-{
-	QVector<struct signetdev_key> currentLayout;
-
-	int n_keys;
-	const signetdev_key *keymap = ::signetdev_get_keymap(&n_keys);
-	for (int i = 0; i < n_keys; i++) {
-		currentLayout.append(keymap[i]);
-	}
-
-	KeyboardLayoutTester *kb = new KeyboardLayoutTester(currentLayout, this);
-	kb->setWindowModality(Qt::WindowModal);
-	kb->show();
 }
 
 void MainWindow::startOnlineHelp()
@@ -741,6 +723,10 @@ void MainWindow::background()
 	showMinimized();
 }
 
+extern "C" {
+#include "signetdev/host/signetdev.h"
+}
+
 void MainWindow::saveSettings()
 {
 	QString configFileName = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) +
@@ -758,6 +744,27 @@ void MainWindow::saveSettings()
 	obj.insert("removableBackupInterval", QJsonValue(m_settings.removableBackupInterval));
 	obj.insert("lastRemoveableBackup", QJsonValue(m_settings.lastRemoveableBackup.toString()));
 	obj.insert("lastUpdatePrompt", QJsonValue(m_settings.lastUpdatePrompt.toString()));
+	obj.insert("activeKeyboardLayout", QJsonValue(m_settings.activeKeyboardLayout));
+
+	QJsonObject keyboardLayouts;
+	for (QMap<QString, keyboardLayout>::iterator v = m_settings.keyboardLayouts.begin();
+		v != m_settings.keyboardLayouts.end();
+		v++) {
+		QString name = v.key();
+		QJsonArray layout;
+		for (struct signetdev_key key : (*v)) {
+			QJsonArray jKey;
+			jKey.append(QJsonValue(QString(QChar(key.key))));
+			jKey.append(QJsonValue(key.phy_key[0].scancode));
+			jKey.append(QJsonValue(key.phy_key[0].modifier));
+			jKey.append(QJsonValue(key.phy_key[1].scancode));
+			jKey.append(QJsonValue(key.phy_key[1].modifier));
+			layout.append(jKey);
+		}
+		keyboardLayouts.insert(v.key(), layout);
+	}
+	obj.insert("keyboardLayouts", keyboardLayouts);
+
 	doc.setObject(obj);
 	QByteArray datum = doc.toJson();
 	configFile.write(datum);
@@ -978,6 +985,75 @@ void MainWindow::loadSettings()
 		m_settings.lastUpdatePrompt = QDateTime();
 	}
 
+	QJsonValue activeKeyboardLayout = obj.value("activeKeyboardLayout");
+	if (activeKeyboardLayout.isString()) {
+		m_settings.activeKeyboardLayout = activeKeyboardLayout.toString();
+	} else {
+		m_settings.activeKeyboardLayout = "";
+	}
+
+	QJsonValue keyboardLayoutsV = obj.value("keyboardLayouts");
+	if (keyboardLayoutsV.isObject()) {
+		QJsonObject keyboardLayouts = keyboardLayoutsV.toObject();
+		for (QJsonObject::iterator layoutIter = keyboardLayouts.begin();
+		     layoutIter != keyboardLayouts.end();
+		     layoutIter++) {
+
+			if (!(*layoutIter).isArray())
+				continue;
+			keyboardLayout layout;
+
+			QJsonArray layoutA = (*layoutIter).toArray();
+			QString name = layoutIter.key();
+			for (auto entryV : layoutA) {
+				if (!entryV.isArray())
+					continue;
+
+				QJsonArray entry = entryV.toArray();
+				if (entry.size() != 3 && entry.size() != 5)
+					continue;
+				if (!entry.first().isString())
+					continue;
+
+				QString keyS = entry.first().toString();
+				if (keyS.size() != 1)
+					continue;
+				signetdev_key key;
+				key.key = keyS.at(0).unicode();
+
+				int codes[4];
+				bool numeric = true;
+				for (int i = 1; i < entry.size(); i++) {
+					if (!entry.at(i).isDouble()) {
+						numeric = false;
+					}
+					codes[i - 1] = entry.at(i).toInt();
+				}
+				if (!numeric)
+					continue;
+				if (entry.size() == 3) {
+					key.phy_key[0].scancode = codes[0];
+					key.phy_key[0].modifier = codes[1];
+				} else if (entry.size() == 5) {
+					key.phy_key[0].scancode = codes[0];
+					key.phy_key[0].modifier = codes[1];
+					key.phy_key[1].scancode = codes[2];
+					key.phy_key[1].modifier = codes[3];
+				}
+				layout.append(key);
+				m_settings.keyboardLayouts.insert(name, layout);
+			}
+		}
+	} else {
+		m_settings.keyboardLayouts.clear();
+	}
+
+	auto iter = m_settings.keyboardLayouts.find(m_settings.activeKeyboardLayout);
+	if (iter != m_settings.keyboardLayouts.end()) {
+		auto keyboardLayout = *iter;
+		::signetdev_set_keymap(keyboardLayout.data(), keyboardLayout.size());
+	}
+
 	SignetApplication *app = SignetApplication::get();
 
 	QDateTime current = QDateTime::currentDateTime();
@@ -1009,7 +1085,7 @@ void MainWindow::loadSettings()
 		int rc = box->exec();
 		box->deleteLater();
 		if (rc == QMessageBox::Yes) {
-			ConfigureMachine *config = new ConfigureMachine(this, true);
+			SettingsDialog *config = new SettingsDialog(this, true);
 			config->exec();
 			config->deleteLater();
 		}
@@ -1293,14 +1369,13 @@ void MainWindow::enterDeviceState(int state)
 	}
 
 	bool fileActionsEnabled = (m_deviceState == STATE_LOGGED_IN);
-	m_configureKeyboardLayoutAction->setVisible(m_loggedIn);
 	m_exportMenu->menuAction()->setVisible(fileActionsEnabled);
 	m_settingsAction->setVisible(fileActionsEnabled);
 }
 
 void MainWindow::openSettingsUi()
 {
-	ConfigureMachine *config = new ConfigureMachine(this, false);
+	SettingsDialog *config = new SettingsDialog(this, false);
 	int rc = config->exec();
 	config->deleteLater();
 	if (!rc) {

@@ -60,19 +60,19 @@ class KeyboardLayoutTester : public QMainWindow
 	bool m_skipGeneratingRAlt;
 	bool m_keysTyped;
 	bool m_keyRecieved;
+	bool m_applyOnClose;
+	void focusInEvent(QFocusEvent* e);
+	void closeEvent(QCloseEvent *event);
 public:
 	explicit KeyboardLayoutTester(const QVector<struct signetdev_key> &currentLayout, QWidget *parent = 0);
-	void focusInEvent(QFocusEvent* e);
 	const QVector<struct signetdev_key> &getLayout() {
-		return m_layout;
+		return m_prevLayout;
 	}
 	void startTest();
 	void stopTest();
 signals:
-	void testFinished();
-	void testKeyTimeout();
-	void testLostFocus();
-	void testMultiCharResult();
+	void closing(bool applyChanges);
+	void applyChanges();
 public slots:
 	void signetdevCmdResp(signetdevCmdRespInfo info);
 	void pressTimeout();
