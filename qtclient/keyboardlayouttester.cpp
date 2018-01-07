@@ -159,6 +159,11 @@ KeyboardLayoutTester::KeyboardLayoutTester(const QVector<struct signetdev_key> &
 	QWidget *centralWidget = new QWidget();
 	QLayout *buttonsLayout = new QHBoxLayout();
 
+	m_configurationWarning = new QLabel("Configuring... Don't use your mouse or keybord until configuration is complete.");
+	m_configurationWarning->setStyleSheet("font-weight: bold");
+	m_configurationWarning->hide();
+	m_configurationWarning->setAlignment(Qt::AlignCenter);
+
 	m_configureButton = new QPushButton("Configure");
 	m_resetButton = new QPushButton("Reset");
 	m_applyButton = new QPushButton("Apply");
@@ -188,6 +193,7 @@ KeyboardLayoutTester::KeyboardLayoutTester(const QVector<struct signetdev_key> &
 	m_grid->setLayout(m_gridLayout);
 
 	mainLayout->addWidget(m_grid);
+	mainLayout->addWidget(m_configurationWarning);
 	mainLayout->addLayout(buttonsLayout);
 
 	m_layout = currentLayout;
@@ -297,6 +303,7 @@ void KeyboardLayoutTester::startTest()
 {
 	m_canStartTest = true;
 	m_configureButton->setEnabled(false);
+	m_configurationWarning->show();
 	if (QApplication::activeWindow() == this) {
 		doStartTest();
 	}
@@ -339,6 +346,7 @@ void KeyboardLayoutTester::doStartTest()
 
 void KeyboardLayoutTester::stopTest()
 {
+	m_configurationWarning->hide();
 	m_canStartTest = false;
 	m_testing = false;
 	m_keyTimer.stop();

@@ -64,6 +64,7 @@ class KeyboardLayoutTester : public QMainWindow
 	void focusInEvent(QFocusEvent* e);
 	void closeEvent(QCloseEvent *event);
 	void testInterrupted();
+	QLabel *m_configurationWarning;
 public:
 	explicit KeyboardLayoutTester(const QVector<struct signetdev_key> &currentLayout, QWidget *parent = 0);
 	const QVector<struct signetdev_key> &getLayout() {
