@@ -63,6 +63,7 @@ class KeyboardLayoutTester : public QMainWindow
 	bool m_applyOnClose;
 	void focusInEvent(QFocusEvent* e);
 	void closeEvent(QCloseEvent *event);
+	void testInterrupted();
 public:
 	explicit KeyboardLayoutTester(const QVector<struct signetdev_key> &currentLayout, QWidget *parent = 0);
 	const QVector<struct signetdev_key> &getLayout() {
@@ -79,6 +80,8 @@ public slots:
 	void configure();
 	void apply();
 	void reset();
+	void applicationStateChanged(Qt::ApplicationState state);
+	void focusWindowChanged(QWindow *);
 };
 
 #endif // KEYBOARDLAYOUTTESTER_H
