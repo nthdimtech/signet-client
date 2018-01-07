@@ -7,7 +7,7 @@
 
 #include <QAbstractListModel>
 
-class esdbTypeModule;
+struct esdbTypeModule;
 struct esdbModelGroup;
 
 class EsdbModel : public QAbstractItemModel

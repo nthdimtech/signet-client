@@ -5,7 +5,7 @@
 
 struct esdbEntry;
 struct block;
-class esdbTypeModule;
+struct esdbTypeModule;
 
 class EsdbActionBar : public QWidget
 {

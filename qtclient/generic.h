@@ -26,7 +26,7 @@ struct generic : public esdbEntry {
 	genericFields fields;
 
 	void fromBlock(block *blk);
-	void toBlock(block *blk);
+	void toBlock(block *blk) const;
 	generic(int id_) : esdbEntry(id_, ESDB_TYPE_GENERIC, 1, id_, 1)
 	{
 	}
@@ -41,7 +41,7 @@ struct generic : public esdbEntry {
 		return QString();
 	}
 
-	int matchQuality(const QString &search);
+	int matchQuality(const QString &search) const;
 
 	void upgrade(const generic_1 &g)
 	{

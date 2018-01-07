@@ -10,7 +10,7 @@ class LoggedInWidget;
 class ButtonWaitDialog;
 class QPushButton;
 
-class esdbTypeModule;
+struct esdbTypeModule;
 class LoggedInWidget;
 struct esdbEntry;
 struct block;

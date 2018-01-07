@@ -18,7 +18,7 @@ void generic::fromBlock(block *blk)
 	fields.fromBlock(blk);
 }
 
-void generic::toBlock(block *blk)
+void generic::toBlock(block *blk) const
 {
 	esdbEntry::toBlock(blk);
 	blk->writeString(this->typeName, false);
@@ -26,7 +26,7 @@ void generic::toBlock(block *blk)
 	fields.toBlock(blk);
 }
 
-int generic::matchQuality(const QString &search)
+int generic::matchQuality(const QString &search) const
 {
 	int quality = esdbEntry::matchQuality(search);
 	if (quality && hasIcon()) {

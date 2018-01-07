@@ -36,7 +36,7 @@ class QProgressBar;
 class QMenu;
 class QStackedWidget;
 class QByteArray;
-class esdbTypeModule;
+struct esdbTypeModule;
 class KeyboardLayoutTester;
 
 struct fwSection {
