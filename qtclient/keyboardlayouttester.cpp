@@ -122,12 +122,12 @@ KeyboardLayoutTester::KeyboardLayoutTester(const QVector<struct signetdev_key> &
 	m_configureButton = new QPushButton("Configure");
 	m_resetButton = new QPushButton("Reset");
 	m_applyButton = new QPushButton("Apply");
-	QPushButton *closeButton = new QPushButton("Close");
+	QPushButton *cancelButton = new QPushButton("Cancel");
 
 	m_resetButton->setEnabled(false);
 	m_applyButton->setEnabled(false);
 
-	connect(closeButton, SIGNAL(pressed()), this, SLOT(close()));
+	connect(cancelButton, SIGNAL(pressed()), this, SLOT(close()));
 	connect(this, SIGNAL(close()), this, SLOT(deleteLater()));
 	connect(m_configureButton, SIGNAL(pressed()), this, SLOT(configure()));
 	connect(m_applyButton, SIGNAL(pressed()), this, SLOT(apply()));
@@ -136,7 +136,7 @@ KeyboardLayoutTester::KeyboardLayoutTester(const QVector<struct signetdev_key> &
 	buttonsLayout->addWidget(m_configureButton);
 	buttonsLayout->addWidget(m_resetButton);
 	buttonsLayout->addWidget(m_applyButton);
-	buttonsLayout->addWidget(closeButton);
+	buttonsLayout->addWidget(cancelButton);
 
 	QVBoxLayout *mainLayout = new QVBoxLayout();
 
