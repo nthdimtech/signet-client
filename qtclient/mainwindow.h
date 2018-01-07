@@ -37,6 +37,7 @@ class QMenu;
 class QStackedWidget;
 class QByteArray;
 class esdbTypeModule;
+class KeyboardLayoutTester;
 
 struct fwSection {
 	QString name;
@@ -137,6 +138,7 @@ private:
 	QMessageBox *m_wipeDeviceDialog;
 	int m_signetdevCmdToken;
 	bool m_startedExport;
+	KeyboardLayoutTester *m_keyboardLayoutTester;
 
 	void sendFirmwareWriteCmd();
 	void loadSettings();
@@ -189,6 +191,8 @@ public slots:
 	void exportCSVUi();
 	void aboutUi();
 	void startOnlineHelp();
+	void applyKeyboardLayoutChanges();
+	void keyboardLayoutTesterClosing(bool applyChanges);
 };
 
 #endif // MAINWINDOW_H

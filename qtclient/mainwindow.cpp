@@ -39,6 +39,7 @@
 #include "editaccount.h"
 #include "buttonwaitdialog.h"
 #include "loginwindow.h"
+#include "keyboardlayouttester.h"
 
 #include "signetapplication.h"
 #include "settingsdialog.h"
@@ -1079,7 +1080,11 @@ void MainWindow::loadSettings()
 
 	if (!configFile.exists()) {
 		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Machine not configured",
-			    "It appears you have not used Signet on this system before.\n\nWould you like to set its configuration?",
+			    "If you don't configure your system backups will not be enabled and Signet "
+			    "will use a standard English(US) keyboard which may prevent Signet from typing data "
+			    "correctly if you use a different keyboard layout.\n\n"
+			    "You can configure Sigent later from the 'File->Settings' menu option.\n\n"
+			    "Would you like to configure Signet for this system now?\n",
 			    QMessageBox::No | QMessageBox::Yes,
 			    this);
 		int rc = box->exec();
@@ -1093,6 +1098,56 @@ void MainWindow::loadSettings()
 	}
 
 	settingsChanged();
+
+	QLocale inputLocale = QApplication::inputMethod()->locale();
+	if ((inputLocale.language() != QLocale::English ||
+			inputLocale.country() != QLocale::UnitedStates)
+			&& !m_settings.keyboardLayouts.size()) {
+		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Keyboard layout not configured",
+				"\n\nBy default Signet uses a standard English(US) keyboard layout but your "
+				"input locale is not English(US). If you don't conifigure your keyboard layout Signet "
+				"may not function correctly.\n\n"
+				"Configure your keyboad layout?\n",
+			    QMessageBox::No | QMessageBox::Yes,
+			    this);
+		int rc = box->exec();
+		box->deleteLater();
+		if (rc == QMessageBox::Yes) {
+			QVector<struct signetdev_key> currentLayout;
+
+			int n_keys;
+			const signetdev_key *keymap = ::signetdev_get_keymap(&n_keys);
+			for (int i = 0; i < n_keys; i++) {
+				currentLayout.append(keymap[i]);
+			}
+
+			m_keyboardLayoutTester = new KeyboardLayoutTester(currentLayout, this);
+			connect(m_keyboardLayoutTester, SIGNAL(closing(bool)),
+				this, SLOT(keyboardLayoutTesterClosing(bool)));
+			connect(m_keyboardLayoutTester, SIGNAL(applyChanges()),
+				this, SLOT(applyKeyboardLayoutChanges()));
+			m_keyboardLayoutTester->setWindowModality(Qt::WindowModal);
+			m_keyboardLayoutTester->show();
+		}
+	}
+}
+
+void MainWindow::applyKeyboardLayoutChanges()
+{
+	auto keyboardLayout = m_keyboardLayoutTester->getLayout();
+	::signetdev_set_keymap(keyboardLayout.data(), keyboardLayout.size());
+	m_settings.activeKeyboardLayout = QString("current");
+	m_settings.keyboardLayouts.insert("current", keyboardLayout);
+	saveSettings();
+	settingsChanged();
+}
+
+void MainWindow::keyboardLayoutTesterClosing(bool applyChanges)
+{
+	if (applyChanges) {
+		applyKeyboardLayoutChanges();
+	}
+	m_keyboardLayoutTester->deleteLater();
 }
 
 void MainWindow::enterDeviceState(int state)
