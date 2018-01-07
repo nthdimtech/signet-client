@@ -113,7 +113,7 @@ void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int c
 	SignetApplication *this_ = (SignetApplication *)cb_param;
 	switch(cmd) {
 	case SIGNETDEV_CMD_READ_ALL_UIDS: {
-		if (resp_data) {
+		if (resp_data && resp_code == OKAY) {
 			signetdev_read_all_uids_resp_data *resp = (signetdev_read_all_uids_resp_data *)resp_data;
 			QByteArray data((char *)resp->data, resp->size);
 			QByteArray mask((char *)resp->mask, resp->size);
