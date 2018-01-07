@@ -29,6 +29,7 @@ Q_OBJECT
 	KeyboardLayoutTester *m_keyboardLayoutTester;
 	QMap<QString, keyboardLayout> m_keyboardLayouts;
 	QString m_activeKeyboardLayout;
+	QLabel *m_keyboardLayoutUnconfiguredWarning;
 public:
 	SettingsDialog(MainWindow *mainWindow, bool initial);
 public slots:

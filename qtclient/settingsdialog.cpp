@@ -95,6 +95,14 @@ SettingsDialog::SettingsDialog(MainWindow *mainWindow, bool initial) :
 	connect(m_configureKeyboardLayout, SIGNAL(pressed()),
 		this, SLOT(configureKeyboardLayout()));
 
+	m_keyboardLayoutUnconfiguredWarning = new QLabel(
+				"Note: Signet's keyboard layout is not configured. Signet will default to a English(US) keyboard layout which will cause incorrect keys to be generated if this system uses a different layout.");
+	m_keyboardLayoutUnconfiguredWarning->setWordWrap(true);
+	m_keyboardLayoutUnconfiguredWarning->setStyleSheet("font-weight: bold");
+	if (keyboardLayoutConfigured) {
+		m_keyboardLayoutUnconfiguredWarning->hide();
+	}
+
 	QVBoxLayout *topLayout = new QVBoxLayout();
 	topLayout->setAlignment(Qt::AlignTop);
 	topLayout->addWidget(m_localBackups);
@@ -104,6 +112,7 @@ SettingsDialog::SettingsDialog(MainWindow *mainWindow, bool initial) :
 	topLayout->addLayout(removableBackupVolumeLayout);
 	topLayout->addLayout(removableBackupDirectoryLayout);
 	topLayout->addLayout(removableBackupIntervalLayout);
+	topLayout->addWidget(m_keyboardLayoutUnconfiguredWarning);
 	topLayout->addLayout(keyboardLayoutConfigurationLayout);
 	topLayout->addLayout(buttonLayout);
 	setLayout(topLayout);
@@ -137,6 +146,8 @@ void SettingsDialog::applyKeyboardLayoutChanges()
 	::signetdev_set_keymap(keyboardLayout.data(), keyboardLayout.size());
 	m_activeKeyboardLayout = QString("current");
 	m_keyboardLayouts.insert("current", keyboardLayout);
+	m_keyboardLayoutUnconfiguredWarning->hide();
+	m_configureKeyboardLayout->setText("Reconfigure");
 }
 
 void SettingsDialog::keyboardLayoutTesterClosing(bool applyChanges)
