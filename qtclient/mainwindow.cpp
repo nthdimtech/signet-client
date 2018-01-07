@@ -1080,11 +1080,16 @@ void MainWindow::loadSettings()
 
 	if (!configFile.exists()) {
 		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Machine not configured",
+			    "Would you like to configure Signet for this system now?\n\n"
 			    "If you don't configure your system backups will not be enabled and Signet "
 			    "will use a standard English(US) keyboard which may prevent Signet from typing data "
 			    "correctly if you use a different keyboard layout.\n\n"
-			    "You can configure Sigent later from the 'File->Settings' menu option.\n\n"
-			    "Would you like to configure Signet for this system now?\n",
+			    "You can configure Sigent later from "
+#ifdef Q_OS_MACOS
+						   "'Preferences'",
+#else
+						   "the 'File->Settings' menu option",
+#endif
 			    QMessageBox::No | QMessageBox::Yes,
 			    this);
 		int rc = box->exec();
@@ -1104,10 +1109,10 @@ void MainWindow::loadSettings()
 			inputLocale.country() != QLocale::UnitedStates)
 			&& !m_settings.keyboardLayouts.size()) {
 		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Keyboard layout not configured",
-				"\n\nBy default Signet uses a standard English(US) keyboard layout but your "
+				"Configure your keyboard layout?\n\n"
+				"By default Signet uses a standard English(US) keyboard layout but your "
 				"input locale is not English(US). If you don't conifigure your keyboard layout Signet "
-				"may not function correctly.\n\n"
-				"Configure your keyboad layout?\n",
+				"may not function correctly.",
 			    QMessageBox::No | QMessageBox::Yes,
 			    this);
 		int rc = box->exec();
