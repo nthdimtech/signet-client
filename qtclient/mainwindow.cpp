@@ -29,6 +29,7 @@
 #include <QStorageInfo>
 #include <QDesktopServices>
 #include <QJsonArray>
+#include <QString>
 
 #include "about.h"
 #include "loggedinwidget.h"
@@ -173,6 +174,22 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_backupAction->setVisible(false);
 	m_restoreAction->setVisible(false);
 	enterDeviceState(STATE_NEVER_SHOWN);
+}
+
+QString MainWindow::csvQuote(const QString &s)
+{
+	if (s.contains(QChar('"'))) {
+		QString sEsc;
+		for (QChar c : s) {
+			sEsc.append(c);
+			if(c == '"') {
+				sEsc.append('"');
+			}
+		}
+		return '"' + sEsc + '"';
+	} else {
+		return '"' + s + '"';
+	}
 }
 
 void MainWindow::startOnlineHelp()
@@ -552,21 +569,19 @@ void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QBy
 
 		out << "typeName,";
 		for (auto x : m_exportField) {
-			out << x << ",";
+			out << csvQuote(x) << ",";
 		}
 		out << endl;
 		QMap<QString, exportType>::iterator x;
 		for (x = m_exportData.begin(); x != m_exportData.end(); x++) {
 			for (auto y : x.value().m_data) {
-				out << x.key() << ",";
+				out << csvQuote(x.key()) << ",";
 				for (auto z : y) {
-					out << z << ",";
+					out << csvQuote(z) << ",";
 				}
 				out << endl;
 			}
 		}
-	}
-	if (!info.messages_remaining) {
 		m_backupFile->close();
 		delete m_backupFile;
 		m_backupFile = NULL;

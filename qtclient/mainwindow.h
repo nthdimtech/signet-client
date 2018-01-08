@@ -27,6 +27,7 @@ class MainWindow;
 #include <QAction>
 #include <QTimer>
 #include <QDateTime>
+#include <QString>
 
 class LoggedInWidget;
 class ButtonWaitDialog;
@@ -61,6 +62,8 @@ public:
 	explicit MainWindow(QWidget *parent = 0);
 	void closeEvent(QCloseEvent *event);
 	~MainWindow();
+
+	static QString csvQuote(const QString &s);
 
 	enum device_state {
 		STATE_INVALID,
