@@ -1,11 +1,14 @@
 #ifndef GENERICFIELDEDIT_H
 #define GENERICFIELDEDIT_H
 
+#include "signetapplication.h"
+
 #include <QString>
 #include <QObject>
 
 class QWidget;
 class QPushButton;
+class ButtonWaitDialog;
 
 class genericFieldEdit : public QObject
 {
@@ -16,6 +19,7 @@ class genericFieldEdit : public QObject
 	QPushButton *m_typeButton;
 	QPushButton *m_deleteButton;
 	QWidget *m_editWidget;
+	ButtonWaitDialog *m_buttonWait;
 protected:
 	void createWidget(bool canRemove, QWidget *editWidget, bool outputEnable = true);
 	void createTallWidget(int rows, bool canRemove, QWidget *editWidget);
@@ -43,15 +47,18 @@ public:
 	virtual ~genericFieldEdit() {
 	}
 
+	int m_signetdevCmdToken;
+
 public slots:
 	void deletePressed();
 	void typePressed();
 	void copyPressed();
+	void typeFieldFinished(int);
+	void signetdevCmdResp(signetdevCmdRespInfo info);
 signals:
 	void edited();
 	void editingFinished();
 	void remove(QString);
-	void type(QString);
 };
 
 #endif // GENERICFIELDEDIT_H

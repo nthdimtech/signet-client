@@ -1,4 +1,6 @@
 #include "genericfieldedit.h"
+#include "buttonwaitdialog.h"
+#include "signetapplication.h"
 
 #include <QWidget>
 #include <QPushButton>
@@ -8,11 +10,18 @@
 #include <QApplication>
 #include <QGridLayout>
 
+extern "C" {
+#include "signetdev/host/signetdev.h"
+}
+
 genericFieldEdit::genericFieldEdit(const QString &name) :
 	m_name(name),
-	m_widget(NULL)
+	m_widget(NULL),
+	m_signetdevCmdToken(-1)
 {
-
+	SignetApplication *app = SignetApplication::get();
+	QObject::connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
+			 this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 }
 void genericFieldEdit::createWidget(bool canRemove, QWidget *editWidget, bool outputEnable)
 {
@@ -84,7 +93,72 @@ void genericFieldEdit::createTallWidget(int rows, bool canRemove, QWidget *editW
 
 void genericFieldEdit::typePressed()
 {
-	emit type(toString());
+	m_buttonWait = new ButtonWaitDialog("Type " + m_name, "type " + m_name, (QWidget *)this->parent());
+	connect(m_buttonWait, SIGNAL(finished(int)), this, SLOT(typeFieldFinished(int)));
+	m_buttonWait->show();
+	::signetdev_button_wait(NULL, &m_signetdevCmdToken);
+}
+
+void genericFieldEdit::typeFieldFinished(int rc)
+{
+	if (rc != QMessageBox::Ok) {
+		::signetdev_cancel_button_wait();
+	}
+	m_buttonWait->deleteLater();
+	m_buttonWait = NULL;
+}
+
+void genericFieldEdit::signetdevCmdResp(signetdevCmdRespInfo info)
+{
+	if (info.token != m_signetdevCmdToken) {
+		return;
+	}
+	m_signetdevCmdToken = -1;
+
+	int code = info.resp_code;
+
+	switch (code) {
+	case OKAY:
+		switch (info.cmd) {
+		case SIGNETDEV_CMD_BUTTON_WAIT: {
+			QString keys = toString();
+			if (QApplication::focusWindow()) {
+				QMessageBox *box = SignetApplication::messageBoxError(
+						       QMessageBox::Warning,
+						       "Signet",
+						       "A destination text area must be selected for typing to start\n\n"
+						       "Click OK and try again.", m_buttonWait ? (QWidget *)m_buttonWait : (QWidget *)this);
+				connect(box, SIGNAL(finished(int)), this, SLOT(retryTypeData()));
+				break;
+			}
+			if (m_buttonWait) {
+				m_buttonWait->done(OKAY);
+			}
+			QVector<u16> uKeys;
+			for (auto key : keys) {
+				uKeys.append(key.unicode());
+			}
+			::signetdev_type_w(NULL, &m_signetdevCmdToken,
+					       (u16 *)uKeys.data(), uKeys.length());
+		}
+		break;
+		case SIGNETDEV_CMD_TYPE:
+			break;
+		}
+		break;
+	case BUTTON_PRESS_CANCELED:
+	case BUTTON_PRESS_TIMEOUT:
+	case SIGNET_ERROR_DISCONNECT:
+	case SIGNET_ERROR_QUIT:
+		if (m_buttonWait)
+			m_buttonWait->done(QMessageBox::Ok);
+		break;
+	default:
+		if (m_buttonWait)
+			m_buttonWait->done(QMessageBox::Ok);
+		abort();
+		return;
+	}
 }
 
 void genericFieldEdit::copyPressed()
