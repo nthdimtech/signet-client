@@ -781,10 +781,10 @@ QString MainWindow::backupFileBaseName()
 		QString::number(currentTime.date().day());
 }
 
-void MainWindow::settingsChanged()
+void MainWindow::settingsChanged(bool checkForBackups)
 {
 	QDateTime currentTime = QDateTime::currentDateTime();
-	if (m_settings.localBackups) {
+	if (m_settings.localBackups && checkForBackups) {
 		QString backupFileName = m_settings.localBackupPath + "/" + backupFileBaseName() + ".sdb";
 		QDir backupPath(m_settings.localBackupPath);
 		if (!backupPath.exists()) {
@@ -825,7 +825,7 @@ void MainWindow::settingsChanged()
 			}
 		}
 	}
-	if (m_settings.removableBackups) {
+	if (m_settings.removableBackups && checkForBackups) {
 		if (!m_settings.lastRemoveableBackup.isValid() ||
 			m_settings.lastRemoveableBackup.daysTo(currentTime) > m_settings.removableBackupInterval) {
 			QMessageBox *box = new QMessageBox(QMessageBox::Warning,
@@ -1102,7 +1102,7 @@ void MainWindow::loadSettings()
 		saveSettings();
 	}
 
-	settingsChanged();
+	settingsChanged(true);
 
 	QLocale inputLocale = QApplication::inputMethod()->locale();
 	if ((inputLocale.language() != QLocale::English ||
@@ -1144,7 +1144,7 @@ void MainWindow::applyKeyboardLayoutChanges()
 	m_settings.activeKeyboardLayout = QString("current");
 	m_settings.keyboardLayouts.insert("current", keyboardLayout);
 	saveSettings();
-	settingsChanged();
+	settingsChanged(false);
 }
 
 void MainWindow::keyboardLayoutTesterClosing(bool applyChanges)
@@ -1440,7 +1440,7 @@ void MainWindow::openSettingsUi()
 	config->deleteLater();
 	if (!rc) {
 		saveSettings();
-		settingsChanged();
+		settingsChanged(false);
 	}
 }
 

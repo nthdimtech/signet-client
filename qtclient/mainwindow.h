@@ -143,7 +143,7 @@ private:
 	void sendFirmwareWriteCmd();
 	void loadSettings();
 	void saveSettings();
-	void settingsChanged();
+	void settingsChanged(bool checkForBackups);
 	void showEvent(QShowEvent *event);
 	void backupDevice(QString fileName);
 	QString backupFileBaseName();
