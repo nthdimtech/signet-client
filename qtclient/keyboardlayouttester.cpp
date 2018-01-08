@@ -54,8 +54,8 @@ KeyboardLayoutTester::scancodeInfo KeyboardLayoutTester::s_scancodeSequence[] = 
 	#if 0
 	{40 /*enter*/, 14, 3},
 	{43 /*tab*/, 1, 2},
-	#endif
 	{44 /*space*/, 3, 5},
+	#endif
 	{45 /* -_ */, 12, 1},
 	{46 /* =+ */, 13, 1},
 	{47 /* [{ */, 12, 2},
@@ -330,6 +330,12 @@ void KeyboardLayoutTester::doStartTest()
 	k.phy_key[1].modifier = 0;
 	k.phy_key[1].scancode = 0;
 	m_layout.append(k);
+	k.key = ' ';
+	k.phy_key[0].modifier = 0;
+	k.phy_key[0].scancode = 44;
+	k.phy_key[1].modifier = 0;
+	k.phy_key[1].scancode = 0;
+	m_layout.append(k);
 
 	QLayoutItem* item;
 	while ( ( item = m_gridLayout->takeAt( 0 ) ) != NULL )
@@ -424,11 +430,16 @@ void KeyboardLayoutTester::keyPressEvent(QKeyEvent *event)
 {
 	QString t = event->text();
 	event->accept();
+#if 0
+	//TODO: this technique doesn't seem to work on all OS's
 	if (!(event->modifiers() & Qt::AltModifier)) {
 		charactersTyped(t);
 	} else {
 		m_skipGeneratingRAlt = true;
 	}
+#else
+	charactersTyped(t);
+#endif
 }
 
 void KeyboardLayoutTester::typeNextKey()
