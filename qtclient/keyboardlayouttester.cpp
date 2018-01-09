@@ -308,9 +308,19 @@ void KeyboardLayoutTester::startTest()
 	m_canStartTest = true;
 	m_configureButton->setEnabled(false);
 	m_configurationWarning->show();
-	if (QApplication::activeWindow() == this) {
+#ifdef Q_OS_MACOS
+	//I haven't found a relaible way to check if the dialog
+	//will recieve keyboard events. hasFocus() may be false
+	//and stay false even if the dialog will recieve key
+	//press events. startTest() is only called when we expect
+	//the dialog to have focus so this can work until a reliable
+	//technique is found.
+	doStartTest();
+#else
+	if (hasFocus()) {
 		doStartTest();
 	}
+#endif
 }
 
 void KeyboardLayoutTester::doStartTest()
