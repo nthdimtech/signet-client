@@ -93,6 +93,7 @@ void KeyboardLayoutTester::prepareToTest()
 {
 	activateWindow();
 	raise();
+	setFocus();
 	startTest();
 }
 
@@ -142,14 +143,14 @@ void KeyboardLayoutTester::testInterrupted()
 }
 
 KeyboardLayoutTester::KeyboardLayoutTester(const QVector<struct signetdev_key> &currentLayout, QWidget *parent) :
-	QMainWindow(parent),
+	QDialog(parent),
 	m_scancodeNumChecking(-1),
 	m_signetdevToken(-1),
 	m_canStartTest(false),
 	m_testing(false),
 	m_applyOnClose(false)
 {
-	setFocusPolicy(Qt::ClickFocus);
+	setFocusPolicy(Qt::StrongFocus);
 	setWindowTitle("Keyboard layout configuration");
 	setAttribute(Qt::WA_InputMethodEnabled, true);
 	connect(SignetApplication::get(),
@@ -160,8 +161,6 @@ KeyboardLayoutTester::KeyboardLayoutTester(const QVector<struct signetdev_key> &
 		SIGNAL(timeout()),
 		this,
 		SLOT(pressTimeout()));
-
-	QWidget *centralWidget = new QWidget();
 	QLayout *buttonsLayout = new QHBoxLayout();
 
 	m_configurationWarning = new QLabel("Configuring... Don't use your mouse or keybord until configuration is complete.");
@@ -190,7 +189,7 @@ KeyboardLayoutTester::KeyboardLayoutTester(const QVector<struct signetdev_key> &
 
 	QVBoxLayout *mainLayout = new QVBoxLayout();
 
-	centralWidget->setLayout(mainLayout);
+	setLayout(mainLayout);
 
 	m_gridLayout = new QGridLayout();
 
@@ -211,7 +210,7 @@ KeyboardLayoutTester::KeyboardLayoutTester(const QVector<struct signetdev_key> &
 		this, SLOT(focusWindowChanged(QWindow *)));
 
 	showCurrentLayout();
-	setCentralWidget(centralWidget);
+	//setCentralWidget(centralWidget);
 }
 
 void KeyboardLayoutTester::initGridLayout()

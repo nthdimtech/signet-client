@@ -10,7 +10,6 @@ extern "C" {
 #include <QObject>
 #include <QDialog>
 #include <QTimer>
-#include <QMainWindow>
 #include <QGridLayout>
 class QLabel;
 #include <QInputMethod>
@@ -19,7 +18,7 @@ class QLabel;
 
 class KeyCapture;
 
-class KeyboardLayoutTester : public QMainWindow
+class KeyboardLayoutTester : public QDialog
 {
 	Q_OBJECT
 	QTimer m_keyTimer;
