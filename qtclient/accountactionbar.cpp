@@ -378,6 +378,9 @@ void AccountActionBar::typeAccountData(account *acct)
 		QPushButton *copyData = msg->addButton("Copy data", QMessageBox::AcceptRole);
 		msg->addButton("Cancel", QMessageBox::RejectRole);
 		msg->setWindowModality(Qt::WindowModal);
+		msg->show();
+		msg->activateWindow();
+		msg->raise();
 		msg->exec();
 		QAbstractButton *button = msg->clickedButton();
 		if (button == copyData) {
