@@ -1118,11 +1118,11 @@ void MainWindow::loadSettings()
 	}
 
 	settingsChanged(true);
-
 	QLocale inputLocale = QApplication::inputMethod()->locale();
 	if ((inputLocale.language() != QLocale::English ||
 			inputLocale.country() != QLocale::UnitedStates)
-			&& !m_settings.keyboardLayouts.size()) {
+			&& inputLocale != QLocale::c() &&
+			!m_settings.keyboardLayouts.size()) {
 		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Keyboard layout not configured",
 				"Configure your keyboard layout?\n\n"
 				"By default Signet uses a standard English(US) keyboard layout but your "
