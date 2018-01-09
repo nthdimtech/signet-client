@@ -430,15 +430,15 @@ void KeyboardLayoutTester::keyPressEvent(QKeyEvent *event)
 {
 	QString t = event->text();
 	event->accept();
-#if 0
+#if Q_OS_WIN32
+	charactersTyped(t);
+#else
 	//TODO: this technique doesn't seem to work on all OS's
 	if (!(event->modifiers() & Qt::AltModifier)) {
 		charactersTyped(t);
 	} else {
 		m_skipGeneratingRAlt = true;
 	}
-#else
-	charactersTyped(t);
 #endif
 }
 
