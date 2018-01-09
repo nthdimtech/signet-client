@@ -204,7 +204,14 @@ void AccountActionBar::openAccountUI()
 {
 	account *acct = (account *)selectedEntry();
 	if (acct) {
-		openAccount(acct);
+		int id = acct->id;
+		m_buttonWaitDialog = new ButtonWaitDialog(
+		    "Open account",
+		    "Open account \"" + acct->acctName + "\"",
+		    m_parent);
+		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(openAccountFinished(int)));
+		m_buttonWaitDialog->show();
+		m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, OPEN_ACCOUNT, this);
 	}
 }
 
@@ -261,18 +268,6 @@ void AccountActionBar::copyPassword()
 	m_accessUsername = false;
 	m_accessPassword = true;
 	m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, COPY_DATA, this);
-}
-
-void AccountActionBar::openAccount(account *acct)
-{
-	int id = acct->id;
-	m_buttonWaitDialog = new ButtonWaitDialog(
-	    "Open account",
-	    "Open account \"" + acct->acctName + "\"",
-	    m_parent);
-	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(openAccountFinished(int)));
-	m_buttonWaitDialog->show();
-	m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, OPEN_ACCOUNT, this);
 }
 
 void AccountActionBar::openAccountFinished(int code)
@@ -343,6 +338,90 @@ void AccountActionBar::idTaskComplete(int id, int task, int intent)
 	}
 }
 
+void AccountActionBar::typeAccountData(account *acct)
+{
+	if (QApplication::focusWindow()) {
+		QMessageBox *box = SignetApplication::messageBoxError(
+				       QMessageBox::Warning,
+				       "Signet",
+				       "A destination text area must be selected for typing to start\n\n"
+				       "Click OK and try again.", m_buttonWaitDialog ? (QWidget *)m_buttonWaitDialog : (QWidget *)this);
+		connect(box, SIGNAL(finished(int)), this, SLOT(retryTypeData()));
+		m_id = acct->id;
+		return;
+	}
+	if (m_buttonWaitDialog) {
+		m_buttonWaitDialog->done(QMessageBox::Ok);
+	}
+	QString keys;
+	if (m_accessUsername) {
+		keys.append(acct->userName);
+	}
+	if (m_accessPassword) {
+		if (m_accessUsername) {
+			keys.append("\t");
+		}
+		keys.append(acct->password);
+		if (m_accessUsername) {
+			keys.append("\n");
+		}
+	}
+	QVector<u16> uKeys;
+	for (auto key : keys) {
+		uKeys.append(key.unicode());
+	}
+	if (!::signetdev_can_type_w((u16 *)uKeys.data(), uKeys.length())) {
+		QMessageBox *msg = new QMessageBox(QMessageBox::Warning,
+					"Cannot type data",
+					"Signet cannot type this data. It contains characters not present in your keyboard layout.",
+					QMessageBox::NoButton, this);
+		QPushButton *copyData = msg->addButton("Copy data", QMessageBox::AcceptRole);
+		msg->addButton("Cancel", QMessageBox::RejectRole);
+		msg->setWindowModality(Qt::WindowModal);
+		msg->exec();
+		QAbstractButton *button = msg->clickedButton();
+		if (button == copyData) {
+			copyAccountData(acct);
+		}
+		msg->deleteLater();
+		return;
+	} else {
+		::signetdev_type_w(NULL, &m_signetdevCmdToken,
+				       (u16 *)uKeys.data(), uKeys.length());
+	}
+}
+
+void AccountActionBar::copyAccountData(account *acct)
+{
+	if (m_buttonWaitDialog) {
+		m_buttonWaitDialog->done(QMessageBox::Ok);
+	}
+	QString s;
+	if (m_accessUsername) {
+		s = acct->userName;
+	}
+	if (m_accessPassword) {
+		if (m_accessUsername) {
+			s.append(" : ");
+		}
+		s.append(acct->password);
+	}
+	QClipboard *clipboard = QApplication::clipboard();
+	clipboard->setText(s);
+}
+
+void AccountActionBar::openAccount(account *acct)
+{
+	if (m_buttonWaitDialog) {
+		m_buttonWaitDialog->done(QMessageBox::Ok);
+	}
+	EditAccount *ea = new EditAccount(acct, m_parent);
+	connect(ea, SIGNAL(abort()), this, SIGNAL(abort()));
+	connect(ea, SIGNAL(accountChanged(int)), m_parent, SLOT(entryChanged(int)));
+	connect(ea, SIGNAL(finished(int)), ea, SLOT(deleteLater()));
+	ea->show();
+}
+
 void AccountActionBar::getEntryDone(esdbEntry *entry, int intent)
 {
 	if (!entry) {
@@ -350,74 +429,17 @@ void AccountActionBar::getEntryDone(esdbEntry *entry, int intent)
 			m_buttonWaitDialog->done(QMessageBox::Ok);
 		}
 	}
+	account *acct = static_cast<account *>(entry);
 	switch (intent) {
-	case TYPE_DATA: {
-		account *acct = static_cast<account *>(entry);
-		if (QApplication::focusWindow()) {
-			QMessageBox *box = SignetApplication::messageBoxError(
-					       QMessageBox::Warning,
-					       "Signet",
-					       "A destination text area must be selected for typing to start\n\n"
-					       "Click OK and try again.", m_buttonWaitDialog ? (QWidget *)m_buttonWaitDialog : (QWidget *)this);
-			connect(box, SIGNAL(finished(int)), this, SLOT(retryTypeData()));
-			m_id = entry->id;
-			break;
-		}
-		if (m_buttonWaitDialog) {
-			m_buttonWaitDialog->done(QMessageBox::Ok);
-		}
-		QString keys;
-		if (m_accessUsername) {
-			keys.append(acct->userName);
-		}
-		if (m_accessPassword) {
-			if (m_accessUsername) {
-				keys.append("\t");
-			}
-			keys.append(acct->password);
-			if (m_accessUsername) {
-				keys.append("\n");
-			}
-		}
-		QVector<u16> uKeys;
-		for (auto key : keys) {
-			uKeys.append(key.unicode());
-		}
-		::signetdev_type_w(NULL, &m_signetdevCmdToken,
-				       (u16 *)uKeys.data(), uKeys.length());
-	}
-	break;
-	case COPY_DATA: {
-		account *acct = static_cast<account *>(entry);
-		if (m_buttonWaitDialog) {
-			m_buttonWaitDialog->done(QMessageBox::Ok);
-		}
-		QByteArray keys;
-		if (m_accessUsername) {
-			keys.append(acct->userName.toLatin1());
-		}
-		if (m_accessPassword) {
-			if (m_accessUsername) {
-				keys.append(":");
-			}
-			keys.append(acct->password.toLatin1());
-		}
-		QClipboard *clipboard = QApplication::clipboard();
-		clipboard->setText(QString(keys));
-	}
-	break;
-	case OPEN_ACCOUNT: {
-		account *acct = static_cast<account *>(entry);
-		if (m_buttonWaitDialog) {
-			m_buttonWaitDialog->done(QMessageBox::Ok);
-		}
-		EditAccount *ea = new EditAccount(acct, m_parent);
-		connect(ea, SIGNAL(abort()), this, SIGNAL(abort()));
-		connect(ea, SIGNAL(accountChanged(int)), m_parent, SLOT(entryChanged(int)));
-		connect(ea, SIGNAL(finished(int)), ea, SLOT(deleteLater()));
-		ea->show();
-	}
-	break;
+	case TYPE_DATA:
+		typeAccountData(acct);
+		break;
+	case COPY_DATA:
+		copyAccountData(acct);
+		break;
+	case OPEN_ACCOUNT:
+		openAccount(acct);
+		break;
 	default:
 		if (m_buttonWaitDialog) {
 			m_buttonWaitDialog->done(QMessageBox::Ok);

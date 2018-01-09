@@ -20,6 +20,7 @@ class genericFieldEdit : public QObject
 	QPushButton *m_deleteButton;
 	QWidget *m_editWidget;
 	ButtonWaitDialog *m_buttonWait;
+	QVector<u16> m_keysToType;
 protected:
 	void createWidget(bool canRemove, QWidget *editWidget, bool outputEnable = true);
 	void createTallWidget(int rows, bool canRemove, QWidget *editWidget);

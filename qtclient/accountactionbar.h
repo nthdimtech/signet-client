@@ -9,6 +9,12 @@ class ButtonWaitDialog;
 struct account;
 class NewAccount;
 
+#include <QVector>
+
+extern "C" {
+#include "signetdev/host/signetdev.h"
+}
+
 class AccountActionBar : public EsdbActionBar
 {
 	Q_OBJECT
@@ -29,8 +35,10 @@ class AccountActionBar : public EsdbActionBar
 	bool m_accessPending;
 
 	void accessAccount(account *acct, bool username, bool password);
-	void openAccount(account *acct);
 	void newInstanceUI(int id, const QString &name);
+	void typeAccountData(account *acct);
+	void copyAccountData(account *acct);
+	void openAccount(account *acct);
 
 	enum intent {
 		COPY_DATA,

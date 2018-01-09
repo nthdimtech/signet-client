@@ -85,7 +85,6 @@ void DatabaseField::signetdevCmdResp(signetdevCmdRespInfo info)
 	case OKAY:
 		switch (info.cmd) {
 		case SIGNETDEV_CMD_BUTTON_WAIT: {
-			QString keys = m_fieldEdit->text();
 			if (QApplication::focusWindow()) {
 				QMessageBox *box = SignetApplication::messageBoxError(
 						       QMessageBox::Warning,
@@ -98,12 +97,8 @@ void DatabaseField::signetdevCmdResp(signetdevCmdRespInfo info)
 			if (m_buttonWait) {
 				m_buttonWait->done(OKAY);
 			}
-			QVector<u16> uKeys;
-			for (auto key : keys) {
-				uKeys.append(key.unicode());
-			}
 			::signetdev_type_w(NULL, &m_signetdevCmdToken,
-					       (u16 *)uKeys.data(), uKeys.length());
+					       (u16 *)m_keysToType.data(), m_keysToType.length());
 		}
 		break;
 		case SIGNETDEV_CMD_TYPE:
@@ -127,6 +122,27 @@ void DatabaseField::signetdevCmdResp(signetdevCmdRespInfo info)
 
 void DatabaseField::typeFieldUi()
 {
+	QString keys = m_fieldEdit->text();
+	m_keysToType.clear();
+	for (auto key : keys) {
+		m_keysToType.append(key.unicode());
+	}
+	if (!::signetdev_can_type_w(m_keysToType.data(), m_keysToType.length())) {
+		QMessageBox *msg = new QMessageBox(QMessageBox::Warning,
+					"Cannot type data",
+					"Signet cannot type this data. It contains characters not present in your keyboard layout.",
+					QMessageBox::NoButton, this);
+		QPushButton *copyData = msg->addButton("Copy data", QMessageBox::AcceptRole);
+		msg->addButton("Cancel", QMessageBox::RejectRole);
+		msg->setWindowModality(Qt::WindowModal);
+		msg->exec();
+		QAbstractButton *button = msg->clickedButton();
+		if (button == copyData) {
+			copyFieldUi();
+		}
+		msg->deleteLater();
+		return;
+	}
 	m_buttonWait = new ButtonWaitDialog("Type " + m_name, "type " + m_name, (QWidget *)this->parent());
 	connect(m_buttonWait, SIGNAL(finished(int)), this, SLOT(typeFieldFinished(int)));
 	m_buttonWait->show();

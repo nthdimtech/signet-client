@@ -17,6 +17,7 @@ class DatabaseField : public QWidget
 	QString m_name;
 	int m_signetdevCmdToken;
 	QLineEdit *m_fieldEdit;
+	QVector<u16> m_keysToType;
 public:
 	explicit DatabaseField(const QString &name, int width, QWidget *middle = 0, QWidget *parent = 0);
 	QString text() const;
