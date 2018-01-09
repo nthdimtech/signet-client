@@ -1,5 +1,4 @@
 #ifndef SIGNETAPPLICATION_H
-t
 #define SIGNETAPPLICATION_H
 
 #include <QObject>
