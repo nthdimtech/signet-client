@@ -79,6 +79,7 @@ public slots:
 	void signetdevCmdResp(signetdevCmdRespInfo info);
 	void pressTimeout();
 	void configure();
+	void prepareToTest();
 	void apply();
 	void reset();
 	void applicationStateChanged(Qt::ApplicationState state);

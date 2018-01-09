@@ -86,8 +86,13 @@ void KeyboardLayoutTester::configure()
 	msg->setWindowModality(Qt::WindowModal);
 	msg->exec();
 	msg->deleteLater();
+	connect(msg, SIGNAL(destroyed(QObject*)), this, SLOT(prepareToTest()));
+}
+
+void KeyboardLayoutTester::prepareToTest()
+{
 	activateWindow();
-	setFocus();
+	raise();
 	startTest();
 }
 
