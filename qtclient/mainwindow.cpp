@@ -768,7 +768,7 @@ void MainWindow::saveSettings()
 		v++) {
 		QString name = v.key();
 		QJsonArray layout;
-		for (struct signetdev_key key : (*v)) {
+		for (signetdev_key key : (*v)) {
 			QJsonArray jKey;
 			jKey.append(QJsonValue(QString(QChar(key.key))));
 			jKey.append(QJsonValue(key.phy_key[0].scancode));
