@@ -1,4 +1,5 @@
 #ifndef SIGNETAPPLICATION_H
+t
 #define SIGNETAPPLICATION_H
 
 #include <QObject>
@@ -61,19 +62,19 @@ private:
 	int m_fwVersionStep;
 public:
 	static QDate getReleaseDate() {
-		return QDate(2017,12,15);
+		return QDate(2018,1,8);
 	}
 
 	void getClientVersion(int &major, int &minor, int &step) {
 		major = 0;
 		minor = 9;
-		step = 6;
+		step = 7;
 	}
 
 	void getFirmwareVersion(int &major, int &minor, int &step) {
 		major = 1;
 		minor = 2;
-		step = 3;
+		step = 2;
 	}
 
 	void getConnectedFirmwareVersion(int &major, int &minor, int &step) {
