@@ -435,7 +435,7 @@ void KeyboardLayoutTester::keyPressEvent(QKeyEvent *event)
 {
 	QString t = event->text();
 	event->accept();
-#if Q_OS_WIN32
+#ifdef Q_OS_WIN32
 	charactersTyped(t);
 #else
 	//TODO: this technique doesn't seem to work on all OS's
