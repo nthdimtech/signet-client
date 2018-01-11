@@ -6,8 +6,12 @@
 #include <QBoxLayout>
 #include <QPushButton>
 
-KeyboardLayoutTester::scancodeInfo KeyboardLayoutTester::s_scancodeSequence[] = {
+#ifdef Q_OS_LINUX
+#include <QtX11Extras/QX11Info>
+#include <X11/Xlib.h>
+#endif
 
+KeyboardLayoutTester::scancodeInfo KeyboardLayoutTester::s_scancodeSequence[] = {
 	{4 /*a*/, 2, 3},
 	{5 /*b*/, 6, 4},
 	{6 /*c*/, 4, 4},
@@ -148,8 +152,25 @@ KeyboardLayoutTester::KeyboardLayoutTester(const QVector<struct signetdev_key> &
 	m_signetdevToken(-1),
 	m_canStartTest(false),
 	m_testing(false),
+	m_skipGeneratingRAlt(false),
 	m_applyOnClose(false)
 {
+
+#ifdef Q_OS_LINUX
+		//Don't generate R-Alt if it acts as a modifier
+		Display *d = QX11Info::display();
+		XModifierKeymap *map = XGetModifierMapping(d);
+		int k = 0;
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < map->max_keypermod; j++) {
+				int k = map->max_keypermod * i + j;
+				if (map->modifiermap[k] == 108) {
+					m_skipGeneratingRAlt = true;
+				}
+			}
+		}
+#endif
+
 	setFocusPolicy(Qt::StrongFocus);
 	setWindowTitle("Keyboard layout configuration");
 	setAttribute(Qt::WA_InputMethodEnabled, true);
@@ -210,7 +231,6 @@ KeyboardLayoutTester::KeyboardLayoutTester(const QVector<struct signetdev_key> &
 		this, SLOT(focusWindowChanged(QWindow *)));
 
 	showCurrentLayout();
-	//setCentralWidget(centralWidget);
 }
 
 void KeyboardLayoutTester::initGridLayout()
@@ -328,8 +348,9 @@ void KeyboardLayoutTester::doStartTest()
 	m_scancodeNumChecking = 0;
 	m_modifierChecking = 0;
 	m_testing = true;
+#ifndef Q_OS_LINUX
 	m_skipGeneratingRAlt = false;
-
+#endif
 	m_layout.clear();
 	signetdev_key k;
 	k.key = '\t';
@@ -444,7 +465,7 @@ void KeyboardLayoutTester::keyPressEvent(QKeyEvent *event)
 {
 	QString t = event->text();
 	event->accept();
-#ifdef Q_OS_WIN32
+#if defined(Q_OS_WIN32) || defined(Q_OS_LINUX)
 	charactersTyped(t);
 #else
 	//TODO: this technique doesn't seem to work on all OS's

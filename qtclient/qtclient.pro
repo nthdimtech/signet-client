@@ -4,7 +4,11 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network websockets
+QT       += core gui network websockets x11extras
+
+unix:!macx {
+QT += x11extras
+}
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -167,6 +171,10 @@ CONFIG(release, debug|release):LIBS += -L$$PWD/../signet-firmware/build-signetde
 CONFIG(debug, debug|release):LIBS += -L$$PWD/../signet-firmware/build-signetdev-$$QT_ARCH-debug
 }
 LIBS += -lsignetdev
+
+unix:!macx {
+LIBS += -lX11
+}
 
 win32 {
 LIBS += -lhid -lsetupapi
