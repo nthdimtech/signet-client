@@ -160,7 +160,6 @@ KeyboardLayoutTester::KeyboardLayoutTester(const QVector<struct signetdev_key> &
 		//Don't generate R-Alt if it acts as a modifier
 		Display *d = QX11Info::display();
 		XModifierKeymap *map = XGetModifierMapping(d);
-		int k = 0;
 		for (int i = 0; i < 8; i++) {
 			for (int j = 0; j < map->max_keypermod; j++) {
 				int k = map->max_keypermod * i + j;
