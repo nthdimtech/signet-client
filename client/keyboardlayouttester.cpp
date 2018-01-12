@@ -6,9 +6,13 @@
 #include <QBoxLayout>
 #include <QPushButton>
 
+#define X11_COMPARE_MODMAP 1
+
 #ifdef Q_OS_LINUX
 #include <QtX11Extras/QX11Info>
 #include <X11/Xlib.h>
+#define XK_MISCELLANY
+#include <X11/keysymdef.h>
 #endif
 
 KeyboardLayoutTester::scancodeInfo KeyboardLayoutTester::s_scancodeSequence[] = {
@@ -55,11 +59,14 @@ KeyboardLayoutTester::scancodeInfo KeyboardLayoutTester::s_scancodeSequence[] = 
 	{38 /*9*/,10, 1},
 
 	{39 /*0*/,11, 1},
-	#if 0
 	{40 /*enter*/, 14, 3},
+#if 0
 	{43 /*tab*/, 1, 2},
+#endif
+
+#if !defined(Q_OS_WIN32)
 	{44 /*space*/, 3, 5},
-	#endif
+#endif
 	{45 /* -_ */, 12, 1},
 	{46 /* =+ */, 13, 1},
 	{47 /* [{ */, 12, 2},
@@ -80,7 +87,44 @@ KeyboardLayoutTester::scancodeInfo KeyboardLayoutTester::s_scancodeSequence[] = 
 
 void KeyboardLayoutTester::configure()
 {
+#if defined(Q_OS_LINUX) && X11_COMPARE_MODMAP
+	Display *d = QX11Info::display();
 
+	int minKeycode;
+	int maxKeycode;
+	int keySymsPerKeyCode;
+	XDisplayKeycodes(d, &minKeycode, &maxKeycode);
+	KeySym *mapping = XGetKeyboardMapping(d, minKeycode, maxKeycode - minKeycode + 1, &keySymsPerKeyCode);
+
+	int rightAltCode = 0;
+
+	m_skipGeneratingRAlt = false;
+
+	for (int i = 0; i <= (maxKeycode - minKeycode + 1); i++) {
+		for (int j = 0; j < keySymsPerKeyCode; j++) {
+			int k = keySymsPerKeyCode * i + j;
+			if (mapping[k] == XK_Alt_R) {
+				rightAltCode = i + minKeycode;
+				break;
+			}
+		}
+	}
+	XFree(mapping);
+
+	if (rightAltCode) {
+		//Don't generate R-Alt if it acts as a modifier
+		XModifierKeymap *map = XGetModifierMapping(d);
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < map->max_keypermod; j++) {
+				int k = map->max_keypermod * i + j;
+				if (map->modifiermap[k] == rightAltCode) {
+					m_skipGeneratingRAlt = true;
+				}
+			}
+		}
+		XFree(map);
+	}
+#endif
 	QMessageBox *msg = new QMessageBox(QMessageBox::Warning, "Configure keyboard layout",
 					   "Do not use your mouse or keyboard until configuration has completed.\n\n"
 					   "Keyboard layout configuration generates codes corresponding to physical keys and "
@@ -155,21 +199,6 @@ KeyboardLayoutTester::KeyboardLayoutTester(const QVector<struct signetdev_key> &
 	m_skipGeneratingRAlt(false),
 	m_applyOnClose(false)
 {
-
-#ifdef Q_OS_LINUX
-		//Don't generate R-Alt if it acts as a modifier
-		Display *d = QX11Info::display();
-		XModifierKeymap *map = XGetModifierMapping(d);
-		for (int i = 0; i < 8; i++) {
-			for (int j = 0; j < map->max_keypermod; j++) {
-				int k = map->max_keypermod * i + j;
-				if (map->modifiermap[k] == 108) {
-					m_skipGeneratingRAlt = true;
-				}
-			}
-		}
-#endif
-
 	setFocusPolicy(Qt::StrongFocus);
 	setWindowTitle("Keyboard layout configuration");
 	setAttribute(Qt::WA_InputMethodEnabled, true);
@@ -314,7 +343,7 @@ void KeyboardLayoutTester::typeKey()
 	u8 codes[4] = {
 		key.modifier,
 		key.scancode,
-		0,
+		key.modifier,
 		0
 	};
 	m_keyTimer.start(100);
@@ -347,7 +376,7 @@ void KeyboardLayoutTester::doStartTest()
 	m_scancodeNumChecking = 0;
 	m_modifierChecking = 0;
 	m_testing = true;
-#ifndef Q_OS_LINUX
+#if !defined(Q_OS_LINUX) || !X11_COMPARE_MODMAP
 	m_skipGeneratingRAlt = false;
 #endif
 	m_layout.clear();
@@ -358,18 +387,14 @@ void KeyboardLayoutTester::doStartTest()
 	k.phy_key[1].modifier = 0;
 	k.phy_key[1].scancode = 0;
 	m_layout.append(k);
-	k.key = '\n';
-	k.phy_key[0].modifier = 0;
-	k.phy_key[0].scancode = 40;
-	k.phy_key[1].modifier = 0;
-	k.phy_key[1].scancode = 0;
-	m_layout.append(k);
+#if defined(Q_OS_WIN32)
 	k.key = ' ';
 	k.phy_key[0].modifier = 0;
 	k.phy_key[0].scancode = 44;
 	k.phy_key[1].modifier = 0;
 	k.phy_key[1].scancode = 0;
 	m_layout.append(k);
+#endif
 
 	QLayoutItem* item;
 	while ( ( item = m_gridLayout->takeAt( 0 ) ) != NULL )
@@ -389,6 +414,10 @@ void KeyboardLayoutTester::stopTest()
 	m_configurationWarning->hide();
 	m_canStartTest = false;
 	m_testing = false;
+	u8 codes[2] = {
+		0,0
+	};
+	::signetdev_type_raw(NULL, &m_signetdevToken, codes, 1);
 	m_keyTimer.stop();
 }
 
@@ -464,7 +493,7 @@ void KeyboardLayoutTester::keyPressEvent(QKeyEvent *event)
 {
 	QString t = event->text();
 	event->accept();
-#if defined(Q_OS_WIN32) || defined(Q_OS_LINUX)
+#if defined(Q_OS_WIN32) || (defined(Q_OS_LINUX) && X11_COMPARE_MODMAP)
 	charactersTyped(t);
 #else
 	//TODO: this technique doesn't seem to work on all OS's
@@ -481,31 +510,32 @@ void KeyboardLayoutTester::typeNextKey()
 	if (m_testing) {
 		m_keysEmitted.clear();
 		m_timeoutCount = 0;
-		switch (m_modifierChecking) {
-		case 0:
-			m_modifierChecking = 2;
-			break;
-		case 2:
-			if (m_skipGeneratingRAlt) {
+		m_scancodeNumChecking++;
+		if (!s_scancodeSequence[m_scancodeNumChecking].code) {
+			m_scancodeNumChecking = 0;
+			switch (m_modifierChecking) {
+			case 0:
+				m_modifierChecking = 2;
+				break;
+			case 2:
+				if (m_skipGeneratingRAlt) {
+					m_modifierChecking = 0;
+				} else {
+					m_modifierChecking = 0x40;
+				}
+				break;
+			case 0x40:
+				if (m_skipGeneratingRAlt) {
+					m_modifierChecking = 0;
+				} else {
+					m_modifierChecking = 0x42;
+				}
+				break;
+			case 0x42:
 				m_modifierChecking = 0;
-			} else {
-				m_modifierChecking = 0x40;
+				break;
 			}
-			break;
-		case 0x40:
-			if (m_skipGeneratingRAlt) {
-				m_modifierChecking = 0;
-			} else {
-				m_modifierChecking = 0x42;
-			}
-			break;
-		case 0x42:
-			m_modifierChecking = 0;
-			break;
-		}
-		if (!m_modifierChecking) {
-			m_scancodeNumChecking++;
-			if (!s_scancodeSequence[m_scancodeNumChecking].code) {
+			if (!m_modifierChecking) {
 				stopTest();
 				m_configureButton->setEnabled(true);
 				m_applyButton->setEnabled(true);
@@ -534,7 +564,7 @@ void KeyboardLayoutTester::pressTimeout()
 	u8 codes[] = {
 		key.modifier,
 		key.scancode,
-		0,
+		key.modifier,
 		0
 	};
 	m_timeoutCount++;
