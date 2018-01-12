@@ -164,11 +164,11 @@ RESOURCES = resources.qrc
 DISTFILES += signet.rc
 
 win32 {
-CONFIG(release, debug|release):LIBS += -L$$PWD/../signet-firmware/build-signetdev-$$QT_ARCH/release
-CONFIG(debug, debug|release):LIBS += -L$$PWD/../signet-firmware/build-signetdev-$$QT_ARCH/debug
+CONFIG(release, debug|release):LIBS += -L$$PWD/../signet-base/build-signetdev-$$QT_ARCH/release
+CONFIG(debug, debug|release):LIBS += -L$$PWD/../signet-base/build-signetdev-$$QT_ARCH/debug
 } else {
-CONFIG(release, debug|release):LIBS += -L$$PWD/../signet-firmware/build-signetdev-$$QT_ARCH-release
-CONFIG(debug, debug|release):LIBS += -L$$PWD/../signet-firmware/build-signetdev-$$QT_ARCH-debug
+CONFIG(release, debug|release):LIBS += -L$$PWD/../signet-base/build-signetdev-$$QT_ARCH-release
+CONFIG(debug, debug|release):LIBS += -L$$PWD/../signet-base/build-signetdev-$$QT_ARCH-debug
 }
 LIBS += -lsignetdev
 
@@ -180,5 +180,5 @@ win32 {
 LIBS += -lhid -lsetupapi
 }
 
-INCLUDEPATH += $$PWD/../signet-firmware
-DEPENDPATH += $$PWD/../signet-firmware
+INCLUDEPATH += $$PWD/../signet-base
+DEPENDPATH += $$PWD/../signet-base
