@@ -511,7 +511,8 @@ void KeyboardLayoutTester::typeNextKey()
 		m_keysEmitted.clear();
 		m_timeoutCount = 0;
 		m_scancodeNumChecking++;
-		if (!s_scancodeSequence[m_scancodeNumChecking].code) {
+		if (!s_scancodeSequence[m_scancodeNumChecking].code ||
+				((m_modifierChecking & 0x40) && m_skipGeneratingRAlt)) {
 			m_scancodeNumChecking = 0;
 			switch (m_modifierChecking) {
 			case 0:
