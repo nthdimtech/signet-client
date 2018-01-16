@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network websockets x11extras
+QT       += core gui network websockets
 
 unix:!macx {
 QT += x11extras
