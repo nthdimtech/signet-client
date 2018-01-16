@@ -144,7 +144,7 @@ void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int c
 		QByteArray hashfn;
 		QByteArray salt;
 		signetdev_startup_resp_data resp;
-		if (resp_data) {
+		if (resp_data && resp_code == OKAY) {
 			signetdev_startup_resp_data *resp_ = (signetdev_startup_resp_data *)resp_data;
 			resp = *resp_;
 		}
@@ -152,7 +152,7 @@ void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int c
 	}
 	break;
 	case SIGNETDEV_CMD_READ_UID: {
-		if (resp_data) {
+		if (resp_data && resp_code == OKAY) {
 			signetdev_read_uid_resp_data *resp = (signetdev_read_uid_resp_data *)resp_data;
 			QByteArray data((char *)resp->data, resp->size);
 			QByteArray mask((char *)resp->mask, resp->size);
