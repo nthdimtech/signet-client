@@ -93,10 +93,17 @@ class LoggedInWidget : public QWidget
 	QList<iconAccount> m_icon_accounts;
 	QMap<int, esdbEntry *> m_entries;
 
-	QList<QMap<int, esdbEntry *> *> m_entriesByType;
-	QList<QList<esdbEntry *> *> m_filteredLists;
-	QList<esdbTypeModule *> m_dataTypeModules;
-	QList<EsdbModel *> m_esdbModel;
+	struct typeData {
+		esdbTypeModule *module;
+		QMap<int, esdbEntry *> *entries;
+		QList<esdbEntry *> *filteredList;
+		EsdbModel *model;
+		typeData(esdbTypeModule *_module);
+		~typeData();
+	};
+
+	QList<typeData *> m_typeData;
+
 	int m_activeType;
 
 	esdbGenericModule *m_genericDecoder;

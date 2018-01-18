@@ -84,7 +84,23 @@ int iconAccount::matchQuality(esdbEntry *entry)
 	return quality;
 }
 
- LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, QWidget *parent) : QWidget(parent),
+LoggedInWidget::typeData::typeData(esdbTypeModule *_module) :
+	module(_module)
+{
+	entries = new QMap<int, esdbEntry *>();
+	filteredList = new QList<esdbEntry *>();
+	model = new EsdbModel(module, filteredList);
+}
+
+LoggedInWidget::typeData::~typeData()
+{
+	delete entries;
+	delete filteredList;
+	delete model;
+	delete module;
+}
+
+LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, QWidget *parent) : QWidget(parent),
 	m_activeType(0),
 	m_selectedEntry(NULL),
 	m_filterLabel(NULL),
@@ -161,12 +177,12 @@ int iconAccount::matchQuality(esdbEntry *entry)
 	m_genericDecoder = new esdbGenericModule(place, this);
 
 	m_accounts = new esdbAccountModule(this);
+	m_typeData.push_back(new typeData(m_accounts));
+
 	m_bookmarks = new esdbBookmarkModule(this);
-	m_dataTypeModules.push_back(m_accounts);
-	m_dataTypeModules.push_back(m_bookmarks);
+	m_typeData.push_back(new typeData(m_bookmarks));
 
 	genericTypeDesc *genericTypeDesc_;
-	esdbGenericModule *genericModule;
 
 	if (USE_USER_DEFINED_TYPES) {
 		genericTypeDesc_ = new genericTypeDesc();
@@ -175,8 +191,7 @@ int iconAccount::matchQuality(esdbEntry *entry)
 		genericTypeDesc_->fields.push_back(fieldSpec("Exp month","integer"));
 		genericTypeDesc_->fields.push_back(fieldSpec("Exp year","integer"));
 		genericTypeDesc_->fields.push_back(fieldSpec("CCV","text"));
-		genericModule = new esdbGenericModule(genericTypeDesc_, this);
-		m_dataTypeModules.push_back(genericModule);
+		m_typeData.push_back(new typeData(new esdbGenericModule(genericTypeDesc_, this)));
 
 		genericTypeDesc_ = new genericTypeDesc();
 		genericTypeDesc_->name = "Contact";
@@ -185,22 +200,19 @@ int iconAccount::matchQuality(esdbEntry *entry)
 		genericTypeDesc_->fields.push_back(fieldSpec("Address 1","text"));
 		genericTypeDesc_->fields.push_back(fieldSpec("Address 2","text"));
 		genericTypeDesc_->fields.push_back(fieldSpec("City","text"));
-		genericModule = new esdbGenericModule(genericTypeDesc_, this);
-		m_dataTypeModules.push_back(genericModule);
+		m_typeData.push_back(new typeData(new esdbGenericModule(genericTypeDesc_, this)));
 	}
 
 	if (USE_MISC_TYPE) {
 		genericTypeDesc_ = new genericTypeDesc();
 		genericTypeDesc_->name = "Misc";
-		genericModule = new esdbGenericModule(genericTypeDesc_, this, false, false);
-		m_dataTypeModules.push_back(genericModule);
+		m_typeData.push_back(new typeData(new esdbGenericModule(genericTypeDesc_, this, false, false)));
 	}
 
 	if (USE_USER_DEFINED_TYPES) {
 		genericTypeDesc_ = new genericTypeDesc();
 		genericTypeDesc_->name = "User type";
-		genericModule = new esdbGenericModule(genericTypeDesc_, this);
-		m_dataTypeModules.push_back(genericModule);
+		m_typeData.push_back(new typeData(new esdbGenericModule(genericTypeDesc_, this)));
 	}
 
 	SignetApplication *app = SignetApplication::get();
@@ -229,14 +241,8 @@ int iconAccount::matchQuality(esdbEntry *entry)
 	QObject::connect(m_newAcctButton, SIGNAL(pressed()), this, SLOT(newEntryUI()));
 
 	m_actionBarStack = new QStackedWidget();
-	for (auto iter : m_dataTypeModules) {
-		auto data = new QMap<int, esdbEntry *>();
-		m_entriesByType.push_back(data);
-		auto filteredList = new QList<esdbEntry *>();
-		m_filteredLists.push_back(filteredList);
-		auto esdbModel = new EsdbModel(iter, filteredList);
-		m_esdbModel.push_back(esdbModel);
-		EsdbActionBar *actionBar = iter->newActionBar();
+	for (auto iter : m_typeData) {
+		EsdbActionBar *actionBar = iter->module->newActionBar();
 		connect(actionBar, SIGNAL(background()), this, SIGNAL(background()));
 		m_actionBarStack->addWidget(actionBar);
 	}
@@ -247,7 +253,7 @@ int iconAccount::matchQuality(esdbEntry *entry)
 	m_filterLabel->setPixmap(pm);
 	m_filterLabel->setToolTip("Account search");
 
-	m_searchListbox = new SearchListbox(m_filterEdit, m_esdbModel.at(m_activeType));
+	m_searchListbox = new SearchListbox(m_filterEdit, m_typeData.at(m_activeType)->model);
 	m_searchListbox->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(m_searchListbox, SIGNAL(activated(QModelIndex)), this, SLOT(activated(QModelIndex)));
 	connect(m_searchListbox, SIGNAL(pressed(QModelIndex)), this, SLOT(pressed(QModelIndex)));
@@ -266,8 +272,8 @@ int iconAccount::matchQuality(esdbEntry *entry)
 	m_newAcctButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
 	m_viewSelector = new QComboBox();
-	for (auto dataType : m_dataTypeModules) {
-		m_viewSelector->addItem(dataType->m_name);
+	for (auto iter : m_typeData) {
+		m_viewSelector->addItem(iter->module->m_name);
 	}
 	m_viewSelector->setCurrentIndex(m_activeType);
 	connect(m_viewSelector, SIGNAL(currentIndexChanged(int)), this, SLOT(currentTypeIndexChanged(int)));
@@ -348,7 +354,7 @@ void LoggedInWidget::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int uid
 void LoggedInWidget::currentTypeIndexChanged(int idx)
 {
 	m_activeType = idx;
-	m_searchListbox->setModel(m_esdbModel.at(idx));
+	m_searchListbox->setModel(m_typeData.at(idx)->model);
 	m_selectedEntry = NULL;
 	m_actionBarStack->setCurrentIndex(idx);
 	populateEntryList(m_activeType, m_filterEdit->text());
@@ -439,8 +445,7 @@ void LoggedInWidget::signetdevCmdResp(signetdevCmdRespInfo info)
 			bar->idTaskComplete(m_id, m_idTask, m_taskIntent);
 			if (code == OKAY) {
 				m_entries.erase(m_entries.find(m_id));
-				//TODO: too long line
-				m_entriesByType.at(m_activeType)->erase(m_entriesByType.at(m_activeType)->find(m_id));
+				m_typeData.at(m_activeType)->entries->erase(m_typeData.at(m_activeType)->entries->find(m_id));
 				populateEntryList(m_activeType, m_filterEdit->text());
 			}
 			m_idTask = ID_TASK_NONE;
@@ -595,7 +600,7 @@ esdbTypeModule *LoggedInWidget::getTypeModule(int type)
 	} else {
 		int index = esdbTypeToIndex(type);
 		if (index >= 0) {
-			module = m_dataTypeModules.at(index);
+			module = m_typeData.at(index)->module;
 		}
 	}
 	return module;
@@ -604,7 +609,7 @@ esdbTypeModule *LoggedInWidget::getTypeModule(int type)
 void LoggedInWidget::filterTextChanged(QString text)
 {
 	populateEntryList(m_activeType, text);
-	QList<esdbEntry *> *filteredList = m_filteredLists.at(m_activeType);
+	QList<esdbEntry *> *filteredList = m_typeData.at(m_activeType)->filteredList;
 	if (filteredList->size() == 0 || text.size() == 0) {
 		m_filterEdit->setFocus();
 	}
@@ -612,7 +617,7 @@ void LoggedInWidget::filterTextChanged(QString text)
 		if (text.size() == 0) {
 			m_filterEdit->setFocus();
 		}
-		m_searchListbox->setCurrentIndex(m_esdbModel.at(m_activeType)->index(0));
+		m_searchListbox->setCurrentIndex(m_typeData.at(m_activeType)->model->index(0));
 		selectEntry(filteredList->at(0));
 	} else {
 		selectEntry(selectedEntry());
@@ -670,7 +675,7 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 			m_entries[id] = entry;
 			int index = esdbEntryToIndex(entry);
 			if (index >= 0) {
-				(*m_entriesByType.at(index))[id] = entry;
+				m_typeData.at(index)->entries->insert(id, entry);
 				if (!m_populating) {
 					populateEntryList(m_activeType, m_searchListbox->filterText());
 				}
@@ -690,7 +695,7 @@ void LoggedInWidget::selected(QModelIndex idx)
 {
 	if (idx.isValid()) {
 		int index = idx.row();
-		auto list = m_filteredLists.at(m_activeType);
+		auto list = m_typeData.at(m_activeType)->filteredList;
 		esdbEntry *acct = list->at(index);
 		selectEntry(acct);
 	}
@@ -700,7 +705,7 @@ void LoggedInWidget::activated(QModelIndex idx)
 {
 	if (idx.isValid()) {
 		int index = idx.row();
-		esdbEntry *entry = m_filteredLists.at(m_activeType)->at(index);
+		esdbEntry *entry = m_typeData.at(m_activeType)->filteredList->at(index);
 		selectEntry(entry);
 		getActiveActionBar()->defaultAction(entry);
 	}
@@ -710,7 +715,7 @@ void LoggedInWidget::pressed(QModelIndex idx)
 {
 	if (idx.isValid()) {
 		int index = idx.row();
-		esdbEntry *acct = m_filteredLists.at(m_activeType)->at(index);
+		esdbEntry *acct = m_typeData.at(m_activeType)->filteredList->at(index);
 		selectEntry(acct);
 	}
 }
@@ -805,8 +810,9 @@ void LoggedInWidget::entryCreated(EsdbActionBar *actionBar, esdbEntry *entry)
 			}
 		}
 		if (typeIndex >= 0) {
-			(*m_entriesByType.at(typeIndex))[entry->id] = entry;
+			m_typeData.at(typeIndex)->entries->insert(entry->id, entry);
 			populateEntryList(typeIndex, m_filterEdit->text());
+#if 0
 			if (USE_USER_DEFINED_TYPES) {
 				//TODO: need to also handle user types already stored in database
 				QString typeName = m_dataTypeModules.at(typeIndex)->m_name;
@@ -833,15 +839,16 @@ void LoggedInWidget::entryCreated(EsdbActionBar *actionBar, esdbEntry *entry)
 					m_viewSelector->addItem(g->name);
 				}
 			}
+#endif
 		}
 	}
 }
 
 void LoggedInWidget::populateEntryList(int index, QString filter)
 {
-	QList<esdbEntry *> *filteredList = m_filteredLists.at(index);
-	QMap<int, esdbEntry *> *data = m_entriesByType.at(index);
-	EsdbModel *model = m_esdbModel.at(index);
+	QList<esdbEntry *> *filteredList = m_typeData.at(index)->filteredList;
+	QMap<int, esdbEntry *> *data = m_typeData.at(index)->entries;
+	EsdbModel *model = m_typeData.at(index)->model;
 	filteredList->clear();
 
 	QVector<QList<esdbEntry *> > qualityGroups;
