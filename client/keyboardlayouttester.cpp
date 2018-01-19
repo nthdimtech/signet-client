@@ -59,8 +59,8 @@ KeyboardLayoutTester::scancodeInfo KeyboardLayoutTester::s_scancodeSequence[] = 
 	{38 /*9*/,10, 1},
 
 	{39 /*0*/,11, 1},
-	{40 /*enter*/, 14, 3},
 #if 0
+	{40 /*enter*/, 14, 3},
 	{43 /*tab*/, 1, 2},
 #endif
 
@@ -384,6 +384,12 @@ void KeyboardLayoutTester::doStartTest()
 	k.key = '\t';
 	k.phy_key[0].modifier = 0;
 	k.phy_key[0].scancode = 43;
+	k.phy_key[1].modifier = 0;
+	k.phy_key[1].scancode = 0;
+	m_layout.append(k);
+	k.key = '\n';
+	k.phy_key[0].modifier = 0;
+	k.phy_key[0].scancode = 40;
 	k.phy_key[1].modifier = 0;
 	k.phy_key[1].scancode = 0;
 	m_layout.append(k);

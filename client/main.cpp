@@ -1,10 +1,15 @@
 #include "signetapplication.h"
 
+#include "crypto/Crypto.h"
+
 #include <QThread>
 
 int main(int argc, char **argv)
 {
 	SignetApplication a(argc, argv);
+
+	Crypto::init();
+
 	if (a.isRunning()) {
 		QIcon signetIcon = QIcon(":/images/signet.png");
 		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Signet",

@@ -104,7 +104,8 @@ class LoggedInWidget : public QWidget
 
 	QList<typeData *> m_typeData;
 
-	int m_activeType;
+	typeData *m_activeType;
+	int m_activeTypeIndex;
 
 	esdbGenericModule *m_genericDecoder;
 
@@ -133,7 +134,7 @@ class LoggedInWidget : public QWidget
 	QComboBox *m_viewSelector;
 	int m_signetdevCmdToken;
 	void accountActionsEnabled(bool enabled);
-	void populateEntryList(int index, QString filter);
+	void populateEntryList(typeData *t, QString filter);
 
 	esdbEntry *selectedEntry();
 	void clearSelection();
@@ -164,6 +165,8 @@ public:
 	void finishTask(bool deselect = true);
 	void beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar);
 	void getSelectedAccountRect(QRect &r);
+	int getUnusedId();
+	const esdbEntry *findEntry(QString type, QString name) const;
 signals:
 	void abort();
 	void enterDeviceState(int);
@@ -174,7 +177,7 @@ public slots:
 	void signetdevReadUIdResp(signetdevCmdRespInfo info, QByteArray data, QByteArray mask);
 	void signetdevCmdResp(signetdevCmdRespInfo info);
 	void signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
-	void entryCreated(EsdbActionBar *actionBar, esdbEntry *acct);
+	void entryCreated(QString typeName, esdbEntry *entry);
 	void abortProxy();
 	void filterEditPressed();
 	void currentTypeIndexChanged(int idx);

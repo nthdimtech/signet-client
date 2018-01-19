@@ -29,7 +29,6 @@ class MainWindow;
 #include <QDateTime>
 #include <QString>
 
-class LoggedInWidget;
 class ButtonWaitDialog;
 class QFile;
 class LoginWindow;
@@ -39,6 +38,8 @@ class QStackedWidget;
 class QByteArray;
 struct esdbTypeModule;
 class KeyboardLayoutTester;
+class Database;
+class keePassImportController;
 
 struct fwSection {
 	QString name;
@@ -78,12 +79,14 @@ public:
 		STATE_RESTORING,
 		STATE_BACKING_UP,
 		STATE_UPDATING_FIRMWARE,
-		STATE_EXPORTING
+		STATE_EXPORTING,
+		STATE_KEEPASS_IMPORT
 	};
 	localSettings *getSettings() {
 		return &m_settings;
 	}
 private:
+	Database *m_keePassDatabase;
 	QProgressBar *m_wipeProgress;
 	QWidget *m_wipingWidget;
 	bool m_connected;
@@ -95,6 +98,8 @@ private:
 	bool m_loggedIn;
 	QTimer m_connectingTimer;
 	bool m_wasConnected;
+
+	keePassImportController *m_keePassImportController;
 
 	QMap<QString, int> m_exportFieldMap;
 	QVector<QString> m_exportField;
@@ -125,11 +130,13 @@ private:
 
 	QWidget *m_uninitPrompt;
 	QMenu *m_exportMenu;
+	QMenu *m_importMenu;
 
 	QAction *m_saveAction;
 	QAction *m_importAction;
 	QAction *m_settingsAction;
 	QAction *m_exportCSVAction;
+	QAction *m_importKeePassAction;
 	QAction *m_backupAction;
 	QAction *m_restoreAction;
 	QAction *m_logoutAction;
@@ -191,11 +198,13 @@ public slots:
 	void connectingTimer();
 	void background();
 	void openSettingsUi();
+	void importKeePassUI();
 	void exportCSVUi();
 	void aboutUi();
 	void startOnlineHelp();
 	void applyKeyboardLayoutChanges();
 	void keyboardLayoutTesterClosing(bool applyChanges);
+	void keePassImportDone(bool success);
 };
 
 #endif // MAINWINDOW_H

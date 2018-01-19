@@ -31,6 +31,14 @@
 #include <QJsonArray>
 #include <QString>
 
+#include "keepassimportcontroller.h"
+
+#include <format/KeePass2Reader.h>
+#include <keys/PasswordKey.h>
+#include <core/Database.h>
+#include <core/Group.h>
+#include <core/Entry.h>
+
 #include "about.h"
 #include "loggedinwidget.h"
 #include "account.h"
@@ -44,6 +52,7 @@
 
 #include "signetapplication.h"
 #include "settingsdialog.h"
+#include "keepassunlockdialog.h"
 
 extern "C" {
 #include "signetdev/host/signetdev.h"
@@ -118,8 +127,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	m_exportMenu = m_fileMenu->addMenu("Export");
 	m_exportMenu->setVisible(false);
-
 	m_exportCSVAction = m_exportMenu->addAction("CSV");
+
+	m_importMenu = m_fileMenu->addMenu("Import");
+	m_importMenu->setVisible(false);
+	m_importKeePassAction = m_importMenu->addAction("KeePass 2.x Database");
+
+	connect(m_importKeePassAction, SIGNAL(triggered(bool)),
+		this, SLOT(importKeePassUI()));
+
 	QAction *quit_action = m_fileMenu->addAction("Exit");
 	QObject::connect(quit_action, SIGNAL(triggered(bool)), this, SLOT(quit()));
 
@@ -1184,6 +1200,9 @@ void MainWindow::enterDeviceState(int state)
 		m_backupWidget->deleteLater();
 		m_backupWidget = NULL;
 		break;
+	case STATE_KEEPASS_IMPORT:
+		m_keePassImportController->deleteLater();
+		break;
 	case STATE_LOGGED_IN_LOADING_ACCOUNTS: {
 		QWidget *w = m_loggedInStack->currentWidget();
 		m_loggedInStack->setCurrentIndex(0);
@@ -1274,6 +1293,13 @@ void MainWindow::enterDeviceState(int state)
 		setCentralWidget(m_loggedInStack);
 	}
 	break;
+	case STATE_KEEPASS_IMPORT: {
+		LoggedInWidget *l = (LoggedInWidget *)m_loggedInStack->widget(0);
+		m_loggedIn = true;
+		m_keePassImportController = new keePassImportController(l, m_keePassDatabase, this);
+		connect(m_keePassImportController, SIGNAL(done(bool)), this, SLOT(keePassImportDone(bool)));
+		m_keePassImportController->start();
+		} break;
 	case STATE_BACKING_UP: {
 		m_loggedIn = true;
 		m_backupWidget = new QWidget();
@@ -1446,6 +1472,17 @@ void MainWindow::enterDeviceState(int state)
 	bool fileActionsEnabled = (m_deviceState == STATE_LOGGED_IN);
 	m_exportMenu->menuAction()->setVisible(fileActionsEnabled);
 	m_settingsAction->setVisible(fileActionsEnabled);
+}
+
+void MainWindow::keePassImportDone(bool)
+{
+	QMessageBox *mb = SignetApplication::messageBoxError(QMessageBox::Information,
+			"KeePass Database Import",
+			"KeePass database import successful",
+			this);
+	mb->exec();
+	mb->deleteLater();
+	enterDeviceState(STATE_LOGGED_IN);
 }
 
 void MainWindow::openSettingsUi()
@@ -1726,6 +1763,61 @@ void MainWindow::exportCSVUi()
 	m_buttonWaitDialog->show();
 	m_startedExport = true;
 	::signetdev_read_all_uids(NULL, &m_signetdevCmdToken, 0);
+}
+
+void MainWindow::importKeePassUI()
+{
+	QFileDialog *fd = new QFileDialog(this, "KeePass Database Import");
+	QStringList filters;
+	filters.append("*.kdbx");
+	filters.append("*");
+	fd->setNameFilters(filters);
+	fd->setFileMode(QFileDialog::AnyFile);
+	fd->setAcceptMode(QFileDialog::AcceptOpen);
+	fd->setWindowModality(Qt::WindowModal);
+	if (!fd->exec())
+		return;
+	QStringList sl = fd->selectedFiles();
+	if (sl.empty())
+		return;
+	fd->deleteLater();
+
+	QFile *keePassFile = new QFile(sl.first());
+	if (!keePassFile->open(QFile::ReadOnly)) {
+		keePassFile->deleteLater();
+		auto mb = SignetApplication::messageBoxError(QMessageBox::Warning,
+						   "KeePass Database Import",
+						   "Failed to open KeePass database file",
+						   this);
+		mb->exec();
+		mb->deleteLater();
+		return;
+	}
+
+	KeePassUnlockDialog *unlockDialog = new KeePassUnlockDialog(keePassFile, this);
+	unlockDialog->setWindowTitle("KeePass Database Import");
+	unlockDialog->setWindowModality(Qt::WindowModal);
+	unlockDialog->exec();
+	m_keePassDatabase = unlockDialog->database();
+	unlockDialog->deleteLater();
+	if (!m_keePassDatabase) {
+		keePassFile->deleteLater();
+		return;
+	}
+	keePassFile->deleteLater();
+	if (!m_keePassDatabase) {
+		QMessageBox *msg = new QMessageBox(QMessageBox::Warning,
+					"KeePass Database Import",
+					"Invalid credentials for KeePass database",
+					QMessageBox::NoButton, this);
+		msg->setWindowModality(Qt::WindowModal);
+		msg->exec();
+		m_keePassDatabase->deleteLater();
+		m_keePassDatabase = NULL;
+		return;
+	} else {
+		enterDeviceState(STATE_KEEPASS_IMPORT);
+	}
 }
 
 void MainWindow::restoreDeviceUi()

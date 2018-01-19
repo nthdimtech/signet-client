@@ -7,3 +7,6 @@
 [submodule "signet-base"]
 	path = signet-base
 	url = ../signet-base
+[submodule "keepassx"]
+	path = keepassx
+	url = ../keepassx.git

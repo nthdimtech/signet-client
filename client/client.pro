@@ -78,7 +78,51 @@ SOURCES += main.cpp \
     signetdevserverconnection.cpp \
     about.cpp \
     keyboardlayouttester.cpp \
-    settingsdialog.cpp
+    settingsdialog.cpp \
+    ../keepassx/src/core/AutoTypeAssociations.cpp \
+    ../keepassx/src/core/Config.cpp \
+    ../keepassx/src/core/Database.cpp \
+    ../keepassx/src/core/DatabaseIcons.cpp \
+    ../keepassx/src/core/Endian.cpp \
+    ../keepassx/src/core/Entry.cpp \
+    ../keepassx/src/core/EntryAttachments.cpp \
+    ../keepassx/src/core/EntryAttributes.cpp \
+    ../keepassx/src/core/EntrySearcher.cpp \
+    ../keepassx/src/core/FilePath.cpp \
+    ../keepassx/src/core/Group.cpp \
+    ../keepassx/src/core/InactivityTimer.cpp \
+    ../keepassx/src/core/Metadata.cpp \
+    ../keepassx/src/core/SignalMultiplexer.cpp \
+    ../keepassx/src/core/TimeDelta.cpp \
+    ../keepassx/src/core/TimeInfo.cpp \
+    ../keepassx/src/core/ToDbExporter.cpp \
+    ../keepassx/src/core/Tools.cpp \
+    ../keepassx/src/core/Translator.cpp \
+    ../keepassx/src/core/Uuid.cpp \
+    ../keepassx/src/crypto/Crypto.cpp \
+    ../keepassx/src/crypto/CryptoHash.cpp \
+    ../keepassx/src/crypto/Random.cpp \
+    ../keepassx/src/crypto/SymmetricCipher.cpp \
+    ../keepassx/src/crypto/SymmetricCipherGcrypt.cpp \
+    ../keepassx/src/format/KeePass2Reader.cpp \
+    ../keepassx/src/streams/HashedBlockStream.cpp \
+    ../keepassx/src/streams/LayeredStream.cpp \
+    ../keepassx/src/streams/qtiocompressor.cpp \
+    ../keepassx/src/streams/StoreDataStream.cpp \
+    ../keepassx/src/streams/SymmetricCipherStream.cpp \
+    ../keepassx/src/format/CsvExporter.cpp \
+    ../keepassx/src/format/KeePass1Reader.cpp \
+    ../keepassx/src/format/KeePass2RandomStream.cpp \
+    ../keepassx/src/format/KeePass2Repair.cpp \
+    ../keepassx/src/format/KeePass2Writer.cpp \
+    ../keepassx/src/format/KeePass2XmlReader.cpp \
+    ../keepassx/src/format/KeePass2XmlWriter.cpp \
+    ../../keepassx/src/keys/CompositeKey.cpp \
+    ../../keepassx/src/keys/FileKey.cpp \
+    ../../keepassx/src/keys/PasswordKey.cpp \
+    accountrenamedialog.cpp \
+    keepassunlockdialog.cpp \
+    keepassimportcontroller.cpp
 
 win32 {
 SOURCES += qtsingleapplication/src/qtlockedfile_win.cpp
@@ -150,10 +194,64 @@ HEADERS  += mainwindow.h \
     about.h \
     keyboardlayouttester.h \
     localsettings.h \
-    settingsdialog.h
+    settingsdialog.h \
+    ../keepassx/src/core/AutoTypeAssociations.h \
+    ../keepassx/src/core/Config.h \
+    ../keepassx/src/core/Database.h \
+    ../keepassx/src/core/DatabaseIcons.h \
+    ../keepassx/src/core/Endian.h \
+    ../keepassx/src/core/Entry.h \
+    ../keepassx/src/core/EntryAttachments.h \
+    ../keepassx/src/core/EntryAttributes.h \
+    ../keepassx/src/core/EntrySearcher.h \
+    ../keepassx/src/core/Exporter.h \
+    ../keepassx/src/core/FilePath.h \
+    ../keepassx/src/core/Global.h \
+    ../keepassx/src/core/Group.h \
+    ../keepassx/src/core/InactivityTimer.h \
+    ../keepassx/src/core/ListDeleter.h \
+    ../keepassx/src/core/Metadata.h \
+    ../keepassx/src/core/SignalMultiplexer.h \
+    ../keepassx/src/core/TimeDelta.h \
+    ../keepassx/src/core/TimeInfo.h \
+    ../keepassx/src/core/ToDbExporter.h \
+    ../keepassx/src/core/Tools.h \
+    ../keepassx/src/core/Translator.h \
+    ../keepassx/src/core/Uuid.h \
+    ../keepassx/src/crypto/Crypto.h \
+    ../keepassx/src/crypto/CryptoHash.h \
+    ../keepassx/src/crypto/Random.h \
+    ../keepassx/src/crypto/SymmetricCipher.h \
+    ../keepassx/src/crypto/SymmetricCipherBackend.h \
+    ../keepassx/src/crypto/SymmetricCipherGcrypt.h \
+    ../keepassx/src/format/KeePass2.h \
+    ../keepassx/src/format/KeePass2Reader.h \
+    ../keepassx/src/streams/HashedBlockStream.h \
+    ../keepassx/src/streams/LayeredStream.h \
+    ../keepassx/src/streams/qtiocompressor.h \
+    ../keepassx/src/streams/StoreDataStream.h \
+    ../keepassx/src/streams/SymmetricCipherStream.h \
+    ../keepassx/src/format/CsvExporter.h \
+    ../keepassx/src/format/KeePass1.h \
+    ../keepassx/src/format/KeePass1Reader.h \
+    ../keepassx/src/format/KeePass2RandomStream.h \
+    ../keepassx/src/format/KeePass2Repair.h \
+    ../keepassx/src/format/KeePass2Writer.h \
+    ../keepassx/src/format/KeePass2XmlReader.h \
+    ../keepassx/src/format/KeePass2XmlWriter.h \
+    ../../keepassx/src/keys/CompositeKey_p.h \
+    ../../keepassx/src/keys/CompositeKey.h \
+    ../../keepassx/src/keys/FileKey.h \
+    ../../keepassx/src/keys/Key.h \
+    ../../keepassx/src/keys/PasswordKey.h \
+    accountrenamedialog.h \
+    keepassunlockdialog.h \
+    keepassimportcontroller.h
 
 INCLUDEPATH+=../scrypt
 INCLUDEPATH+=qtsingleapplication/src
+INCLUDEPATH+=../keepassx/src
+INCLUDEPATH+=../src
 
 win32 {
 RC_FILE = signet.rc
@@ -182,3 +280,5 @@ LIBS += -lhid -lsetupapi
 
 INCLUDEPATH += $$PWD/../signet-base
 DEPENDPATH += $$PWD/../signet-base
+
+LIBS += -lgcrypt -lz

@@ -82,6 +82,11 @@ struct esdbEntry {
 		return QString();
 	}
 
+	virtual QString getPath() const
+	{
+		return QString();
+	}
+
 	bool hasIcon() const
 	{
 		return iconSet;

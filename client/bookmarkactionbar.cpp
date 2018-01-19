@@ -153,5 +153,5 @@ void BookmarkActionBar::newEntryFinished(int)
 
 void BookmarkActionBar::entryCreated(esdbEntry *entry)
 {
-	m_parent->entryCreated(this, entry);
+	m_parent->entryCreated("bookmark", entry);
 }

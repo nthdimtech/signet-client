@@ -200,5 +200,5 @@ void GenericActionBar::newEntryFinished(int)
 
 void GenericActionBar::entryCreated(esdbEntry *entry)
 {
-	m_parent->entryCreated(this, entry);
+	m_parent->entryCreated(m_module->name(), entry);
 }
