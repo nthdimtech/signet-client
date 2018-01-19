@@ -4,21 +4,26 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network websockets
+QT       += core gui widgets network websockets concurrent
 
 unix:!macx {
 QT += x11extras
 }
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
 TARGET = signet
 TEMPLATE = app
-QMAKE_CFLAGS += -static -DUSE_RAW_HID -msse4.1
-QMAKE_CXXFLAGS += -static -std=c++11 -DUSE_RAW_HID -msse4.1
+QMAKE_CFLAGS += -DUSE_RAW_HID -msse4.1
+QMAKE_CXXFLAGS += -std=c++11 -DUSE_RAW_HID -msse4.1
 
 macx {
 LIBS += -framework CoreFoundation
+LIBS += /usr/local/lib/libgcrypt.a /usr/local/lib/libgpg-error.a -lz
+INCLUDEPATH+=/usr/local/include
+QMAKE_LFLAGS += -L/usr/local/lib
+}
+
+unix:!macx {
+LIBS += -lgcrypt -lz
 }
 
 SOURCES += main.cpp \
@@ -79,6 +84,9 @@ SOURCES += main.cpp \
     about.cpp \
     keyboardlayouttester.cpp \
     settingsdialog.cpp \
+    ../keepassx/src/keys/CompositeKey.cpp \
+    ../keepassx/src/keys/PasswordKey.cpp \
+    ../keepassx/src/keys/FileKey.cpp \
     ../keepassx/src/core/AutoTypeAssociations.cpp \
     ../keepassx/src/core/Config.cpp \
     ../keepassx/src/core/Database.cpp \
@@ -117,9 +125,6 @@ SOURCES += main.cpp \
     ../keepassx/src/format/KeePass2Writer.cpp \
     ../keepassx/src/format/KeePass2XmlReader.cpp \
     ../keepassx/src/format/KeePass2XmlWriter.cpp \
-    ../../keepassx/src/keys/CompositeKey.cpp \
-    ../../keepassx/src/keys/FileKey.cpp \
-    ../../keepassx/src/keys/PasswordKey.cpp \
     accountrenamedialog.cpp \
     keepassunlockdialog.cpp \
     keepassimportcontroller.cpp
@@ -239,14 +244,14 @@ HEADERS  += mainwindow.h \
     ../keepassx/src/format/KeePass2Writer.h \
     ../keepassx/src/format/KeePass2XmlReader.h \
     ../keepassx/src/format/KeePass2XmlWriter.h \
-    ../../keepassx/src/keys/CompositeKey_p.h \
-    ../../keepassx/src/keys/CompositeKey.h \
-    ../../keepassx/src/keys/FileKey.h \
-    ../../keepassx/src/keys/Key.h \
-    ../../keepassx/src/keys/PasswordKey.h \
     accountrenamedialog.h \
     keepassunlockdialog.h \
-    keepassimportcontroller.h
+    keepassimportcontroller.h \
+    ../keepassx/src/keys/CompositeKey_p.h \
+    ../keepassx/src/keys/CompositeKey.h \
+    ../keepassx/src/keys/FileKey.h \
+    ../keepassx/src/keys/Key.h \
+    ../keepassx/src/keys/PasswordKey.h
 
 INCLUDEPATH+=../scrypt
 INCLUDEPATH+=qtsingleapplication/src
@@ -280,5 +285,3 @@ LIBS += -lhid -lsetupapi
 
 INCLUDEPATH += $$PWD/../signet-base
 DEPENDPATH += $$PWD/../signet-base
-
-LIBS += -lgcrypt -lz
