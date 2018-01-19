@@ -14,8 +14,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = signet
 TEMPLATE = app
-QMAKE_CFLAGS += -DUSE_RAW_HID -msse4.1
-QMAKE_CXXFLAGS += -std=c++11 -DUSE_RAW_HID -msse4.1
+QMAKE_CFLAGS += -static -DUSE_RAW_HID -msse4.1
+QMAKE_CXXFLAGS += -static -std=c++11 -DUSE_RAW_HID -msse4.1
 
 macx {
 LIBS += -framework CoreFoundation
