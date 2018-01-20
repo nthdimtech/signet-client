@@ -12,8 +12,8 @@ QT += x11extras
 
 TARGET = signet
 TEMPLATE = app
-QMAKE_CFLAGS += -DUSE_RAW_HID -msse4.1
-QMAKE_CXXFLAGS += -std=c++11 -DUSE_RAW_HID -msse4.1
+QMAKE_CFLAGS += -msse4.1
+QMAKE_CXXFLAGS += -std=c++11 -msse4.1
 
 macx {
 LIBS += -framework CoreFoundation
@@ -23,7 +23,33 @@ QMAKE_LFLAGS += -L/usr/local/lib
 }
 
 unix:!macx {
-LIBS += -lgcrypt -lz
+LIBS += -lgcrypt -lz -lX11
+}
+
+win32 {
+QMAKE_LFLAGS = -static
+LIBS += -lhid -lsetupapi -lz -lgcrypt -lgpg-error
+}
+
+SOURCES += ../signet-base/signetdev/host/signetdev.c
+
+unix {
+HEADERS += ../signet-base/signetdev/host/signetdev_unix.h
+SOURCES += ../signet-base/signetdev/host/signetdev_unix.c
+}
+
+win32 {
+SOURCES += ../signet-base/signetdev/host/rawhid/hid_WINDOWS.c \
+        ../signet-base/signetdev/host/signetdev_win32.c
+}
+
+macx {
+SOURCES += ../signet-base/signetdev/host/signetdev_osx.c
+HEADERS += ../signet-base/signetdev/host/signetdev_osx.h
+}
+
+unix:!macx {
+SOURCES += ../signet-base/signetdev/host/signetdev_linux.c
 }
 
 SOURCES += main.cpp \
@@ -257,6 +283,7 @@ INCLUDEPATH+=../scrypt
 INCLUDEPATH+=qtsingleapplication/src
 INCLUDEPATH+=../keepassx/src
 INCLUDEPATH+=../src
+INCLUDEPATH += ../signet-base
 
 win32 {
 RC_FILE = signet.rc
@@ -265,23 +292,3 @@ RC_FILE = signet.rc
 RESOURCES = resources.qrc
 
 DISTFILES += signet.rc
-
-win32 {
-CONFIG(release, debug|release):LIBS += -L$$PWD/../signet-base/build-signetdev-$$QT_ARCH/release
-CONFIG(debug, debug|release):LIBS += -L$$PWD/../signet-base/build-signetdev-$$QT_ARCH/debug
-} else {
-CONFIG(release, debug|release):LIBS += -L$$PWD/../signet-base/build-signetdev-$$QT_ARCH-release
-CONFIG(debug, debug|release):LIBS += -L$$PWD/../signet-base/build-signetdev-$$QT_ARCH-debug
-}
-LIBS += -lsignetdev
-
-unix:!macx {
-LIBS += -lX11
-}
-
-win32 {
-LIBS += -lhid -lsetupapi
-}
-
-INCLUDEPATH += $$PWD/../signet-base
-DEPENDPATH += $$PWD/../signet-base
