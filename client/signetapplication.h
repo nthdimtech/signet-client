@@ -61,19 +61,19 @@ private:
 	int m_fwVersionStep;
 public:
 	static QDate getReleaseDate() {
-		return QDate(2018,1,8);
+		return QDate(2018,1,20);
 	}
 
 	void getClientVersion(int &major, int &minor, int &step) {
 		major = 0;
 		minor = 9;
-		step = 7;
+		step = 8;
 	}
 
 	void getFirmwareVersion(int &major, int &minor, int &step) {
 		major = 1;
 		minor = 2;
-		step = 2;
+		step = 4;
 	}
 
 	void getConnectedFirmwareVersion(int &major, int &minor, int &step) {
