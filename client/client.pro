@@ -12,7 +12,7 @@ QT += x11extras
 
 TARGET = signet
 TEMPLATE = app
-QMAKE_CFLAGS += -msse4.1
+QMAKE_CFLAGS += -std=c99 -msse4.1
 QMAKE_CXXFLAGS += -std=c++11 -msse4.1
 
 macx {
@@ -24,7 +24,7 @@ QMAKE_LFLAGS += -L/usr/local/lib
 }
 
 unix:!macx {
-LIBS += -lgcrypt -lz -lX11
+LIBS += -l:libgcrypt.a -l:libgpg-error.a -l:libz.a -lX11
 }
 
 win32 {
