@@ -16,6 +16,7 @@ QMAKE_CFLAGS += -msse4.1
 QMAKE_CXXFLAGS += -std=c++11 -msse4.1
 
 macx {
+ICON = images/signet.icns
 LIBS += -framework CoreFoundation
 LIBS += /usr/local/lib/libgcrypt.a /usr/local/lib/libgpg-error.a -lz
 INCLUDEPATH+=/usr/local/include
@@ -161,10 +162,6 @@ SOURCES += qtsingleapplication/src/qtlockedfile_win.cpp
 
 unix {
 SOURCES += qtsingleapplication/src/qtlockedfile_unix.cpp
-}
-
-macx {
-ICON = images/signet.icns
 }
 
 HEADERS  += mainwindow.h \
