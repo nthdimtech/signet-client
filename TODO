@@ -1,34 +1,23 @@
 Features:
 	Manage email identities - way to switch group of accounts from one email to another
-	Backup reminder if there are more than X new accounts not backed up in Y days
-	Automatic backup mode - Drop a session file and associate it as primary system optionally
 	Storage type for SSL certificates and related
 	Wireless connections SSID, PSK
 	Session based login that stays logged in after device connect/disconnect so long as the local *user* is logged in.
 		Must logout when laptop case is closed or device is put to sleep
-
-	# Right arrow on text selection opens context menu when only once choice
 
 Tasks:
 	Animated button press icon in button press dialog
 	Warning when quitting while performing sensitive tasks: backup/restore/wipe
 	Aphabatize entries or make them based on creation time
 	Make searches match words in the middle of an account in some cases
-	Add icon for MacOS DMG
 	Add default first letter based icons for sites without an icon association
-	Pick good semi-perminant VID/PID for Signet
 	Group accounts/entries with the same icon
-	Warn when closing an edit dialog without saving
-	Don't let user create an entry with an empty name
 
 Tech debt:
-	Listbox model management code is messy
 	Device access not protected by mutex for button wait cancel
 
 Bugs:
 	Multiple simulatious logins shouldn't be tolerated by protocol
-	Handle duplicate instances better when they are from different start locations
-	Stray pixel in windows Signet logo
 	Linux: need to handle momentary disconnects that leave device node in place
 	Linux client does not always detect device insertion, blinking stops prematurely on login once it does
 
