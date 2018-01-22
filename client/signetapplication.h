@@ -64,10 +64,11 @@ public:
 		return QDate(2018,1,20);
 	}
 
-	void getClientVersion(int &major, int &minor, int &step) {
+	void getClientVersion(int &major, int &minor, int &step, int &subStep) {
 		major = 0;
 		minor = 9;
 		step = 8;
+		subStep = 1;
 	}
 
 	void getFirmwareVersion(int &major, int &minor, int &step) {

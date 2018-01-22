@@ -31,17 +31,23 @@ About::About(bool connectedDevice, QWidget *parent):
 	SignetApplication *app = SignetApplication::get();
 
 	QDate date = app->getReleaseDate();
-	int clientMajVer, clientMinVer, clientStepVer;
+	int clientMajVer, clientMinVer, clientStepVer, clientSubStepVer;
 	int firmwareMajVer, firmwareMinVer, firmwareStepVer;
 	int deviceFirwmareMajVer, deviceFirwmareMinVer, deviceFirwmareStepVer;
-	app->getClientVersion(clientMajVer, clientMinVer, clientStepVer);
+	app->getClientVersion(clientMajVer, clientMinVer, clientStepVer, clientSubStepVer);
 	app->getFirmwareVersion(firmwareMajVer, firmwareMinVer,firmwareStepVer);
 	app->getConnectedFirmwareVersion(deviceFirwmareMajVer, deviceFirwmareMinVer, deviceFirwmareStepVer);
 
-	QLabel *title = new QLabel(QString("Signet client ") +
-				   QString::number(clientMajVer) + "." +
-				   QString::number(clientMinVer) + "." +
-				   QString::number(clientStepVer));
+	QString versionString = QString("Signet client ") +
+			QString::number(clientMajVer) + "." +
+			QString::number(clientMinVer) + "." +
+			QString::number(clientStepVer);
+
+	if (clientSubStepVer != 0) {
+		versionString += "." + QString::number(clientSubStepVer);
+	}
+
+	QLabel *title = new QLabel(versionString);
 
 	title->setStyleSheet("font-weight: bold");
 
