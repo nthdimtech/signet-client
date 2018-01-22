@@ -180,8 +180,12 @@ void SignetApplication::init()
 
 	m_main_window = new MainWindow();
 
-	//TODO: really we want to center the window here but that makes it too large for some reason
-	m_main_window->move(desktop()->width()/2, desktop()->height()/2);
+	QDesktopWidget* d = QApplication::desktop();
+	QRect deskRect = d->screenGeometry(d->screenNumber(QCursor::pos()));
+	m_main_window->adjustSize();
+	m_main_window->move(deskRect.width() / 2 - m_main_window->width() / 2 + deskRect.left(),
+		     deskRect.height() / 2 - m_main_window->height() / 2 + deskRect.top());
+
 
 	connect(this, SIGNAL(connectionError()), m_main_window, SLOT(connectionError()));
 
