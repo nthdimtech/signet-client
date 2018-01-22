@@ -79,7 +79,7 @@ void AccountActionBar::newAccountFinished(int)
 
 void AccountActionBar::accountCreated(account *acct)
 {
-	m_parent->entryCreated("account", acct);
+	m_parent->entryCreated("Accounts", acct);
 }
 
 void AccountActionBar::newInstanceUI(int id, const QString &name)
