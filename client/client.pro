@@ -24,7 +24,7 @@ QMAKE_LFLAGS += -L/usr/local/lib
 }
 
 unix:!macx {
-LIBS += -lgcrypt.a -lgpg-error.a -l:libz.a -lX11
+LIBS += -lgcrypt -lgpg-error -lz -lX11
 }
 
 win32 {
