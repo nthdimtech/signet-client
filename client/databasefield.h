@@ -18,14 +18,20 @@ class DatabaseField : public QWidget
 	int m_signetdevCmdToken;
 	QLineEdit *m_fieldEdit;
 	QVector<u16> m_keysToType;
+	void init(int width, QList<QWidget *> &widgets);
 public:
 	explicit DatabaseField(const QString &name, int width, QWidget *middle = 0, QWidget *parent = 0);
+	DatabaseField(const QString &name, int width, QList<QWidget *> &widgets, QWidget *parent = 0);
 	QString text() const;
 	QString name() const
 	{
 		return m_name;
 	}
 	void setText(const QString &s);
+	QLineEdit *getEditWidget() {
+		return m_fieldEdit;
+	}
+
 signals:
 	void editingFinished();
 	void textEdited(QString);

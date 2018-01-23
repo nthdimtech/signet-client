@@ -21,6 +21,7 @@ class PasswordEdit : public QWidget
 	QPushButton *m_generatePassword;
 	QSpinBox *m_numGenChars;
 	QCheckBox *m_genSymbols;
+	QCheckBox *m_hide;
 	QDialog *m_generatingDialog;
 	QLineEdit *m_genSymbolSet;
 	void generatePasswordComplete(QByteArray block);
@@ -36,6 +37,7 @@ public slots:
 private slots:
 	void signetdevGetRandBits(signetdevCmdRespInfo info, QByteArray block);
 	void passwordTextEdited(QString str);
+	void hideToggled(bool);
 };
 
 #endif // PASSWORDEDIT_H

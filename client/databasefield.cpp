@@ -14,10 +14,27 @@ extern "C" {
 #include "signetdev/host/signetdev.h"
 };
 
+DatabaseField::DatabaseField(const QString &name, int width, QList<QWidget *> &widgets, QWidget *parent) : QWidget(parent),
+	m_buttonWait(NULL),
+	m_name(name),
+	m_signetdevCmdToken(-1)
+{
+	init(width, widgets);
+}
+
+
 DatabaseField::DatabaseField(const QString &name, int width, QWidget *middle, QWidget *parent) : QWidget(parent),
 	m_buttonWait(NULL),
 	m_name(name),
 	m_signetdevCmdToken(-1)
+{
+	QList<QWidget *> widgets;
+	if (middle)
+		widgets.append(middle);
+	init(width, widgets);
+}
+
+void DatabaseField::init(int width, QList<QWidget *> &widgets)
 {
 	SignetApplication *app = SignetApplication::get();
 
@@ -46,8 +63,9 @@ DatabaseField::DatabaseField(const QString &name, int width, QWidget *middle, QW
 	capitalized_name[0] = capitalized_name[0].toUpper();
 	layout->addWidget(new QLabel(capitalized_name));
 	layout->addWidget(m_fieldEdit);
-	if (middle) {
-		layout->addWidget(middle);
+
+	for (auto w : widgets) {
+		layout->addWidget(w);
 	}
 	layout->addWidget(copy_button);
 	layout->addWidget(type_button);

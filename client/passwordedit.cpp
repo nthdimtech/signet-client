@@ -15,10 +15,16 @@ PasswordEdit::PasswordEdit(QWidget *parent) :
 	m_generatingDialog(NULL),
 	m_signetdevCmdToken(-1)
 {
-
+	QList<QWidget *> extraWidgets;
 	m_generatePassword = new QPushButton("Generate");
+	m_hide = new QCheckBox("Hide");
+	m_hide->setChecked(true);
 	connect(m_generatePassword, SIGNAL(pressed()), this, SLOT(generatePassword()));
-	m_passwordField = new DatabaseField("password", 140, m_generatePassword);
+	connect(m_hide, SIGNAL(toggled(bool)), this, SLOT(hideToggled(bool)));
+	extraWidgets.append(m_generatePassword);
+	extraWidgets.append(m_hide);
+	m_passwordField = new DatabaseField("password", 140, extraWidgets);
+	m_passwordField->getEditWidget()->setEchoMode(QLineEdit::Password);
 
 	m_numGenChars = new QSpinBox();
 	m_numGenChars->setValue(16);
@@ -219,4 +225,13 @@ void PasswordEdit::passwordTextEdited(QString str)
 	Q_UNUSED(str);
 	emit textEdited(str);
 	m_generateOptions->hide();
+}
+
+void PasswordEdit::hideToggled(bool hide)
+{
+	if (hide) {
+		m_passwordField->getEditWidget()->setEchoMode(QLineEdit::Password);
+	} else {
+		m_passwordField->getEditWidget()->setEchoMode(QLineEdit::Normal);
+	}
 }
