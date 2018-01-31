@@ -40,6 +40,7 @@ struct esdbTypeModule;
 class KeyboardLayoutTester;
 class Database;
 class keePassImportController;
+class DatabaseImportController;
 
 struct fwSection {
 	QString name;
@@ -79,8 +80,7 @@ public:
 		STATE_RESTORING,
 		STATE_BACKING_UP,
 		STATE_UPDATING_FIRMWARE,
-		STATE_EXPORTING,
-		STATE_KEEPASS_IMPORT
+		STATE_EXPORTING
 	};
 	localSettings *getSettings() {
 		return &m_settings;
@@ -109,6 +109,7 @@ private:
 
 	QWidget *m_backupWidget;
 	QProgressBar *m_backupProgress;
+	DatabaseImportController *m_dbImportController;
 	int m_backupBlock;
 	QFile *m_backupFile;
 	enum device_state m_backupPrevState;
@@ -168,6 +169,7 @@ public:
 private slots:
 	void restoreError();
 	void backupError();
+	void importDone(bool success);
 public slots:
 	void signetDevEvent(int);
 	void deviceOpened();
@@ -204,7 +206,6 @@ public slots:
 	void startOnlineHelp();
 	void applyKeyboardLayoutChanges();
 	void keyboardLayoutTesterClosing(bool applyChanges);
-	void keePassImportDone(bool success);
 };
 
 #endif // MAINWINDOW_H

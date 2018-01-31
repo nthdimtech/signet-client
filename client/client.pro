@@ -32,7 +32,8 @@ QMAKE_LFLAGS = -static
 LIBS += -lhid -lsetupapi -lz -lgcrypt -lgpg-error
 }
 
-SOURCES += ../signet-base/signetdev/host/signetdev.c
+SOURCES += ../signet-base/signetdev/host/signetdev.c \
+    import/entryrenamedialog.cpp
 
 unix {
 HEADERS += ../signet-base/signetdev/host/signetdev_unix.h
@@ -152,9 +153,10 @@ SOURCES += main.cpp \
     ../keepassx/src/format/KeePass2Writer.cpp \
     ../keepassx/src/format/KeePass2XmlReader.cpp \
     ../keepassx/src/format/KeePass2XmlWriter.cpp \
-    accountrenamedialog.cpp \
-    keepassunlockdialog.cpp \
-    keepassimportcontroller.cpp
+    import/keepassunlockdialog.cpp \
+    import/databaseimporter.cpp \
+    import/databaseimportcontroller.cpp \
+    import/keepassimporter.cpp
 
 win32 {
 SOURCES += qtsingleapplication/src/qtlockedfile_win.cpp
@@ -267,14 +269,18 @@ HEADERS  += mainwindow.h \
     ../keepassx/src/format/KeePass2Writer.h \
     ../keepassx/src/format/KeePass2XmlReader.h \
     ../keepassx/src/format/KeePass2XmlWriter.h \
-    accountrenamedialog.h \
-    keepassunlockdialog.h \
-    keepassimportcontroller.h \
     ../keepassx/src/keys/CompositeKey_p.h \
     ../keepassx/src/keys/CompositeKey.h \
     ../keepassx/src/keys/FileKey.h \
     ../keepassx/src/keys/Key.h \
-    ../keepassx/src/keys/PasswordKey.h
+    ../keepassx/src/keys/PasswordKey.h \
+    qtsingleapplication/src/qtlockedfile.h \
+    esdbgenericmodule.h \
+    import/keepassunlockdialog.h \
+    import/databaseimporter.h \
+    import/databaseimportcontroller.h \
+    import/keepassimporter.h \
+    import/entryrenamedialog.h
 
 INCLUDEPATH+=../scrypt
 INCLUDEPATH+=qtsingleapplication/src
@@ -288,4 +294,26 @@ RC_FILE = signet.rc
 
 RESOURCES = resources.qrc
 
-DISTFILES += signet.rc
+DISTFILES += signet.rc \
+    images/logos/fandango_orig.png \
+    images/logos/indiegogo_orig.png \
+    images/logos/instagram_orig.png \
+    images/logos/qt_orig.png \
+    images/logos/slack_orig.png \
+    images/signet.iconset/icon_128x128.png \
+    images/signet.iconset/icon_16x16.png \
+    images/signet.iconset/icon_256x256.png \
+    images/signet.iconset/icon_32x32.png \
+    images/signet.iconset/icon_512x512.png \
+    images/signet.iconset/icon_64x64.png \
+    images/chase_bank.png \
+    images/clipboard.svg \
+    images/signet.ico \
+    images/button_press.xcf \
+    images/keyboard.xcf \
+    images/signet.xcf \
+    images/vault.xcf \
+    images/vault_open.xcf
+
+FORMS += \
+    mainwindow.ui

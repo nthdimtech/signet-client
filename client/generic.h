@@ -18,6 +18,9 @@ struct generic_1 : public esdbEntry {
 	{
 	}
 	~generic_1() {}
+	void setTitle(const QString &title) {
+		name = title;
+	}
 };
 
 struct generic : public esdbEntry {
@@ -35,7 +38,9 @@ struct generic : public esdbEntry {
 	{
 		return name;
 	}
-
+	void setTitle(const QString &title) {
+		name = title;
+	}
 	QString getUrl() const
 	{
 		return QString();

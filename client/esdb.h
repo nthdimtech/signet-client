@@ -77,6 +77,9 @@ struct esdbEntry {
 	{
 		return QString();
 	}
+
+	virtual void setTitle(const QString &title) = 0;
+
 	virtual QString getUrl() const
 	{
 		return QString();

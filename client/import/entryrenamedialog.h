@@ -1,5 +1,5 @@
-#ifndef ACCOUNTRENAMEDIALOG_H
-#define ACCOUNTRENAMEDIALOG_H
+#ifndef ENTRYNAMEDIALOG_H
+#define ENTRYNAMEDIALOG_H
 
 #include <QObject>
 #include <QWidget>
@@ -8,7 +8,7 @@
 class QLabel;
 class QLineEdit;
 
-class AccountRenameDialog : public QDialog
+class EntryRenameDialog : public QDialog
 {
 	Q_OBJECT
 
@@ -16,7 +16,7 @@ class AccountRenameDialog : public QDialog
 	QLabel *m_warningLabel;
 	QLineEdit *m_newNameEdit;
 public:
-	AccountRenameDialog(QString initialName, QWidget *parent = 0);
+	EntryRenameDialog(QString initialName, QWidget *parent = 0);
 	QString newName();
 	bool isOkayPressed() {
 		return m_okayPressed;
@@ -27,4 +27,4 @@ public slots:
 	void textEdited(QString);
 };
 
-#endif // ACCOUNTRENAMEDIALOG_H
+#endif // ENTRYNAMEDIALOG_H

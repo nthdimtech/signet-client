@@ -39,7 +39,7 @@ struct account_1 : public esdbEntry_1 {
 	~account_1() {}
 };
 
-bool is_email(const QString &s);
+bool isEmail(const QString &s);
 
 struct account_2 : public esdbEntry_1 {
 	QString acct_name;
@@ -61,7 +61,7 @@ struct account_2 : public esdbEntry_1 {
 		user_name = prev.user_name;
 		password = prev.password;
 		url = prev.url;
-		if (is_email(prev.user_name)) {
+		if (isEmail(prev.user_name)) {
 			email = prev.user_name;
 		}
 	}
@@ -78,6 +78,9 @@ struct account_3 : public esdbEntry {
 	void fromBlock(block *blk);
 	account_3(int id_) : esdbEntry(id_, ESDB_TYPE_ACCOUNT, 3, id_, 1)
 	{
+	}
+	void setTitle(const QString &title) {
+		acctName = title;
 	}
 
 	void upgrade(account_2 &prev)
@@ -103,6 +106,9 @@ struct account_4 : public esdbEntry {
 	void fromBlock(block *blk);
 	account_4(int id_) : esdbEntry(id_, ESDB_TYPE_ACCOUNT, 4, id_, 1)
 	{
+	}
+	void setTitle(const QString &title) {
+		acctName = title;
 	}
 	void upgrade(account_3 &prev)
 	{
@@ -133,6 +139,10 @@ struct account : public esdbEntry {
 	QString getTitle() const;
 	QString getUrl() const;
 	int matchQuality(const QString &search) const;
+
+	void setTitle(const QString &title) {
+		acctName = title;
+	}
 
 	void upgrade(account_4 &prev)
 	{

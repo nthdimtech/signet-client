@@ -1,4 +1,4 @@
-#include "accountrenamedialog.h"
+#include "entryrenamedialog.h"
 
 #include <QLineEdit>
 #include <QHBoxLayout>
@@ -8,7 +8,7 @@
 #include <QString>
 #include <QDialog>
 
-AccountRenameDialog::AccountRenameDialog(QString initialName, QWidget *parent) :
+EntryRenameDialog::EntryRenameDialog(QString initialName, QWidget *parent) :
 	QDialog(parent),
 	m_okayPressed(false)
 {
@@ -31,19 +31,19 @@ AccountRenameDialog::AccountRenameDialog(QString initialName, QWidget *parent) :
 	connect(okay, SIGNAL(pressed()), this, SLOT(okayPressed()));
 	connect(cancel, SIGNAL(pressed()), this, SLOT(cancelPressed()));
 	connect(m_newNameEdit, SIGNAL(textEdited(QString)), this, SLOT(textEdited(QString)));
-	main->addWidget(new QLabel("New account name:"));
+	main->addWidget(new QLabel("New entry name:"));
 	main->addWidget(m_newNameEdit);
 	main->addWidget(okay);
 	main->addWidget(cancel);
 	m_newNameEdit->setText(initialName);
 }
 
-QString AccountRenameDialog::newName()
+QString EntryRenameDialog::newName()
 {
 	return m_newNameEdit->text();
 }
 
-void AccountRenameDialog::okayPressed()
+void EntryRenameDialog::okayPressed()
 {
 	if (!m_newNameEdit->text().size()) {
 		m_warningLabel->show();
@@ -54,12 +54,12 @@ void AccountRenameDialog::okayPressed()
 	}
 }
 
-void AccountRenameDialog::cancelPressed()
+void EntryRenameDialog::cancelPressed()
 {
 	close();
 }
 
-void AccountRenameDialog::textEdited(QString s)
+void EntryRenameDialog::textEdited(QString s)
 {
 	if (s.size())
 		m_warningLabel->hide();

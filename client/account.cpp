@@ -110,7 +110,7 @@ int account::matchQuality(const QString &search) const
 #include <QRegularExpression>
 #endif
 
-bool is_email(const QString &s)
+bool isEmail(const QString &s)
 {
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
 	QRegularExpression ra("^.+@.+\\..+");

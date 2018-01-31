@@ -14,6 +14,10 @@ struct bookmark : public esdbEntry {
 	{
 	}
 
+	void setTitle(const QString &title) {
+		name = title;
+	}
+
 	QString getTitle() const
 	{
 		return name;

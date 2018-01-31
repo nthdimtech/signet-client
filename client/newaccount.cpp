@@ -162,7 +162,7 @@ void NewAccount::signetdev_cmd_resp(signetdevCmdRespInfo info)
 
 void NewAccount::username_editing_finished()
 {
-	if (m_email_field->text().isEmpty() && is_email(m_username_field->text())) {
+	if (m_email_field->text().isEmpty() && isEmail(m_username_field->text())) {
 		m_email_field->setText(m_username_field->text());
 	}
 }
