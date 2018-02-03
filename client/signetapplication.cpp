@@ -144,7 +144,7 @@ void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int c
 		QByteArray hashfn;
 		QByteArray salt;
 		signetdev_startup_resp_data resp;
-		if (resp_data && resp_code == OKAY) {
+		if (resp_data && (resp_code == OKAY || resp_code == UNKNOWN_DB_FORMAT)) {
 			signetdev_startup_resp_data *resp_ = (signetdev_startup_resp_data *)resp_data;
 			resp = *resp_;
 		}
