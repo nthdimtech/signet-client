@@ -12,6 +12,7 @@
 #include <QProcess>
 #include <QWidget>
 #include <QStringList>
+#include <QTemporaryFile>
 
 PassImporter::PassImporter(QWidget *parent) :
 	DatabaseImporter(parent),
@@ -113,20 +114,31 @@ QString PassImporter::gpgIdPath()
 
 bool PassImporter::passphraseCheck(QString passphrase)
 {
+	//TODO: is there a more simpler way to test the GPG
+	// with no temporary artifacts?
+	QTemporaryFile t;
+	t.setAutoRemove(false);
+	if (!t.open()) {
+		return false;
+	}
+	QString tmpName = t.fileName();
+	t.close();
+	t.remove();
+
 	QString cmd;
-	QFile f(gpgIdPath() + ".gpg");
-	f.remove();
-	cmd = "gpg --batch -r " + m_gpgId + " -e " + gpgIdPath();
+	cmd = "gpg --batch -r " + m_gpgId +
+			" -o " + tmpName +
+			" -e " + gpgIdPath();
 	if (QProcess::execute(cmd)) {
-		return false; //TODO
+		return false;
 	}
 	cmd = "gpg --batch -n -r " + m_gpgId;
 	if (passphrase.size()) {
 		cmd += " --passphrase " + passphrase;
 	}
-	cmd += " -d " + gpgIdPath() + ".gpg";
+	cmd += " -d " + tmpName;
 	bool pass = QProcess::execute(cmd) == 0;
-	f.remove();
+	QFile::remove(tmpName);
 	return pass;
 }
 
