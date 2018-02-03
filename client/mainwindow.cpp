@@ -54,6 +54,10 @@
 #include "import/databaseimportcontroller.h"
 #include "import/keepassimporter.h"
 
+#ifdef Q_OS_UNIX
+#include "import/passimporter.h"
+#endif
+
 extern "C" {
 #include "signetdev/host/signetdev.h"
 };
@@ -131,10 +135,18 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	m_importMenu = m_fileMenu->addMenu("Import");
 	m_importMenu->setVisible(false);
-	m_importKeePassAction = m_importMenu->addAction("KeePass 2.x Database");
 
+	m_importKeePassAction = m_importMenu->addAction("KeePass 2.x Database");
 	connect(m_importKeePassAction, SIGNAL(triggered(bool)),
 		this, SLOT(importKeePassUI()));
+
+#ifdef Q_OS_UNIX
+	m_importPassAction = m_importMenu->addAction("Pass Database");
+	connect(m_importPassAction, SIGNAL(triggered(bool)),
+		this, SLOT(importPassUI()));
+	QString gpgId = PassImporter::getGPGId();
+	m_passDatabaseFound = (gpgId.size() != 0);
+#endif
 
 	QAction *quit_action = m_fileMenu->addAction("Exit");
 	QObject::connect(quit_action, SIGNAL(triggered(bool)), this, SLOT(quit()));
@@ -648,6 +660,7 @@ void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, signetdev_start
 	}
 
 	switch (code) {
+	case UNKNOWN_DB_FORMAT:
 	case OKAY:
 		switch (device_state) {
 		case LOGGED_OUT:
@@ -658,6 +671,7 @@ void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, signetdev_start
 			break;
 		}
 		break;
+		return;
 	case BUTTON_PRESS_CANCELED:
 	case BUTTON_PRESS_TIMEOUT:
 	case SIGNET_ERROR_DISCONNECT:
@@ -1463,6 +1477,9 @@ void MainWindow::enterDeviceState(int state)
 	m_exportMenu->menuAction()->setVisible(fileActionsEnabled);
 	m_settingsAction->setVisible(fileActionsEnabled);
 	m_importKeePassAction->setEnabled(fileActionsEnabled);
+#ifdef Q_OS_UNIX
+	m_importPassAction->setEnabled(fileActionsEnabled && m_passDatabaseFound);
+#endif
 }
 
 void MainWindow::openSettingsUi()
@@ -1760,15 +1777,27 @@ void MainWindow::importDone(bool success)
 	m_dbImportController = NULL;
 }
 
-void MainWindow::importKeePassUI()
+void MainWindow::startImport(DatabaseImporter *importer)
 {
 	LoggedInWidget *loggedInWidget = (LoggedInWidget *)m_loggedInStack->widget(0);
-	DatabaseImporter *keePassImporter = new KeePassImporter(this);
-	m_dbImportController = new DatabaseImportController(keePassImporter, loggedInWidget);
-	connect(m_dbImportController, SIGNAL(done(bool)),
-		this, SLOT(importDone(bool)));
+	m_dbImportController = new DatabaseImportController(importer, loggedInWidget);
+	connect(m_dbImportController, SIGNAL(done(bool)), this, SLOT(importDone(bool)));
 	m_dbImportController->start();
 }
+
+void MainWindow::importKeePassUI()
+{
+	DatabaseImporter *importer = new KeePassImporter(this);
+	startImport(importer);
+}
+
+#ifdef Q_OS_UNIX
+void MainWindow::importPassUI()
+{
+	DatabaseImporter *importer = new PassImporter(this);
+	startImport(importer);
+}
+#endif
 
 void MainWindow::restoreDeviceUi()
 {

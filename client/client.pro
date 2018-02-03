@@ -33,7 +33,9 @@ LIBS += -lhid -lsetupapi -lz -lgcrypt -lgpg-error
 }
 
 SOURCES += ../signet-base/signetdev/host/signetdev.c \
-    import/entryrenamedialog.cpp
+    import/entryrenamedialog.cpp \
+    import/passimporter.cpp \
+    import/passimportunlockdialog.cpp
 
 unix {
 HEADERS += ../signet-base/signetdev/host/signetdev_unix.h
@@ -280,7 +282,9 @@ HEADERS  += mainwindow.h \
     import/databaseimporter.h \
     import/databaseimportcontroller.h \
     import/keepassimporter.h \
-    import/entryrenamedialog.h
+    import/entryrenamedialog.h \
+    import/passimporter.h \
+    import/passimportunlockdialog.h
 
 INCLUDEPATH+=../scrypt
 INCLUDEPATH+=qtsingleapplication/src

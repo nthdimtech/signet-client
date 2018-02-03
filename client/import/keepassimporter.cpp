@@ -33,7 +33,7 @@ void KeePassImporter::traverse(QString path, Group *g)
 		if (e->notes().size()) {
 			a->fields.addField(genericField("notes", "text block", e->notes()));
 		}
-		a->fields.addField(genericField("path", QString(), path));
+		a->setPath(path);
 		m_accountType->append(a);
 	}
 	const QList<Group*> &gl = g->children();

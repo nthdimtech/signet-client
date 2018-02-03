@@ -157,6 +157,7 @@ struct account : public esdbEntry {
 
 	void getFields(QVector<genericField> &fields) const;
 
+	void setPath(QString &p);
 
 	~account() {}
 };

@@ -92,6 +92,17 @@ void account::getFields(QVector<genericField> &fields_) const
 	fields.getFields(fields_);
 }
 
+void account::setPath(QString &path)
+{
+	for (int i = 0; i < fields.fieldCount(); i++) {
+		if (fields.getField(i).name == "path") {
+			fields.getField(i).value = path;
+			return;
+		}
+	}
+	fields.addField(genericField("path", QString(), path));
+}
+
 int account::matchQuality(const QString &search) const
 {
 	int quality = esdbEntry::matchQuality(search);

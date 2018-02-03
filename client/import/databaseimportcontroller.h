@@ -26,6 +26,8 @@ class DatabaseImportController : public QObject
 	bool nextEntry();
 	QString progressString();
 	int m_signetdevCmdToken;
+	bool m_updatePending;
+	bool iteratorsAtEnd();
 public:
 	explicit DatabaseImportController(DatabaseImporter *importer, LoggedInWidget *parent);
 	DatabaseImporter *importer() {

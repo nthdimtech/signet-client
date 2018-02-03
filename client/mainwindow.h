@@ -41,6 +41,7 @@ class KeyboardLayoutTester;
 class Database;
 class keePassImportController;
 class DatabaseImportController;
+class DatabaseImporter;
 
 struct fwSection {
 	QString name;
@@ -151,6 +152,11 @@ private:
 	bool m_startedExport;
 	KeyboardLayoutTester *m_keyboardLayoutTester;
 
+#ifdef Q_OS_UNIX
+	QAction *m_importPassAction;
+	bool m_passDatabaseFound;
+#endif
+
 	void sendFirmwareWriteCmd();
 	void loadSettings();
 	void saveSettings();
@@ -161,6 +167,7 @@ private:
 #ifdef _WIN32
 	bool nativeEvent(const QByteArray &eventType, void *message, long *result);
 #endif
+	void startImport(DatabaseImporter *importer);
 public:
 	bool connected() const
 	{
@@ -201,6 +208,9 @@ public slots:
 	void background();
 	void openSettingsUi();
 	void importKeePassUI();
+#ifdef Q_OS_UNIX
+	void importPassUI();
+#endif
 	void exportCSVUi();
 	void aboutUi();
 	void startOnlineHelp();

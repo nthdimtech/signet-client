@@ -14,7 +14,8 @@ DatabaseImportController::DatabaseImportController(DatabaseImporter *importer, L
 	m_loggedInWidget(parent),
 	m_importer(importer),
 	m_overwriteAll(false),
-	m_skipAll(false)
+	m_skipAll(false),
+	m_updatePending(false)
 {
 	importer->setParent(this);
 	connect(m_importer, SIGNAL(done(bool)), this, SLOT(importDone(bool)));
@@ -47,9 +48,21 @@ QString DatabaseImportController::progressString()
 		QString::number(m_dbIter.value()->size()) + ")";
 }
 
-bool DatabaseImportController::nextEntry()
+bool DatabaseImportController::iteratorsAtEnd()
 {
 	if (m_dbIter == m_db->end()) {
+		return true;
+	}
+	DatabaseImporter::databaseType *t = m_dbIter.value();
+	if (m_dbTypeIter == t->end()) {
+		return true;
+	}
+	return false;
+}
+
+bool DatabaseImportController::nextEntry()
+{
+	if (iteratorsAtEnd()) {
 		done(true);
 		return true;
 	}
@@ -134,6 +147,7 @@ bool DatabaseImportController::nextEntry()
 				   blk.data.size(),
 				   (const u8 *)blk.data.data(),
 				   (const u8 *)blk.mask.data());
+	m_updatePending = true;
 	return true;
 }
 
@@ -144,6 +158,7 @@ void DatabaseImportController::importDone(bool success)
 		m_dbIter = m_db->begin();
 		DatabaseImporter::databaseType *t = m_dbIter.value();
 		m_dbTypeIter = t->begin();
+
 		m_overwriteAll = false;
 		m_skipAll = false;
 		while (!nextEntry())
@@ -168,10 +183,14 @@ void DatabaseImportController::signetdevCmdResp(signetdevCmdRespInfo info)
 		return;
 	}
 	m_signetdevCmdToken = -1;
+	m_updatePending = false;
 
 	if (m_buttonWaitDialog) {
 		m_buttonWaitDialog->done(QMessageBox::Ok);
 	}
+
+	QString typeName = m_dbIter.key();
+
 	advanceDbTypeIter();
 
 	switch (code) {
@@ -179,7 +198,7 @@ void DatabaseImportController::signetdevCmdResp(signetdevCmdRespInfo info)
 		switch (info.cmd) {
 		case SIGNETDEV_CMD_UPDATE_UID:
 			if (m_entryNew) {
-				entryCreated(m_dbIter.key(), m_entry);
+				entryCreated(typeName, m_entry);
 			} else {
 				entryChanged(m_entry->id);
 			}
