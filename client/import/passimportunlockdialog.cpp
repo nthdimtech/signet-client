@@ -24,6 +24,7 @@ PassImportUnlockDialog::PassImportUnlockDialog(PassImporter *importer, QWidget *
 	m_warnLabel->setStyleSheet("QLabel { color : red; }");
 	m_warnLabel->hide();
 
+	m_passphraseEdit->setMinimumWidth(200);
 	passphrase->addWidget(new QLabel("Passphrase"));
 	passphrase->addWidget(m_passphraseEdit);
 	buttons->addWidget(okay);
