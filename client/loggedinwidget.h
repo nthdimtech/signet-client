@@ -167,6 +167,8 @@ public:
 	void getSelectedAccountRect(QRect &r);
 	int getUnusedId();
 	const esdbEntry *findEntry(QString type, QString name) const;
+
+	QList<esdbTypeModule *> getTypeModules();
 signals:
 	void abort();
 	void enterDeviceState(int);

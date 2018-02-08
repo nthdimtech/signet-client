@@ -42,6 +42,7 @@ class Database;
 class keePassImportController;
 class DatabaseImportController;
 class DatabaseImporter;
+class LoggedInWidget;
 
 struct fwSection {
 	QString name;
@@ -61,6 +62,7 @@ class MainWindow : public QMainWindow
 	esdbTypeModule *m_genericTypeModule;
 	esdbTypeModule *m_accountTypeModule;
 	esdbTypeModule *m_bookmarkTypeModule;
+	LoggedInWidget *m_loggedInWidget;
 public:
 	explicit MainWindow(QWidget *parent = 0);
 	void closeEvent(QCloseEvent *event);
@@ -139,6 +141,7 @@ private:
 	QAction *m_settingsAction;
 	QAction *m_exportCSVAction;
 	QAction *m_importKeePassAction;
+	QAction *m_importCSVAction;
 	QAction *m_backupAction;
 	QAction *m_restoreAction;
 	QAction *m_logoutAction;
@@ -211,6 +214,7 @@ public slots:
 #ifdef Q_OS_UNIX
 	void importPassUI();
 #endif
+	void importCSVUI();
 	void exportCSVUi();
 	void aboutUi();
 	void startOnlineHelp();

@@ -647,6 +647,15 @@ const esdbEntry *LoggedInWidget::findEntry(QString type, QString name) const
 	return NULL;
 }
 
+QList<esdbTypeModule *> LoggedInWidget::getTypeModules()
+{
+	QList<esdbTypeModule *> modules;
+	for (auto t : m_typeData) {
+		modules.append(t->module);
+	}
+	return modules;
+}
+
 void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 {
 	esdbEntry *entry = NULL;

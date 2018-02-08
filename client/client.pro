@@ -32,10 +32,19 @@ QMAKE_LFLAGS = -static
 LIBS += -lhid -lsetupapi -lz -lgcrypt -lgpg-error
 }
 
+INCLUDEPATH+=../qtcsv/include
+INCLUDEPATH+=../qtcsv
+
 SOURCES += ../signet-base/signetdev/host/signetdev.c \
     import/entryrenamedialog.cpp \
     import/passimporter.cpp \
-    import/passimportunlockdialog.cpp
+    import/passimportunlockdialog.cpp \
+    import/csvimporter.cpp \
+    ../qtcsv/sources/contentiterator.cpp \
+    ../qtcsv/sources/reader.cpp \
+    ../qtcsv/sources/stringdata.cpp \
+    ../qtcsv/sources/variantdata.cpp \
+    import/csvimportconfigure.cpp
 
 unix {
 HEADERS += ../signet-base/signetdev/host/signetdev_unix.h
@@ -284,7 +293,12 @@ HEADERS  += mainwindow.h \
     import/keepassimporter.h \
     import/entryrenamedialog.h \
     import/passimporter.h \
-    import/passimportunlockdialog.h
+    import/passimportunlockdialog.h \
+    import/csvimporter.h \
+    ../qtcsv/sources/contentiterator.h \
+    ../qtcsv/sources/filechecker.h \
+    ../qtcsv/sources/symbols.h \
+    import/csvimportconfigure.h
 
 INCLUDEPATH+=../scrypt
 INCLUDEPATH+=qtsingleapplication/src

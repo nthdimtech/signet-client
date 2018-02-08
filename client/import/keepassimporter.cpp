@@ -70,7 +70,6 @@ void KeePassImporter::start()
 						   "Failed to open KeePass database file",
 						   m_parent);
 		mb->exec();
-		mb->deleteLater();
 		done(false);
 		return;
 	}

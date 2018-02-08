@@ -58,6 +58,8 @@
 #include "import/passimporter.h"
 #endif
 
+#include "import/csvimporter.h"
+
 extern "C" {
 #include "signetdev/host/signetdev.h"
 };
@@ -147,6 +149,9 @@ MainWindow::MainWindow(QWidget *parent) :
 	QString gpgId = PassImporter::getGPGId();
 	m_passDatabaseFound = (gpgId.size() != 0);
 #endif
+	m_importCSVAction = m_importMenu->addAction("CSV");
+	connect(m_importCSVAction, SIGNAL(triggered(bool)),
+		this, SLOT(importCSVUI()));
 
 	QAction *quit_action = m_fileMenu->addAction("Exit");
 	QObject::connect(quit_action, SIGNAL(triggered(bool)), this, SLOT(quit()));
@@ -661,6 +666,8 @@ void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, signetdev_start
 
 	switch (code) {
 	case UNKNOWN_DB_FORMAT:
+		enterDeviceState(STATE_UNINITIALIZED);
+		break;
 	case OKAY:
 		switch (device_state) {
 		case LOGGED_OUT:
@@ -1290,15 +1297,15 @@ void MainWindow::enterDeviceState(int state)
 		QWidget *loadingWidget = new QWidget();
 		loadingWidget->setLayout(layout);
 
-		LoggedInWidget *loggedInWidget = new LoggedInWidget(this, loading_progress);
-		connect(loggedInWidget, SIGNAL(abort()), this, SLOT(abort()));
-		connect(loggedInWidget, SIGNAL(enterDeviceState(int)),
+		m_loggedInWidget = new LoggedInWidget(this, loading_progress);
+		connect(m_loggedInWidget, SIGNAL(abort()), this, SLOT(abort()));
+		connect(m_loggedInWidget, SIGNAL(enterDeviceState(int)),
 			this, SLOT(enterDeviceState(int)));
-		connect(SignetApplication::get(), SIGNAL(signetdevEvent(int)), loggedInWidget, SLOT(signetDevEvent(int)));
-		connect(loggedInWidget, SIGNAL(background()), this, SLOT(background()));
+		connect(SignetApplication::get(), SIGNAL(signetdevEvent(int)), m_loggedInWidget, SLOT(signetDevEvent(int)));
+		connect(m_loggedInWidget, SIGNAL(background()), this, SLOT(background()));
 
 		m_loggedInStack = new QStackedWidget();
-		m_loggedInStack->addWidget(loggedInWidget);
+		m_loggedInStack->addWidget(m_loggedInWidget);
 		m_loggedInStack->addWidget(loadingWidget);
 		m_loggedInStack->setCurrentIndex(1);
 		setCentralWidget(m_loggedInStack);
@@ -1480,6 +1487,7 @@ void MainWindow::enterDeviceState(int state)
 #ifdef Q_OS_UNIX
 	m_importPassAction->setEnabled(fileActionsEnabled && m_passDatabaseFound);
 #endif
+	m_importCSVAction->setEnabled(fileActionsEnabled);
 }
 
 void MainWindow::openSettingsUi()
@@ -1779,8 +1787,7 @@ void MainWindow::importDone(bool success)
 
 void MainWindow::startImport(DatabaseImporter *importer)
 {
-	LoggedInWidget *loggedInWidget = (LoggedInWidget *)m_loggedInStack->widget(0);
-	m_dbImportController = new DatabaseImportController(importer, loggedInWidget);
+	m_dbImportController = new DatabaseImportController(importer, m_loggedInWidget);
 	connect(m_dbImportController, SIGNAL(done(bool)), this, SLOT(importDone(bool)));
 	m_dbImportController->start();
 }
@@ -1798,6 +1805,14 @@ void MainWindow::importPassUI()
 	startImport(importer);
 }
 #endif
+
+void MainWindow::importCSVUI()
+{
+	QList<esdbTypeModule *> typeModules = m_loggedInWidget->getTypeModules();
+
+	DatabaseImporter *importer = new CSVImporter(typeModules, this);
+	startImport(importer);
+}
 
 void MainWindow::restoreDeviceUi()
 {
