@@ -18,6 +18,7 @@ private:
 	genericTypeDesc *m_typeDesc;
 	esdbEntry *decodeEntry(int id, int revision, esdbEntry *prev, struct block *blk) const;
 	bool m_userDefined;
+	esdbEntry *decodeEntry(const QVector<genericField> &fields, bool doAliasMatch) const;
 public:
 	EsdbActionBar *newActionBar();
 	esdbGenericModule(genericTypeDesc *typeDesc, LoggedInWidget *parent, bool userDefined = false, bool plural = true);

@@ -53,3 +53,27 @@ esdbEntry *esdbGenericModule::decodeEntry(int id, int revision, esdbEntry *prev,
 	}
 	return g;
 }
+
+esdbEntry *esdbGenericModule::decodeEntry(const QVector<genericField> &fields, bool doAliasMatch) const
+{
+	QVector<QStringList> aliasedFields;
+	QStringList nameAliases;
+	nameAliases.push_back("name");
+	if (doAliasMatch) {
+		nameAliases.push_back("title");
+		nameAliases.push_back("account");
+		nameAliases.push_back("url");
+		nameAliases.push_back("address");
+	}
+	aliasedFields.push_back(nameAliases);
+	QStringList fieldNames;
+	for (auto f : fields) {
+		fieldNames.append(f.name);
+	}
+	generic *g = new generic(-1);
+	QVector<QStringList::const_iterator> aliasMatched = aliasMatch(aliasedFields, fieldNames);
+	QVector<QString> fieldValues = aliasMatchValues(aliasedFields, aliasMatched, fields, &g->fields);
+	g->name = fieldValues[0];
+	g->typeName = name();
+	return g;
+}

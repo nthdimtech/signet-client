@@ -27,7 +27,7 @@ CSVImportConfigure::CSVImportConfigure(CSVImporter *importer, QWidget *parent) :
 		m_dataTypeCombo->addItem(typeModule->name());
 	}
 
-	QPushButton *okButton = new QPushButton("Okay");
+	QPushButton *okButton = new QPushButton("Ok");
 	QPushButton *cancelButton = new QPushButton("Cancel");
 	buttons->addWidget(cancelButton);
 	buttons->addWidget(okButton);

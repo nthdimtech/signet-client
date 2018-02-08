@@ -68,32 +68,6 @@ esdbEntry *esdbAccountModule::decodeEntry(int id, int revision, esdbEntry *prev,
 	return entry;
 }
 
-QVector<QStringList::const_iterator> esdbAccountModule::aliasMatch(const QVector<QStringList> &aliasedFields, const QStringList &fields) const
-{
-	QVector<QStringList::const_iterator> aliasMatched;
-
-	aliasMatched.resize(aliasedFields.size());
-
-	for (int i = 0; i < aliasedFields.size(); i++) {
-		aliasMatched.replace(i, aliasedFields.at(i).cend());
-	}
-
-	int j = 0;
-	for (const QStringList &aliasedField : aliasedFields) {
-		for (int i = 0; i < fields.size(); i++) {
-			for (QStringList::const_iterator iter = aliasedField.cbegin(); iter < aliasMatched.at(j); iter++) {
-				if (!fields.at(i).compare(*iter, Qt::CaseInsensitive)) {
-					aliasMatched.replace(j, iter);
-					break;
-				}
-			}
-		}
-		j++;
-	}
-
-	return aliasMatched;
-}
-
 esdbEntry *esdbAccountModule::decodeEntry(const QVector<genericField> &fields, bool doAliasMatch) const
 {
 	account *acct = new account(-1);
@@ -101,25 +75,33 @@ esdbEntry *esdbAccountModule::decodeEntry(const QVector<genericField> &fields, b
 
 	QStringList acctNameAliases;
 	acctNameAliases.push_back("name");
-	acctNameAliases.push_back("title");
-	acctNameAliases.push_back("account");
-	acctNameAliases.push_back("url");
-	acctNameAliases.push_back("address");
+	if (doAliasMatch) {
+		acctNameAliases.push_back("title");
+		acctNameAliases.push_back("account");
+		acctNameAliases.push_back("url");
+		acctNameAliases.push_back("address");
+	}
 
 	QStringList usernameAliases;
 	usernameAliases.push_back("username");
-	usernameAliases.push_back("user");
-	usernameAliases.push_back("login");
-	usernameAliases.push_back("email");
+	if (doAliasMatch) {
+		usernameAliases.push_back("user");
+		usernameAliases.push_back("login");
+		usernameAliases.push_back("email");
+	}
 
 	QStringList passwordAliases;
 	passwordAliases.push_back("password");
-	passwordAliases.push_back("pass");
-	passwordAliases.push_back("passphrase");
+	if (doAliasMatch) {
+		passwordAliases.push_back("pass");
+		passwordAliases.push_back("passphrase");
+	}
 
 	QStringList urlAliases;
 	urlAliases.push_back("url");
-	urlAliases.push_back("address");
+	if (doAliasMatch) {
+		urlAliases.push_back("address");
+	}
 
 	aliasedFields.push_back(acctNameAliases);
 	aliasedFields.push_back(usernameAliases);
@@ -127,35 +109,12 @@ esdbEntry *esdbAccountModule::decodeEntry(const QVector<genericField> &fields, b
 	aliasedFields.push_back(urlAliases);
 
 	QStringList fieldNames;
-
 	for (auto f : fields) {
 		fieldNames.append(f.name);
 	}
 
-	QVector<QString> fieldValues;
-	fieldValues.resize(aliasedFields.size());
-
 	QVector<QStringList::const_iterator> aliasMatched = aliasMatch(aliasedFields, fieldNames);
-
-	for (genericField f : fields) {
-		bool matched = false;
-		int i = 0;
-		for (QStringList::const_iterator iter : aliasMatched) {
-			if (iter == aliasedFields.at(i).cend()) {
-				i++;
-				continue;
-			}
-			const QString &aliasName = *iter;
-			if (!f.name.compare(aliasName, Qt::CaseInsensitive)) {
-				fieldValues[i] = f.value;
-				matched = true;
-			}
-			i++;
-		}
-		if (!matched) {
-			acct->fields.addField(f);
-		}
-	}
+	QVector<QString> fieldValues = aliasMatchValues(aliasedFields, aliasMatched, fields, &acct->fields);
 	acct->acctName = fieldValues[0];
 	acct->userName = fieldValues[1];
 	acct->password = fieldValues[2];

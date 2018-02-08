@@ -20,7 +20,6 @@ private:
 	EsdbActionBar *newActionBar();
 	esdbEntry *decodeEntry(int id, int revision, esdbEntry *prev, struct block *blk) const;
 	esdbEntry *decodeEntry(const QVector<genericField> &fields, bool aliasMatch = true) const;
-	QVector<QStringList::const_iterator> aliasMatch(const QVector<QStringList> &aliasedFields, const QStringList &fields) const;
 public:
 	esdbAccountModule(LoggedInWidget *parent) :
 		esdbTypeModule("Accounts"),
