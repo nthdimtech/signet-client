@@ -117,6 +117,16 @@ int account::matchQuality(const QString &search) const
 	return quality;
 }
 
+QString account::getPath() const
+{
+	const genericField * f = fields.getField(QString("path"));
+	if (f) {
+		return f->value;
+	} else {
+		return QString();
+	}
+}
+
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
 #include <QRegularExpression>
 #endif

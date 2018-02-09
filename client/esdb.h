@@ -90,6 +90,12 @@ struct esdbEntry {
 		return QString();
 	}
 
+	QString getFullTitle() const {
+		QString path = getPath();
+		QString title = getTitle();
+		return path + "/" + title;
+	}
+
 	bool hasIcon() const
 	{
 		return iconSet;

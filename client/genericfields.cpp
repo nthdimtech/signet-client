@@ -59,6 +59,16 @@ void genericFields::toBlock(block *blk) const
 	}
 }
 
+const genericField *genericFields::getField(const QString &name) const
+{
+	for (const genericField &f : m_fields) {
+		if (f.name == name) {
+			return &f;
+		}
+	}
+	return NULL;
+}
+
 void genericFields::upgrade(const genericFields_1 &f)
 {
 	m_fields = f.m_fields;

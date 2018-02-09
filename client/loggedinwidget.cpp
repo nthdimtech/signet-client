@@ -638,7 +638,7 @@ const esdbEntry *LoggedInWidget::findEntry(QString type, QString name) const
 		if (t->module->name() == type) {
 			QMap<int, esdbEntry *>::const_iterator iter;
 			for (iter = t->entries->cbegin(); iter != t->entries->cend(); iter++) {
-				if (iter.value()->getTitle() == name) {
+				if (iter.value()->getFullTitle() == name) {
 					return iter.value();
 				}
 			}

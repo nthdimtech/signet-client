@@ -67,7 +67,7 @@ bool DatabaseImportController::nextEntry()
 		return true;
 	}
 	esdbEntry *importEntry = *m_dbTypeIter;
-	const esdbEntry *existingEntry = m_loggedInWidget->findEntry(m_dbIter.key(), importEntry->getTitle());
+	const esdbEntry *existingEntry = m_loggedInWidget->findEntry(m_dbIter.key(), importEntry->getFullTitle());
 
 	bool overwrite = false;
 
@@ -76,9 +76,13 @@ bool DatabaseImportController::nextEntry()
 	} else if (existingEntry && m_skipAll) {
 		return false;
 	} else if (existingEntry) {
+		QString fullTitle = importEntry->getFullTitle();
+		if (fullTitle.at(0) == '/') {
+			fullTitle.remove(0, 1);
+		}
 		QMessageBox *resolution = new QMessageBox(QMessageBox::Warning,
 							  m_importer->databaseTypeName() + " Import",
-							  "Entry \"" + importEntry->getTitle() +
+							  "Entry \"" + fullTitle +
 							  "\" " +
 							  progressString() +
 							  " already exists",
@@ -133,8 +137,12 @@ bool DatabaseImportController::nextEntry()
 		//TODO handle when no ID's available
 	}
 
+	QString fullTitle = importEntry->getFullTitle();
+	if (fullTitle.at(0) == '/') {
+		fullTitle.remove(0, 1);
+	}
 	m_buttonWaitDialog = new ButtonWaitDialog(m_importer->databaseTypeName() + " Import",
-		"import \"" + importEntry->getTitle() + "\" " +
+		"import \"" + fullTitle + "\" " +
 		progressString(), (QWidget *)parent());
 	m_buttonWaitDialog->show();
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(importAccountFinished(int)));

@@ -56,6 +56,8 @@ public:
 		m_fields.push_back(f);
 	}
 
+	const genericField *getField(const QString &name) const;
+
 	void getFields(QVector<genericField> &fields) const;
 
 	void upgrade(const genericFields_1 &f);

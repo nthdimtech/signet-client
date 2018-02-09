@@ -139,6 +139,7 @@ struct account : public esdbEntry {
 	QString getTitle() const;
 	QString getUrl() const;
 	int matchQuality(const QString &search) const;
+	QString getPath() const;
 
 	void setTitle(const QString &title) {
 		acctName = title;
