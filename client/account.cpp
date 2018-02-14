@@ -100,7 +100,7 @@ void account::setPath(QString &path)
 			return;
 		}
 	}
-	fields.addField(genericField("path", QString(), path));
+	fields.addField(genericField("path", QString(), path, true));
 }
 
 int account::matchQuality(const QString &search) const
