@@ -23,6 +23,8 @@ void SearchFilterEdit::keyPressEvent(QKeyEvent *event)
 	switch (key) {
 	case Qt::Key_Up:
 	case Qt::Key_Down:
+	case Qt::Key_Enter:
+	case Qt::Key_Return:
 		if (m_searchListBox)
 			m_searchListBox->keyPressEvent(event);
 		break;

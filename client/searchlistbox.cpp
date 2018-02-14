@@ -8,9 +8,15 @@
 #include<QKeyEvent>
 #include <QLineEdit>
 
-SearchListbox::SearchListbox(QLineEdit *query_edit, QAbstractItemModel *model, QWidget *parent) : QListView(parent),
+#include "esdbmodel.h"
+
+SearchListbox::SearchListbox(QLineEdit *query_edit, QAbstractItemModel *model, QWidget *parent) :
+	QTreeView(parent),
 	m_queryEdit(query_edit)
 {
+	setIconSize(QSize(24,24));
+	setHeaderHidden(true);
+	setRootIsDecorated(false);
 	setModel(model);
 }
 
@@ -29,12 +35,15 @@ void SearchListbox::disableHover()
 void SearchListbox::entered(QModelIndex idx)
 {
 	setCurrentIndex(idx);
-	emit selected(idx);
+	if (model()->rowCount(idx)) {
+		setExpanded(idx, true);
+	} else {
+		emit selected(idx);
+	}
 }
 
 void SearchListbox::keyPressEvent(QKeyEvent *event)
 {
-	int row;
 	QModelIndex idx;
 	int key = event->key();
 	switch (key) {
@@ -45,27 +54,21 @@ void SearchListbox::keyPressEvent(QKeyEvent *event)
 		}
 		break;
 	case Qt::Key_Up:
-		row = this->currentIndex().row();
-		idx = model()->index(row - 1, 0);
-		if (idx.isValid()) {
-			this->setCurrentIndex(idx);
-			emit selected(idx);
-		}
-		break;
 	case Qt::Key_Down:
-		row = this->currentIndex().row();
-		idx = model()->index(row + 1, 0);
-		if (idx.isValid()) {
-			this->setCurrentIndex(idx);
-			emit selected(idx);
-		}
+		QTreeView::keyPressEvent(event);
+		emit selected(currentIndex());
 		break;
 	case Qt::Key_Return:
-	case Qt::Key_Enter:
-		idx = this->currentIndex();
-		if (idx.isValid())
-			emit activated(idx);
-		break;
+	case Qt::Key_Enter: {
+		QModelIndex index = currentIndex();
+		if (index.isValid()) {
+			if (model()->rowCount(index)) {
+				setExpanded(index, !isExpanded(index));
+			} else {
+				emit activated(index);
+			}
+		}
+	} break;
 	default:
 		if (event->text().size()) {
 			m_filterText.append(event->text());

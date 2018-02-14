@@ -10,7 +10,7 @@ class QLineEdit;
 class QListView;
 class QAbstractItemModel;
 
-class SearchListbox : public QListView
+class SearchListbox : public QTreeView
 {
 	Q_OBJECT
 	QLineEdit *m_queryEdit;

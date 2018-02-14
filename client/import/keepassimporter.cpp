@@ -37,8 +37,13 @@ void KeePassImporter::traverse(QString path, Group *g)
 		m_accountType->append(a);
 	}
 	const QList<Group*> &gl = g->children();
-	for (auto giter = gl.constBegin(); giter != gl.constEnd(); giter++)
-		traverse(path.append('/').append((*giter)->name().replace("/", "//")),  (*giter));
+	for (auto giter = gl.constBegin(); giter != gl.constEnd(); giter++) {
+		if (path.size()) {
+			traverse(path.append('/').append((*giter)->name().replace("/", "//")),  (*giter));
+		} else {
+			traverse(path.append((*giter)->name().replace("/", "//")),  (*giter));
+		}
+	}
 }
 
 void KeePassImporter::start()

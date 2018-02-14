@@ -95,7 +95,12 @@ void PassImporter::traverse(QString path, QDir &dir)
 	for (auto info : fileInfoList) {
 		if (info.fileName() == "." || info.fileName() == "..")
 			continue;
-		QString subPath = path + "/" + info.fileName();
+		QString subPath;
+		if (path.size()) {
+			subPath = path + "/" + info.fileName();
+		} else {
+			subPath = info.fileName();
+		}
 		QDir subDir(info.absoluteFilePath());
 		traverse(subPath, subDir);
 	}

@@ -98,6 +98,7 @@ class LoggedInWidget : public QWidget
 		QMap<int, esdbEntry *> *entries;
 		QList<esdbEntry *> *filteredList;
 		EsdbModel *model;
+		bool expanded;
 		typeData(esdbTypeModule *_module);
 		~typeData();
 	};
@@ -154,6 +155,7 @@ class LoggedInWidget : public QWidget
 	EsdbActionBar *getActionBarByEntry(esdbEntry *entry);
 	EsdbActionBar *getActiveActionBar();
 	esdbTypeModule *getTypeModule(int type);
+	void expandTreeItems();
 public:
 	enum ID_TASK {
 		ID_TASK_NONE,

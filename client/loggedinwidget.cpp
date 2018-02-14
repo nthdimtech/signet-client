@@ -85,7 +85,8 @@ int iconAccount::matchQuality(esdbEntry *entry)
 }
 
 LoggedInWidget::typeData::typeData(esdbTypeModule *_module) :
-	module(_module)
+	module(_module),
+	expanded(false)
 {
 	entries = new QMap<int, esdbEntry *>();
 	filteredList = new QList<esdbEntry *>();
@@ -352,11 +353,24 @@ void LoggedInWidget::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int uid
 	}
 }
 
+void LoggedInWidget::expandTreeItems()
+{
+	int rows = m_activeType->model->rowCount();
+	for (int i = 0; i < rows; i++) {
+		QModelIndex index = m_activeType->model->index(i);
+		if (!((EsdbModelItem *)index.internalPointer())->isLeafItem()) {
+			m_searchListbox->setExpanded(index, true);
+		}
+	}
+	m_activeType->expanded = true;
+}
+
 void LoggedInWidget::currentTypeIndexChanged(int idx)
 {
 	m_activeTypeIndex = idx;
 	m_activeType = m_typeData.at(m_activeTypeIndex);
 	m_searchListbox->setModel(m_activeType->model);
+
 	m_selectedEntry = NULL;
 	m_actionBarStack->setCurrentIndex(idx);
 	populateEntryList(m_activeType, m_filterEdit->text());
@@ -729,20 +743,21 @@ void LoggedInWidget::selected(QModelIndex idx)
 
 void LoggedInWidget::activated(QModelIndex idx)
 {
-	if (idx.isValid()) {
-		int index = idx.row();
-		esdbEntry *entry = m_activeType->filteredList->at(index);
-		selectEntry(entry);
+	if (!m_activeType->model->rowCount(idx)) {
+		EsdbModelLeafItem *ent = (EsdbModelLeafItem *)idx.internalPointer();
+		esdbEntry *entry = ent->leafNode();
 		getActiveActionBar()->defaultAction(entry);
 	}
 }
 
 void LoggedInWidget::pressed(QModelIndex idx)
 {
-	if (idx.isValid()) {
-		int index = idx.row();
-		esdbEntry *acct = m_activeType->filteredList->at(index);
-		selectEntry(acct);
+	if (!m_activeType->model->rowCount(idx)) {
+		EsdbModelLeafItem *ent = (EsdbModelLeafItem *)idx.internalPointer();
+		esdbEntry *entry = ent->leafNode();
+		selectEntry(entry);
+	} else {
+		m_searchListbox->setExpanded(idx, !m_searchListbox->isExpanded(idx));
 	}
 }
 
@@ -866,9 +881,13 @@ void LoggedInWidget::populateEntryList(typeData *t, QString filter)
 	EsdbModel *model = t->model;
 	filteredList->clear();
 
+	bool hasGroups = false;
 	QVector<QList<esdbEntry *> > qualityGroups;
 	for (auto x : *data) {
 		esdbEntry *entry = x;
+		if (entry->getPath().size()) {
+			hasGroups = true;
+		}
 		int quality = entry->matchQuality(filter);
 		if (quality) {
 			if (qualityGroups.size() < quality) {
@@ -883,19 +902,12 @@ void LoggedInWidget::populateEntryList(typeData *t, QString filter)
 	for (i = (qualityGroups.size() - 1); i >= 0; i--) {
 		filteredList->append(qualityGroups[i]);
 	}
-	model->changed();
+	model->changed(hasGroups);
+	m_searchListbox->setRootIsDecorated(hasGroups);
 
 	if (t == m_activeType) {
-		bool matched = false;
-		int match_idx = -1;
-		int i = 0;
-		for (auto x : *filteredList) {
-			if (x == m_selectedEntry) {
-				match_idx = i;
-				matched = true;
-			}
-			i++;
-		}
+		QModelIndex index = model->findEntry(m_selectedEntry);
+		bool matched = index.isValid();
 		if (!matched) {
 			if (filteredList->size() && m_selectedEntry) {
 				m_searchListbox->setCurrentIndex(model->index(0));
@@ -905,7 +917,11 @@ void LoggedInWidget::populateEntryList(typeData *t, QString filter)
 				selectEntry(NULL);
 			}
 		} else {
-			m_searchListbox->setCurrentIndex(model->index(match_idx));
+			m_searchListbox->setCurrentIndex(index);
 		}
+	}
+
+	if (!m_activeType->expanded) {
+		expandTreeItems();
 	}
 }
