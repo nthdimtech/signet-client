@@ -15,10 +15,13 @@ struct genericField {
 	QString name;
 	QString type;
 	QString value;
-	genericField(QString _name, QString _type, QString _value) :
+	bool metaData;
+	genericField(QString _name, QString _type, QString _value, bool metaData_ = false) :
 		name(_name),
 		type(_type),
-		value(_value) {
+		value(_value),
+		metaData(metaData_)
+	{
 	}
 	genericField() {}
 };
