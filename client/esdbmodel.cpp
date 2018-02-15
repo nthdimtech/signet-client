@@ -45,7 +45,11 @@ void EsdbModelGroupItem::refreshEntry(EsdbModel *m, const QModelIndex &parent, e
 		       if (!item->isLeafItem()) {
 				EsdbModelGroupItem *groupItem = (EsdbModelGroupItem *) item;
 				if (groupItem->name() == path.at(first)) {
-					groupItem->setRank(rank);
+					if (path.at(0) == "Unsorted") {
+						groupItem->setRank(-1);
+					} else {
+						groupItem->setRank(rank);
+					}
 					groupItem->refreshEntry(m, m->createIndex(row, 0, groupItem), ent, rank, path, first + 1);
 					return;
 				}
