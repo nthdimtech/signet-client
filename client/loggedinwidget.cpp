@@ -292,6 +292,11 @@ LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, Q
 
 	selectEntry(NULL);
 
+	connect(m_searchListbox, SIGNAL(expanded(QModelIndex)),
+		this, SLOT(expanded(QModelIndex)));
+	connect(m_searchListbox, SIGNAL(collapsed(QModelIndex)),
+		this, SLOT(collapsed(QModelIndex)));
+
 	m_searchListbox->setEnabled(false);
 	m_filterEdit->setEnabled(false);
 	m_newAcctButton->setEnabled(false);
@@ -395,6 +400,18 @@ void LoggedInWidget::signetDevEvent(int code)
 		open();
 		break;
 	}
+}
+
+void LoggedInWidget::expanded(QModelIndex index)
+{
+	if (m_activeType)
+		m_activeType->model->expand(index, true);
+}
+
+void LoggedInWidget::collapsed(QModelIndex index)
+{
+	if (m_activeType)
+		m_activeType->model->expand(index, false);
 }
 
 void LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar)
@@ -923,5 +940,7 @@ void LoggedInWidget::populateEntryList(typeData *t, QString filter)
 
 	if (!m_activeType->expanded) {
 		expandTreeItems();
+	} else {
+		model->syncExpanded(m_searchListbox);
 	}
 }

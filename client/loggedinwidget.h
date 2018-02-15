@@ -195,6 +195,8 @@ public slots:
 	void newEntryUI();
 	void customContextMenuRequested(QPoint pt);
 	void signetDevEvent(int);
+	void expanded(QModelIndex index);
+	void collapsed(QModelIndex index);
 };
 
 #endif // LOGGEDINWIDGET_H

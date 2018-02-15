@@ -1,8 +1,10 @@
 #include "esdbmodel.h"
+#include "esdbtypemodule.h"
+
 #include <QModelIndex>
 #include <QDebug>
 #include <QIcon>
-#include "esdbtypemodule.h"
+#include <QTreeView>
 
 void EsdbModelGroupItem::refreshEntry(EsdbModel *m, const QModelIndex &parent, esdbEntry *ent, int rank, const QStringList &path, int first)
 {
@@ -19,7 +21,21 @@ void EsdbModelGroupItem::refreshEntry(EsdbModel *m, const QModelIndex &parent, e
 			}
 			row++;
 		}
-		EsdbModelLeafItem *leafItem = new EsdbModelLeafItem(ent, rank, this);
+		EsdbModelLeafItem *leafItem;
+		QList<EsdbModelLeafItem *>::iterator iter = m_hiddenItems.begin();
+		while (iter != m_hiddenItems.end()) {
+			if ((*iter)->name() == ent->getTitle()) {
+				leafItem = *iter;
+				leafItem->setLeafEntry(ent);
+				leafItem->setRank(rank);
+				m_hiddenItems.erase(iter);
+				break;
+			}
+			iter++;
+		}
+		if (iter == m_hiddenItems.end()) {
+			leafItem = new EsdbModelLeafItem(ent, rank, this);
+		}
 		m->beginInsertRows(parent, row, row);
 		m_items.append(leafItem);
 		m->endInsertRows();
@@ -36,7 +52,19 @@ void EsdbModelGroupItem::refreshEntry(EsdbModel *m, const QModelIndex &parent, e
 		       }
 		       row++;
 		}
-		EsdbModelGroupItem *groupItem = new EsdbModelGroupItem(path.at(first), rank, this);
+		EsdbModelGroupItem *groupItem;
+		QList<EsdbModelGroupItem *>::iterator iter = m_hiddenGroups.begin();
+		while (iter != m_hiddenGroups.end()) {
+			if ((*iter)->name() == path.at(first)) {
+				groupItem = *iter;
+				m_hiddenGroups.erase(iter);
+				break;
+			}
+			iter++;
+		}
+		if (iter == m_hiddenGroups.end()) {
+			groupItem = new EsdbModelGroupItem(path.at(first), rank, this);
+		}
 		m->beginInsertRows(parent, row, row);
 		m_items.append(groupItem);
 		m->endInsertRows();
@@ -100,8 +128,8 @@ void EsdbModelGroupItem::cullEmptyItems(const QModelIndex &parent, EsdbModel *m)
 			g->cullEmptyItems(m->createIndex(row, 0, this), m);
 			if (g->rowCount() == 0) {
 				m->beginRemoveRows(parent, row, row);
-				g->deleteLater();
 				iter = m_items.erase(iter);
+				m_hiddenGroups.append(g);
 				m->endRemoveRows();
 				continue;
 			}
@@ -109,8 +137,8 @@ void EsdbModelGroupItem::cullEmptyItems(const QModelIndex &parent, EsdbModel *m)
 			EsdbModelLeafItem *i = (EsdbModelLeafItem *)(item);
 			if (!i->leafNode()) {
 				m->beginRemoveRows(parent, row, row);
-				i->deleteLater();
 				iter = m_items.erase(iter);
+				m_hiddenItems.append(i);
 				m->endRemoveRows();
 				continue;
 			}
@@ -137,7 +165,7 @@ EsdbModel::EsdbModel(esdbTypeModule *module, QList<esdbEntry *> *entries) :
 	m_entries(entries)
 {
 	Q_UNUSED(module);
-	m_rootItem = new EsdbModelGroupItem("", -1, NULL);
+	m_rootItem = new EsdbModelGroupItem("", -1, NULL, true);
 	bool hasGroups = false;
 	for (auto x : *m_entries) {
 		esdbEntry *entry = x;
@@ -154,11 +182,7 @@ int EsdbModel::rowCount(const QModelIndex & parent) const
 	EsdbModelItem *i;
 	if (parent.isValid()) {
 		i = (EsdbModelItem *)parent.internalPointer();
-		if (i->isLeafItem()) {
-			return 0;
-		} else {
-			return ((EsdbModelGroupItem *)i)->rowCount();
-		}
+		return i->rowCount();
 	} else {
 		return m_rootItem->rowCount();
 	}
@@ -175,7 +199,11 @@ QModelIndex EsdbModel::index(int row, int column, const QModelIndex &parent) con
 	if (!parent.isValid()) {
 		g = m_rootItem;
 	} else {
-		g = (EsdbModelGroupItem *)parent.internalPointer();
+		EsdbModelItem *item = (EsdbModelItem *)parent.internalPointer();
+		if (item->isLeafItem()) {
+			return QModelIndex();
+		}
+		g = (EsdbModelGroupItem *)item;
 	}
 
 	EsdbModelItem *item = g->child(row);
@@ -246,6 +274,39 @@ QModelIndex EsdbModel::findEntry(EsdbModelGroupItem *g, esdbEntry *ent)
 QModelIndex EsdbModel::findEntry(esdbEntry *ent)
 {
 	return findEntry(m_rootItem, ent);
+}
+
+void EsdbModel::syncExpanded(QTreeView *v, QModelIndex &parent, EsdbModelGroupItem *group)
+{
+	int rows = rowCount(parent);
+	if (group->isExpanded()) {
+		v->expand(parent);
+	} else {
+		v->collapse(parent);
+	}
+	for (int i = 0; i < rows; i++) {
+		QModelIndex child = index(i, 0, parent);
+		EsdbModelItem *item = (EsdbModelItem *)(child.internalPointer());
+		if (!item->isLeafItem()) {
+			EsdbModelGroupItem *g = (EsdbModelGroupItem *)(item);
+			syncExpanded(v, child, g);
+		}
+	}
+}
+
+void EsdbModel::syncExpanded(QTreeView *v)
+{
+	QModelIndex i;
+	syncExpanded(v, i, m_rootItem);
+}
+
+void EsdbModel::expand(QModelIndex &index, bool expand)
+{
+	EsdbModelItem *item = (EsdbModelItem *)(index.internalPointer());
+	if (!item->isLeafItem()) {
+		EsdbModelGroupItem *g = (EsdbModelGroupItem *)(item);
+		g->expanded(expand);
+	}
 }
 
 int EsdbModelLeafItem::row()

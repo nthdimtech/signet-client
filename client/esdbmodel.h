@@ -10,6 +10,7 @@ struct esdbTypeModule;
 struct esdbModelGroup;
 
 class EsdbModelGroupItem;
+class QTreeView;
 
 class EsdbModelItem : public QObject {
 	int m_rank;
@@ -37,9 +38,9 @@ public:
 class EsdbModelLeafItem : public EsdbModelItem {
 	esdbEntry *m_item;
 	EsdbModelGroupItem *m_parent;
-	QString m_name;
 	QIcon m_icon;
 public:
+	QString m_name;
 	esdbEntry *leafNode() {
 		return m_item;
 	}
@@ -93,12 +94,19 @@ class EsdbModel;
 class EsdbModelGroupItem : public EsdbModelItem {
 	EsdbModelGroupItem *m_parent;
 	QString m_name;
+	bool m_expanded;
 public:
 	QList<EsdbModelItem *> m_items;
+	QList<EsdbModelGroupItem *> m_hiddenGroups;
+	QList<EsdbModelLeafItem *> m_hiddenItems;
 	void clearPointers();
 
 	QString name() {
 		return m_name;
+	}
+
+	void expanded(bool e) {
+		m_expanded = e;
 	}
 
 	esdbEntry *leafNode() {
@@ -110,6 +118,14 @@ public:
 
 	bool isLeafItem() {
 		return false;
+	}
+
+	bool isExpanded() {
+		return m_expanded;
+	}
+
+	void setExpanded(bool expanded) {
+		m_expanded = expanded;
 	}
 
 	EsdbModelItem *child(int row) {
@@ -124,10 +140,11 @@ public:
 		return m_parent;
 	}
 
-	EsdbModelGroupItem(QString name, int rank, EsdbModelGroupItem *parent) :
+	EsdbModelGroupItem(QString name, int rank, EsdbModelGroupItem *parent, bool expanded = true) :
 		EsdbModelItem(rank),
 		m_parent(parent),
-		m_name(name)
+		m_name(name),
+		m_expanded(expanded)
 	{
 
 	}
@@ -159,10 +176,13 @@ public:
 	QModelIndex parent(const QModelIndex &child) const;
 	QModelIndex index(int row);
 	QModelIndex findEntry(esdbEntry *ent);
+	void expand(QModelIndex &index, bool expand);
+	void syncExpanded(QTreeView *v);
 private:
 	QModelIndex findEntry(EsdbModelGroupItem *g, esdbEntry *ent);
 	QList<esdbEntry *> *m_entries;
 	EsdbModelGroupItem *m_rootItem;
+	void syncExpanded(QTreeView *v, QModelIndex &index, EsdbModelGroupItem *group);
 };
 
 #endif // ACCOUNTMODEL_H
