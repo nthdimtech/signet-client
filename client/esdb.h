@@ -15,12 +15,10 @@ struct genericField {
 	QString name;
 	QString type;
 	QString value;
-	bool metaData;
-	genericField(QString _name, QString _type, QString _value, bool metaData_ = false) :
+	genericField(QString _name, QString _type, QString _value) :
 		name(_name),
 		type(_type),
-		value(_value),
-		metaData(metaData_)
+		value(_value)
 	{
 	}
 	genericField() {}
@@ -80,12 +78,13 @@ struct esdbEntry {
 	{
 		return QString();
 	}
-
-	virtual void setTitle(const QString &title) = 0;
-
 	virtual QString getUrl() const
 	{
 		return QString();
+	}
+
+	virtual void setTitle(const QString &t) {
+		Q_UNUSED(t);
 	}
 
 	virtual QString getPath() const

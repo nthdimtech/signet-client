@@ -45,7 +45,6 @@ void genericFields::fromBlock(block *blk)
 		blk->readString(fld.name);
 		blk->readString(fld.type);
 		blk->readString(fld.value);
-		fld.metaData = fld.name.size() != 0;
 		m_fields.push_back(fld);
 	}
 }
@@ -54,9 +53,9 @@ void genericFields::toBlock(block *blk) const
 {
 	blk->writeU8(m_fields.count());
 	for (auto fld : m_fields) {
-		blk->writeString(fld.name, !fld.metaData);
-		blk->writeString(fld.type, !fld.metaData);
-		blk->writeString(fld.value, !fld.metaData);
+		blk->writeString(fld.name, true);
+		blk->writeString(fld.type, true);
+		blk->writeString(fld.value, true);
 	}
 }
 

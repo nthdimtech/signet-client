@@ -50,9 +50,21 @@ void account_4::fromBlock(block *blk)
 	fields.fromBlock(blk);
 }
 
+void account_5::fromBlock(block *blk)
+{
+	esdbEntry::fromBlock(blk);
+	blk->readString(this->acctName);
+	blk->readString(this->userName);
+	blk->readString(this->password);
+	blk->readString(this->url);
+	blk->readString(this->email);
+	fields.fromBlock(blk);
+}
+
 void account::fromBlock(block *blk)
 {
 	esdbEntry::fromBlock(blk);
+	blk->readString(this->path);
 	blk->readString(this->acctName);
 	blk->readString(this->userName);
 	blk->readString(this->password);
@@ -64,22 +76,13 @@ void account::fromBlock(block *blk)
 void account::toBlock(block *blk) const
 {
 	esdbEntry::toBlock(blk);
+	blk->writeString(this->path, false);
 	blk->writeString(this->acctName, false);
 	blk->writeString(this->userName, false);
 	blk->writeString(this->password, true);
 	blk->writeString(this->url, false);
 	blk->writeString(this->email, false);
 	fields.toBlock(blk);
-}
-
-QString account::getTitle() const
-{
-	return acctName;
-}
-
-QString account::getUrl() const
-{
-	return url;
 }
 
 void account::getFields(QVector<genericField> &fields_) const
@@ -90,17 +93,6 @@ void account::getFields(QVector<genericField> &fields_) const
 	fields_.push_back(genericField("url", QString(), url));
 	fields_.push_back(genericField("email", QString(), email));
 	fields.getFields(fields_);
-}
-
-void account::setPath(QString &path)
-{
-	for (int i = 0; i < fields.fieldCount(); i++) {
-		if (fields.getField(i).name == "path") {
-			fields.getField(i).value = path;
-			return;
-		}
-	}
-	fields.addField(genericField("path", QString(), path, true));
 }
 
 int account::matchQuality(const QString &search) const
@@ -115,16 +107,6 @@ int account::matchQuality(const QString &search) const
 		}
 	}
 	return quality;
-}
-
-QString account::getPath() const
-{
-	const genericField * f = fields.getField(QString("path"));
-	if (f) {
-		return f->value;
-	} else {
-		return QString();
-	}
 }
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))

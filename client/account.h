@@ -79,10 +79,6 @@ struct account_3 : public esdbEntry {
 	account_3(int id_) : esdbEntry(id_, ESDB_TYPE_ACCOUNT, 3, id_, 1)
 	{
 	}
-	void setTitle(const QString &title) {
-		acctName = title;
-	}
-
 	void upgrade(account_2 &prev)
 	{
 		acctName = prev.acct_name;
@@ -107,9 +103,6 @@ struct account_4 : public esdbEntry {
 	account_4(int id_) : esdbEntry(id_, ESDB_TYPE_ACCOUNT, 4, id_, 1)
 	{
 	}
-	void setTitle(const QString &title) {
-		acctName = title;
-	}
 	void upgrade(account_3 &prev)
 	{
 		acctName = prev.acctName;
@@ -119,11 +112,10 @@ struct account_4 : public esdbEntry {
 		url = prev.url;
 		uid = id;
 	}
-
 	~account_4() {}
 };
 
-struct account : public esdbEntry {
+struct account_5 : public esdbEntry {
 	QString acctName;
 	QString userName;
 	QString password;
@@ -131,20 +123,9 @@ struct account : public esdbEntry {
 	QString email;
 	genericFields fields;
 	void fromBlock(block *blk);
-	void toBlock(block *blk) const;
-	account(int id_) : esdbEntry(id_, ESDB_TYPE_ACCOUNT, 5, id_, 1)
+	account_5(int id_) : esdbEntry(id_, ESDB_TYPE_ACCOUNT, 5, id_, 1)
 	{
 	}
-
-	QString getTitle() const;
-	QString getUrl() const;
-	int matchQuality(const QString &search) const;
-	QString getPath() const;
-
-	void setTitle(const QString &title) {
-		acctName = title;
-	}
-
 	void upgrade(account_4 &prev)
 	{
 		acctName = prev.acctName;
@@ -155,10 +136,64 @@ struct account : public esdbEntry {
 		uid = id;
 		fields.upgrade(prev.fields);
 	}
+	~account_5() {}
+};
+
+struct account : public esdbEntry {
+	QString acctName;
+	QString userName;
+	QString password;
+	QString url;
+	QString email;
+	QString path;
+	genericFields fields;
+	void fromBlock(block *blk);
+	void toBlock(block *blk) const;
+	account(int id_) : esdbEntry(id_, ESDB_TYPE_ACCOUNT, 6, id_, 1)
+	{
+	}
+
+	QString getTitle() const {
+		return acctName;
+	}
+	QString getUrl() const {
+		return url;
+	}
+	int matchQuality(const QString &search) const;
+
+	QString getPath() const {
+		return path;
+	}
+
+	void setTitle(const QString &title) {
+		acctName = title;
+	}
+
+	void upgrade(account_5 &prev)
+	{
+		acctName = prev.acctName;
+		userName = prev.userName;
+		password = prev.password;
+		email = prev.email;
+		url = prev.url;
+		uid = id;
+		fields = prev.fields;
+		QList<genericField>::iterator iter = fields.m_fields.begin();
+		while (iter != fields.m_fields.end()) {
+			if ((*iter).name == "path") {
+				path = (*iter).value;
+				iter = fields.m_fields.erase(iter);
+				continue;
+			}
+			iter++;
+		}
+	}
 
 	void getFields(QVector<genericField> &fields) const;
 
-	void setPath(QString &p);
+	void setPath(QString &p) {
+		path = p;
+	}
 
 	~account() {}
 };

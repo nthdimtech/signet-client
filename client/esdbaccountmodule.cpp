@@ -18,6 +18,8 @@ esdbEntry *esdbAccountModule::decodeEntry(int id, int revision, esdbEntry *prev,
 	account_2 rev2(id);
 	account_3 rev3(id);
 	account_4 rev4(id);
+	account_5 rev5(id);
+
 
 	if (!prev) {
 		acct = new account(id);
@@ -42,6 +44,9 @@ esdbEntry *esdbAccountModule::decodeEntry(int id, int revision, esdbEntry *prev,
 		rev4.fromBlock(blk);
 		break;
 	case 5:
+		rev5.fromBlock(blk);
+		break;
+	case 6:
 		acct->fromBlock(blk);
 		break;
 	}
@@ -56,8 +61,10 @@ esdbEntry *esdbAccountModule::decodeEntry(int id, int revision, esdbEntry *prev,
 	case 3:
 		rev4.upgrade(rev3);
 	case 4:
-		acct->upgrade(rev4);
+		rev5.upgrade(rev4);
 	case 5:
+		acct->upgrade(rev5);
+	case 6:
 		break;
 	default:
 		delete acct;
