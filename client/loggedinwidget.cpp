@@ -406,6 +406,9 @@ void LoggedInWidget::expanded(QModelIndex index)
 {
 	if (m_activeType)
 		m_activeType->model->expand(index, true);
+	if (!m_selectedEntry && m_searchListbox->filterText().size()) {
+		selectFirstVisible();
+	}
 }
 
 void LoggedInWidget::collapsed(QModelIndex index)
@@ -519,7 +522,8 @@ void LoggedInWidget::selectEntry(esdbEntry *entry)
 	//TODO: make sure the entry type matches
 	m_selectedEntry = entry;
 	if (!entry) {
-		m_searchListbox->setCurrentIndex(QModelIndex());
+		m_filterEdit->setText(m_searchListbox->filterText());
+		m_filterEdit->setFocus();
 		getActiveActionBar()->selectEntry(NULL);
 	} else {
 		EsdbActionBar *bar = getActionBarByEntry(entry);
@@ -648,10 +652,14 @@ void LoggedInWidget::filterTextChanged(QString text)
 	}
 	if (!selectedEntry() && filteredList->size()) {
 		if (text.size() == 0) {
-			m_filterEdit->setFocus();
+			selectEntry(NULL);
+			m_searchListbox->setCurrentIndex(QModelIndex());
+		} else {
+			selectFirstVisible();
 		}
-		m_searchListbox->setCurrentIndex(m_activeType->model->index(0));
-		selectEntry(filteredList->at(0));
+	} else if (text.size() == 0) {
+		selectEntry(NULL);
+		m_searchListbox->setCurrentIndex(QModelIndex());
 	} else {
 		selectEntry(selectedEntry());
 	}
@@ -751,30 +759,39 @@ void LoggedInWidget::abortProxy()
 void LoggedInWidget::selected(QModelIndex idx)
 {
 	if (idx.isValid()) {
-		int index = idx.row();
-		auto list = m_activeType->filteredList;
-		esdbEntry *acct = list->at(index);
-		selectEntry(acct);
+		EsdbModelItem *item = (EsdbModelItem *)idx.internalPointer();
+		if (item && item->isLeafItem()) {
+			EsdbModelLeafItem *ent = (EsdbModelLeafItem *)idx.internalPointer();
+			selectEntry(ent->leafNode());
+		} else if (item) {
+			selectEntry(NULL);
+		}
 	}
 }
 
 void LoggedInWidget::activated(QModelIndex idx)
 {
-	if (!m_activeType->model->rowCount(idx)) {
-		EsdbModelLeafItem *ent = (EsdbModelLeafItem *)idx.internalPointer();
-		esdbEntry *entry = ent->leafNode();
-		getActiveActionBar()->defaultAction(entry);
+	if (idx.isValid()) {
+		EsdbModelItem *item = (EsdbModelItem *)idx.internalPointer();
+		if (item && item->isLeafItem()) {
+			EsdbModelLeafItem *ent = (EsdbModelLeafItem *)idx.internalPointer();
+			esdbEntry *entry = ent->leafNode();
+			getActiveActionBar()->defaultAction(entry);
+		}
 	}
 }
 
 void LoggedInWidget::pressed(QModelIndex idx)
 {
-	if (!m_activeType->model->rowCount(idx)) {
-		EsdbModelLeafItem *ent = (EsdbModelLeafItem *)idx.internalPointer();
-		esdbEntry *entry = ent->leafNode();
-		selectEntry(entry);
-	} else {
-		m_searchListbox->setExpanded(idx, !m_searchListbox->isExpanded(idx));
+	if (idx.isValid()) {
+		EsdbModelItem *item = (EsdbModelItem *)idx.internalPointer();
+		if (item && item->isLeafItem()) {
+			EsdbModelLeafItem *ent = (EsdbModelLeafItem *)idx.internalPointer();
+			esdbEntry *entry = ent->leafNode();
+			selectEntry(entry);
+		} else {
+			m_searchListbox->setExpanded(idx, !m_searchListbox->isExpanded(idx));
+		}
 	}
 }
 
@@ -891,6 +908,41 @@ void LoggedInWidget::entryCreated(QString typeName, esdbEntry *entry)
 	}
 }
 
+bool LoggedInWidget::selectFirstVisible(QModelIndex &parent)
+{
+	EsdbModelItem *item = (EsdbModelItem *)parent.internalPointer();
+	if (item && item->isLeafItem()) {
+		m_searchListbox->setCurrentIndex(parent);
+		selectEntry(item->leafNode());
+		return true;
+	} else {
+		if (parent.isValid() && !m_searchListbox->isExpanded(parent)) {
+			return false;
+		}
+		int rowCount = m_activeType->model->rowCount(parent);
+		for (int i = 0; i < rowCount; i++) {
+			QModelIndex child = m_activeType->model->index(i, 0, parent);
+			if (selectFirstVisible(child)) {
+				return true;
+			}
+		}
+		return false;
+	}
+}
+
+
+bool LoggedInWidget::selectFirstVisible()
+{
+	QModelIndex parent;
+	if (!selectFirstVisible(parent)) {
+		QModelIndex x = m_activeType->model->index(0);
+		selectEntry(NULL);
+		m_searchListbox->setCurrentIndex(x);
+		return false;
+	}
+	return true;
+}
+
 void LoggedInWidget::populateEntryList(typeData *t, QString filter)
 {
 	QList<esdbEntry *> *filteredList = t->filteredList;
@@ -927,8 +979,7 @@ void LoggedInWidget::populateEntryList(typeData *t, QString filter)
 		bool matched = index.isValid();
 		if (!matched) {
 			if (filteredList->size() && m_selectedEntry) {
-				m_searchListbox->setCurrentIndex(model->index(0));
-				selectEntry(filteredList->at(0));
+				selectFirstVisible();
 			} else if (selectedEntry()) {
 				m_searchListbox->setCurrentIndex(QModelIndex());
 				selectEntry(NULL);

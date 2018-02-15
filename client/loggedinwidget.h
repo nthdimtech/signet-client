@@ -156,6 +156,8 @@ class LoggedInWidget : public QWidget
 	EsdbActionBar *getActiveActionBar();
 	esdbTypeModule *getTypeModule(int type);
 	void expandTreeItems();
+	bool selectFirstVisible();
+	bool selectFirstVisible(QModelIndex &parent);
 public:
 	enum ID_TASK {
 		ID_TASK_NONE,
