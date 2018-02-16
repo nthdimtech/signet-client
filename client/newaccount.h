@@ -27,6 +27,7 @@ public:
 private:
 	DatabaseField *m_username_field;
 	DatabaseField *m_url_field;
+	DatabaseField *m_groupField;
 	DatabaseField *m_email_field;
 	QLabel *m_account_name_warning;
 	QLineEdit *m_account_name_field;

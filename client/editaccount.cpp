@@ -53,6 +53,7 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 	m_accountNameWarning->hide();
 
 	m_usernameField = new DatabaseField("username", 120, NULL);
+	m_groupField = new DatabaseField("group", 120, NULL);
 	m_emailField = new DatabaseField("email", 120, NULL);
 	m_passwordEdit = new PasswordEdit();
 	m_browseUrlButton = new QPushButton(QIcon(":/images/browse.png"),"");
@@ -72,6 +73,8 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 	connect(m_urlField, SIGNAL(textEdited(QString)),
 		this, SLOT(textEdited()));
 	connect(m_genericFieldsEditor, SIGNAL(edited()),
+		this, SLOT(textEdited()));
+	connect(m_groupField, SIGNAL(textEdited(QString)),
 		this, SLOT(textEdited()));
 
 	m_settingFields = true;
@@ -99,6 +102,7 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 	main_layout->setAlignment(Qt::AlignTop);
 	main_layout->addLayout(account_name_layout);
 	main_layout->addWidget(m_accountNameWarning);
+	main_layout->addWidget(m_groupField);
 	main_layout->addWidget(m_usernameField);
 	main_layout->addWidget(m_emailField);
 	main_layout->addWidget(m_passwordEdit);
@@ -138,6 +142,7 @@ void EditAccount::signetdevCmdResp(signetdevCmdRespInfo info)
 			m_acct->password = m_passwordEdit->password();
 			m_acct->url = m_urlField->text();
 			m_acct->email = m_emailField->text();
+			m_acct->path = m_groupField->text();
 			emit accountChanged(m_acct->id);
 			m_saveButton->setDisabled(true);
 			m_undoChangesButton->setDisabled(true);
@@ -182,6 +187,7 @@ void EditAccount::setAccountValues()
 	m_emailField->setText(m_acct->email);
 	m_passwordEdit->setPassword(m_acct->password);
 	m_urlField->setText(m_acct->url);
+	m_groupField->setText(m_acct->path);
 }
 
 void EditAccount::undoChangesUi()
@@ -244,6 +250,7 @@ void EditAccount::savePressed()
 	acct.password = m_passwordEdit->password();
 	acct.url = m_urlField->text();
 	acct.email = m_emailField->text();
+	acct.path = m_groupField->text();
 	m_genericFieldsEditor->saveFields();
 	acct.fields = m_acct->fields;
 	block blk;

@@ -26,6 +26,7 @@ class EditAccount : public QDialog
 	QLineEdit *m_accountNameEdit;
 	QLabel *m_accountNameWarning;
 	DatabaseField *m_usernameField;
+	DatabaseField *m_groupField;
 	PasswordEdit *m_passwordEdit;
 	DatabaseField *m_urlField;
 	DatabaseField *m_emailField;

@@ -55,6 +55,8 @@ NewAccount::NewAccount(int id, const QString &name, QWidget *parent) : QDialog(p
 
 	m_url_field = new DatabaseField("URL", 140);
 
+	m_groupField = new DatabaseField("Group", 140);
+
 	m_email_field = new DatabaseField("email", 140);
 
 	QPushButton *createButton = new QPushButton("Create");
@@ -72,6 +74,7 @@ NewAccount::NewAccount(int id, const QString &name, QWidget *parent) : QDialog(p
 
 	layout->addLayout(account_name_layout);
 	layout->addWidget(m_account_name_warning);
+	layout->addWidget(m_groupField);
 	layout->addWidget(m_username_field);
 	layout->addWidget(m_email_field);
 	layout->addWidget(m_password_edit);
@@ -110,6 +113,7 @@ void NewAccount::create_button_pressed()
 	m_acct = new account(m_id);
 	m_acct->acctName = m_account_name_field->text();
 	m_acct->userName = m_username_field->text();
+	m_acct->path = m_groupField->text();
 	m_acct->password = m_password_edit->password();
 	m_acct->url = m_url_field->text();
 	m_acct->email = m_email_field->text();
