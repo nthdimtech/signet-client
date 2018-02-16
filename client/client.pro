@@ -23,12 +23,16 @@ INCLUDEPATH+=/usr/local/include
 QMAKE_LFLAGS += -L/usr/local/lib
 }
 
-#unix:!macx {
-#LIBS += -lgcrypt -lgpg-error -lz -lX11
-#}
-unix:!macx{
-LIBS += -l:libgcrypt.a -l:libgpg-error.a -l:libz.a
+unix:!macx {
+LIBS += -lgcrypt -lgpg-error -lz -lX11
 }
+
+#
+# Note: Use this fragment instead of the one above when making a static build
+#
+#unix:!macx{
+#LIBS += -l:libgcrypt.a -l:libgpg-error.a -l:libz.a -lX11
+#}
 
 win32 {
 QMAKE_LFLAGS = -static
