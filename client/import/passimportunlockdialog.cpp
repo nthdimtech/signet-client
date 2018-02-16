@@ -1,4 +1,6 @@
 #include "passimportunlockdialog.h"
+
+#ifdef Q_OS_UNIX
 #include "passimporter.h"
 
 #include <QHBoxLayout>
@@ -66,3 +68,4 @@ void PassImportUnlockDialog::passphraseTextEdited()
 {
 	m_warnLabel->hide();
 }
+#endif

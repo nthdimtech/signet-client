@@ -13,7 +13,7 @@ QT += x11extras
 TARGET = signet
 TEMPLATE = app
 QMAKE_CFLAGS += -std=c99 -msse4.1
-QMAKE_CXXFLAGS += -std=c++11 -msse4.1
+QMAKE_CXXFLAGS += -std=c++11 -msse4.1 -DQTCSV_STATIC_LIB
 
 macx {
 ICON = images/signet.icns
@@ -37,18 +37,20 @@ INCLUDEPATH+=../qtcsv
 
 SOURCES += ../signet-base/signetdev/host/signetdev.c \
     import/entryrenamedialog.cpp \
-    import/passimporter.cpp \
-    import/passimportunlockdialog.cpp \
-    import/csvimporter.cpp \
     ../qtcsv/sources/contentiterator.cpp \
     ../qtcsv/sources/reader.cpp \
     ../qtcsv/sources/stringdata.cpp \
     ../qtcsv/sources/variantdata.cpp \
+    import/csvimporter.cpp \
     import/csvimportconfigure.cpp
 
 unix {
-HEADERS += ../signet-base/signetdev/host/signetdev_unix.h
-SOURCES += ../signet-base/signetdev/host/signetdev_unix.c
+HEADERS += ../signet-base/signetdev/host/signetdev_unix.h \
+    import/passimporter.h \
+    import/passimportunlockdialog.h \
+SOURCES += ../signet-base/signetdev/host/signetdev_unix.c \
+    import/passimporter.cpp \
+    import/passimportunlockdialog.cpp \
 }
 
 win32 {
@@ -174,7 +176,7 @@ SOURCES += qtsingleapplication/src/qtlockedfile_win.cpp
 }
 
 unix {
-SOURCES += qtsingleapplication/src/qtlockedfile_unix.cpp
+SOURCES += qtsingleapplication/src/qtlockedfile_unix.cpp /mingw64/qt5-static/bin/qmake.exe ../client/client.pro CONFIG=release
 }
 
 HEADERS  += mainwindow.h \
@@ -292,8 +294,6 @@ HEADERS  += mainwindow.h \
     import/databaseimportcontroller.h \
     import/keepassimporter.h \
     import/entryrenamedialog.h \
-    import/passimporter.h \
-    import/passimportunlockdialog.h \
     import/csvimporter.h \
     ../qtcsv/sources/contentiterator.h \
     ../qtcsv/sources/filechecker.h \
