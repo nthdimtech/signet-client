@@ -23,8 +23,11 @@ INCLUDEPATH+=/usr/local/include
 QMAKE_LFLAGS += -L/usr/local/lib
 }
 
-unix:!macx {
-LIBS += -lgcrypt -lgpg-error -lz -lX11
+#unix:!macx {
+#LIBS += -lgcrypt -lgpg-error -lz -lX11
+#}
+unix:!macx{
+LIBS += -l:libgcrypt.a -l:libgpg-error.a -l:libz.a
 }
 
 win32 {
@@ -47,10 +50,10 @@ SOURCES += ../signet-base/signetdev/host/signetdev.c \
 unix {
 HEADERS += ../signet-base/signetdev/host/signetdev_unix.h \
     import/passimporter.h \
-    import/passimportunlockdialog.h \
+    import/passimportunlockdialog.h
 SOURCES += ../signet-base/signetdev/host/signetdev_unix.c \
     import/passimporter.cpp \
-    import/passimportunlockdialog.cpp \
+    import/passimportunlockdialog.cpp
 }
 
 win32 {
@@ -176,7 +179,7 @@ SOURCES += qtsingleapplication/src/qtlockedfile_win.cpp
 }
 
 unix {
-SOURCES += qtsingleapplication/src/qtlockedfile_unix.cpp /mingw64/qt5-static/bin/qmake.exe ../client/client.pro CONFIG=release
+SOURCES += qtsingleapplication/src/qtlockedfile_unix.cpp
 }
 
 HEADERS  += mainwindow.h \
