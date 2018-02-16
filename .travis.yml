@@ -7,19 +7,18 @@ compiler:
   - gcc
   
 os:
-  - linux
+  - osx
 
 before_install:
   - echo $LANG
   - echo $LC_ALL
   - git submodule update --init
-  - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get update && sudo apt-get install qt5-default libqt5websockets5-dev libqt5x11extras5-dev libgcrypt20-dev zlib1g-dev libx11-dev; fi
-  - if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install qt5 libgcrypt libgpg-error zlib; fi
+  - if [ $TRAVIS_OS_NAME == linux ]; then sudo apt-get update && sudo apt-get install qt5-default qtdeclarative5-dev libqt5x11extras5-dev libgcrypt20-dev zlib1g-dev libx11-dev qtbase5-dev; fi
+  # using  brew instal libgcrypt got Error: libgcrypt 1.8.1 is already installed, This formula is keg-only, which means it was not symlinked into /usr/local,
+  - if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew upgrade libgcrypt && brew install qt5 libgpg-error zlib; fi
 script:
-  - if [ $TRAVIS_OS_NAME == linux ]; then qmake client/client.pro && make; fi
-  - if [ $TRAVIS_OS_NAME == osx ]; then /usr/local/opt/qt5/bin/qmake client/client.pro && /usr/local/opt/qt5/bin/qmake client/client.pro; fi
+  - if [ $TRAVIS_OS_NAME == osx ]; then /usr/local/opt/qt5/bin/qmake client/client.pro && /usr/local/opt/qt5/bin/qmake client/client.pro && make; fi
 
 notifications:
   email:
   - niklaus.giger@member.fsf.org
-
