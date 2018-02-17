@@ -89,7 +89,9 @@ void CSVImporter::start()
 			j++;
 		}
 		esdbEntry *ent = t->decodeEntry(fields);
-		m_accountType->append(ent);
+		if (ent) {
+			m_accountType->append(ent);
+		}
 	}
 	done(true);
 }

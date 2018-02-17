@@ -110,10 +110,17 @@ esdbEntry *esdbAccountModule::decodeEntry(const QVector<genericField> &fields, b
 		urlAliases.push_back("address");
 	}
 
+	QStringList pathAliases;
+	pathAliases.push_back("path");
+	if (doAliasMatch) {
+		pathAliases.push_back("group");
+	}
+
 	aliasedFields.push_back(acctNameAliases);
 	aliasedFields.push_back(usernameAliases);
 	aliasedFields.push_back(passwordAliases);
 	aliasedFields.push_back(urlAliases);
+	aliasedFields.push_back(pathAliases);
 
 	QStringList fieldNames;
 	for (auto f : fields) {
@@ -122,9 +129,15 @@ esdbEntry *esdbAccountModule::decodeEntry(const QVector<genericField> &fields, b
 
 	QVector<QStringList::const_iterator> aliasMatched = aliasMatch(aliasedFields, fieldNames);
 	QVector<QString> fieldValues = aliasMatchValues(aliasedFields, aliasMatched, fields, &acct->fields);
+
 	acct->acctName = fieldValues[0];
+	if (!acct->acctName.size()) {
+		delete acct;
+		return NULL;
+	}
 	acct->userName = fieldValues[1];
 	acct->password = fieldValues[2];
 	acct->url = fieldValues[3];
+	acct->path = fieldValues[4];
 	return acct;
 }
