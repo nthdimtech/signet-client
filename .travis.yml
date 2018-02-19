@@ -23,7 +23,7 @@ script:
 
 notifications:
   email:
-  - niklaus.giger@member.fsf.org
+  - nnesse@nthdimtech.com
 
 matrix:
   allow_failures:
