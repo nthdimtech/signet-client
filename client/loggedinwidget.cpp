@@ -186,7 +186,7 @@ LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, Q
 	m_bookmarks = new esdbBookmarkModule(this);
 	typeData *bookmarksTypeData = new typeData(m_bookmarks);
 	bookmarksTypeData->actionBar = new BookmarkActionBar(m_bookmarks, this);
-	m_typeData.push_back(new typeData(m_bookmarks));
+	m_typeData.push_back(bookmarksTypeData);
 
 	genericTypeDesc *genericTypeDesc_;
 

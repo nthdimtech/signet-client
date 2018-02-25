@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets network websockets concurrent
+QT       += core gui widgets network concurrent
 
 unix:!macx {
 QT += x11extras
@@ -39,17 +39,11 @@ QMAKE_LFLAGS = -static
 LIBS += -lhid -lsetupapi -lz -lgcrypt -lgpg-error
 }
 
-INCLUDEPATH+=../qtcsv/include
-INCLUDEPATH+=../qtcsv
+#
+# Signetdev sources/headers
+#
 
-SOURCES += ../signet-base/signetdev/host/signetdev.c \
-    import/entryrenamedialog.cpp \
-    ../qtcsv/sources/contentiterator.cpp \
-    ../qtcsv/sources/reader.cpp \
-    ../qtcsv/sources/stringdata.cpp \
-    ../qtcsv/sources/variantdata.cpp \
-    import/csvimporter.cpp \
-    import/csvimportconfigure.cpp
+SOURCES += ../signet-base/signetdev/host/signetdev.c
 
 unix {
 HEADERS += ../signet-base/signetdev/host/signetdev_unix.h \
@@ -74,22 +68,83 @@ unix:!macx {
 SOURCES += ../signet-base/signetdev/host/signetdev_linux.c
 }
 
+#
+# ESDB data sources
+#
+SOURCES += esdb/esdb.cpp \
+    esdb/esdbtypemodule.cpp \
+    esdb/account/account.cpp \
+    esdb/account/esdbaccountmodule.cpp \
+    esdb/bookmark/bookmark.cpp \
+    esdb/bookmark/esdbbookmarkmodule.cpp \
+    esdb/generic/generic.cpp \
+    esdb/generic/generictypedesc.cpp \
+    esdb/generic/esdbgenericmodule.cpp \
+    esdb/generic/genericfields.cpp
+
+
+#
+# ESDB GUI sources
+#
+SOURCES += esdb-gui/esdbmodel.cpp \
+    esdb-gui/databasefield.cpp \
+    esdb-gui/passwordedit.cpp \
+    esdb-gui/esdbactionbar.cpp \
+    esdb-gui/linefieldedit.cpp \
+    esdb-gui/integerfieldedit.cpp \
+    esdb-gui/textblockfieldedit.cpp \
+    esdb-gui/genericfieldedit.cpp \
+    esdb-gui/genericfieldeditfactory.cpp \
+    esdb-gui/genericfieldseditor.cpp \
+    esdb-gui/typedescedit.cpp \
+    esdb-gui/typedesceditor.cpp \
+    esdb-gui/account/newaccount.cpp \
+    esdb-gui/account/editaccount.cpp \
+    esdb-gui/account/accountactionbar.cpp \
+    esdb-gui/bookmark/bookmarkactionbar.cpp \
+    esdb-gui/bookmark/newbookmark.cpp \
+    esdb-gui/generic/genericactionbar.cpp \
+    esdb-gui/generic/newgeneric.cpp \
+    esdb-gui/generic/opengeneric.cpp
+
+#
+# Importer sources
+#
+SOURCES += import/entryrenamedialog.cpp \
+    import/keepassunlockdialog.cpp \
+    import/databaseimporter.cpp \
+    import/databaseimportcontroller.cpp \
+    import/keepassimporter.cpp \
+    import/csvimporter.cpp \
+    import/csvimportconfigure.cpp
+
+#
+# Main applicaiton sources
+#
 SOURCES += main.cpp \
     mainwindow.cpp \
     loginwindow.cpp \
-    newaccount.cpp \
-    editaccount.cpp \
-    account.cpp \
     aspectratiopixmaplabel.cpp \
     loggedinwidget.cpp \
     changemasterpassword.cpp \
     searchlistbox.cpp \
     buttonwaitdialog.cpp \
     searchfilteredit.cpp \
-    databasefield.cpp \
-    esdb.cpp \
     systemtray.cpp \
-    passwordedit.cpp \
+    signetapplication.cpp \
+    keygeneratorthread.cpp \
+    resetdevice.cpp \
+    about.cpp \
+    keyboardlayouttester.cpp \
+    settingsdialog.cpp
+
+#
+# External headers
+#
+SOURCES += ../qtcsv/sources/contentiterator.cpp \
+    ../qtcsv/sources/reader.cpp \
+    ../qtcsv/sources/stringdata.cpp \
+    ../qtcsv/sources/variantdata.cpp \
     qtsingleapplication/src/qtlocalpeer.cpp \
     qtsingleapplication/src/qtsinglecoreapplication.cpp \
     qtsingleapplication/src/qtsingleapplication.cpp \
@@ -100,38 +155,6 @@ SOURCES += main.cpp \
     ../scrypt/insecure_memzero.c \
     ../scrypt/sha256.c \
     ../scrypt/warnp.c \
-    signetapplication.cpp \
-    keygeneratorthread.cpp \
-    esdbmodel.cpp \
-    bookmark.cpp \
-    resetdevice.cpp \
-    esdbaccountmodule.cpp \
-    esdbbookmarkmodule.cpp \
-    esdbtypemodule.cpp \
-    esdbactionbar.cpp \
-    accountactionbar.cpp \
-    bookmarkactionbar.cpp \
-    newbookmark.cpp \
-    esdbgenericmodule.cpp \
-    generic.cpp \
-    generictypedesc.cpp \
-    genericactionbar.cpp \
-    newgeneric.cpp \
-    opengeneric.cpp \
-    genericfields.cpp \
-    genericfieldedit.cpp \
-    genericfieldeditfactory.cpp \
-    genericfieldseditor.cpp \
-    linefieldedit.cpp \
-    integerfieldedit.cpp \
-    textblockfieldedit.cpp \
-    typedescedit.cpp \
-    typedesceditor.cpp \
-    signetdevserver.cpp \
-    signetdevserverconnection.cpp \
-    about.cpp \
-    keyboardlayouttester.cpp \
-    settingsdialog.cpp \
     ../keepassx/src/keys/CompositeKey.cpp \
     ../keepassx/src/keys/PasswordKey.cpp \
     ../keepassx/src/keys/FileKey.cpp \
@@ -172,11 +195,7 @@ SOURCES += main.cpp \
     ../keepassx/src/format/KeePass2Repair.cpp \
     ../keepassx/src/format/KeePass2Writer.cpp \
     ../keepassx/src/format/KeePass2XmlReader.cpp \
-    ../keepassx/src/format/KeePass2XmlWriter.cpp \
-    import/keepassunlockdialog.cpp \
-    import/databaseimporter.cpp \
-    import/databaseimportcontroller.cpp \
-    import/keepassimporter.cpp
+    ../keepassx/src/format/KeePass2XmlWriter.cpp
 
 win32 {
 SOURCES += qtsingleapplication/src/qtlockedfile_win.cpp
@@ -186,65 +205,87 @@ unix {
 SOURCES += qtsingleapplication/src/qtlockedfile_unix.cpp
 }
 
+#
+# ESDB headers
+#
+HEADERS += esdb/esdb.h \
+    esdb/esdbtypemodule.h \
+    esdb/account/account.h \
+    esdb/account/esdbaccountmodule.h \
+    esdb/bookmark/bookmark.h \
+    esdb/bookmark/esdbbookmarkmodule.h \
+    esdb/generic/generic.h \
+    esdb/generic/genericfields.h \
+    esdb/generic/generictypedesc.h \
+    esdb/generic/esdbgenericmodule.h
+
+#
+# ESDB GUI headers
+#
+HEADERS +=  esdb-gui/esdbmodel.h \
+    esdb-gui/databasefield.h \
+    esdb-gui/passwordedit.h \
+    esdb-gui/esdbactionbar.h \
+    esdb-gui/linefieldedit.h \
+    esdb-gui/integerfieldedit.h \
+    esdb-gui/textblockfieldedit.h \
+    esdb-gui/genericfieldedit.h \
+    esdb-gui/genericfieldeditfactory.h \
+    esdb-gui/genericfieldseditor.h \
+    esdb-gui/typedescedit.h \
+    esdb-gui/typedesceditor.h \
+    esdb-gui/account/newaccount.h \
+    esdb-gui/account/editaccount.h \
+    esdb-gui/account/accountactionbar.h \
+    esdb-gui/bookmark/bookmarkactionbar.h \
+    esdb-gui/bookmark/newbookmark.h \
+    esdb-gui/generic/genericactionbar.h \
+    esdb-gui/generic/newgeneric.h \
+    esdb-gui/generic/opengeneric.h
+
+#
+# Importer headers
+#
+HEADERS += import/keepassunlockdialog.h \
+    import/databaseimporter.h \
+    import/databaseimportcontroller.h \
+    import/keepassimporter.h \
+    import/entryrenamedialog.h \
+    import/csvimporter.h \
+    import/csvimportconfigure.h
+
 HEADERS  += mainwindow.h \
     loginwindow.h \
-    newaccount.h \
-    account.h \
-    editaccount.h \
     aspectratiopixmaplabel.h \
     loggedinwidget.h \
     changemasterpassword.h \
     searchlistbox.h \
     buttonwaitdialog.h \
     searchfilteredit.h \
-    databasefield.h \
-    esdb.h \
     systemtray.h \
-    passwordedit.h \
+    signetapplication.h \
+    keygeneratorthread.h \
+    resetdevice.h \
+    about.h \
+    keyboardlayouttester.h \
+    localsettings.h \
+    settingsdialog.h
+
+HEADERS += ../qtcsv/sources/contentiterator.h \
+    ../qtcsv/sources/filechecker.h \
+    ../qtcsv/sources/symbols.h \
     qtsingleapplication/src/qtlocalpeer.h \
     qtsingleapplication/src/QtLockedFile \
     qtsingleapplication/src/qtsinglecoreapplication.h \
     qtsingleapplication/src/QtSingleApplication \
     qtsingleapplication/src/qtsingleapplication.h \
+    qtsingleapplication/src/qtlockedfile.h \
     ../scrypt/crypto_scrypt_smix_sse2.h \
     ../scrypt/crypto_scrypt_smix.h \
     ../scrypt/crypto_scrypt.h \
     ../scrypt/insecure_memzero.h \
     ../scrypt/sha256.h \
     ../scrypt/warnp.h \
-    signetapplication.h \
-    keygeneratorthread.h \
-    esdbmodel.h \
-    bookmark.h \
-    resetdevice.h \
-    esdbtypemodule.h \
-    esdbaccountmodule.h \
-    esdbbookmarkmodule.h \
-    esdbactionbar.h \
-    accountactionbar.h \
-    bookmarkactionbar.h \
-    newbookmark.h \
-    eddbgenericmodule.h \
-    generic.h \
-    generictypedesc.h \
-    genericactionbar.h \
-    newgeneric.h \
-    opengeneric.h \
-    genericfields.h \
-    genericfieldedit.h \
-    genericfieldeditfactory.h \
-    genericfieldseditor.h \
-    linefieldedit.h \
-    integerfieldedit.h \
-    textblockfieldedit.h \
-    typedescedit.h \
-    typedesceditor.h \
-    signetdevserver.h \
-    signetdevserverconnection.h \
-    about.h \
-    keyboardlayouttester.h \
-    localsettings.h \
-    settingsdialog.h \
     ../keepassx/src/core/AutoTypeAssociations.h \
     ../keepassx/src/core/Config.h \
     ../keepassx/src/core/Database.h \
@@ -293,25 +334,26 @@ HEADERS  += mainwindow.h \
     ../keepassx/src/keys/CompositeKey.h \
     ../keepassx/src/keys/FileKey.h \
     ../keepassx/src/keys/Key.h \
-    ../keepassx/src/keys/PasswordKey.h \
-    qtsingleapplication/src/qtlockedfile.h \
-    esdbgenericmodule.h \
-    import/keepassunlockdialog.h \
-    import/databaseimporter.h \
-    import/databaseimportcontroller.h \
-    import/keepassimporter.h \
-    import/entryrenamedialog.h \
-    import/csvimporter.h \
-    ../qtcsv/sources/contentiterator.h \
-    ../qtcsv/sources/filechecker.h \
-    ../qtcsv/sources/symbols.h \
-    import/csvimportconfigure.h
+    ../keepassx/src/keys/PasswordKey.h
 
-INCLUDEPATH+=../scrypt
-INCLUDEPATH+=qtsingleapplication/src
-INCLUDEPATH+=../keepassx/src
-INCLUDEPATH+=../src
-INCLUDEPATH += ../signet-base
+#
+# Include path
+#
+INCLUDEPATH+=../qtcsv/include \
+        ../qtcsv \
+        ../scrypt \
+        qtsingleapplication/src \
+        ../keepassx/src \
+        ../src \
+        ../signet-base \
+        esdb \
+        esdb/account \
+        esdb/bookmark \
+        esdb/generic \
+        esdb-gui/ \
+        esdb-gui/account \
+        esdb-gui/bookmark \
+        esdb-gui/generic
 
 win32 {
 RC_FILE = signet.rc
