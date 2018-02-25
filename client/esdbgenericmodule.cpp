@@ -16,11 +16,6 @@ esdbGenericModule::esdbGenericModule(genericTypeDesc *typeDesc, LoggedInWidget *
 
 }
 
-EsdbActionBar *esdbGenericModule::newActionBar()
-{
-	return new GenericActionBar(this, m_typeDesc, m_parent);
-}
-
 esdbEntry *esdbGenericModule::decodeEntry(int id, int revision, esdbEntry *prev, struct block *blk) const
 {
 	generic *g = NULL;

@@ -35,6 +35,8 @@
 #include "generictypedesc.h"
 #include "esdbgenericmodule.h"
 #include "genericactionbar.h"
+#include "bookmarkactionbar.h"
+#include "accountactionbar.h"
 #include "generictypedesc.h"
 
 extern "C" {
@@ -45,9 +47,8 @@ extern "C" {
 #include "generic.h"
 #include "mainwindow.h"
 
-#define USE_USER_DEFINED_TYPES 0
 #define USE_MISC_TYPE 1
-
+#define USE_PREDEFINED_TYPES 0
 int iconAccount::matchQuality(esdbEntry *entry)
 {
 	int quality = 0;
@@ -178,21 +179,27 @@ LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, Q
 	m_genericDecoder = new esdbGenericModule(place, this);
 
 	m_accounts = new esdbAccountModule(this);
-	m_typeData.push_back(new typeData(m_accounts));
+	typeData *accountsTypeData = new typeData(m_accounts);
+	accountsTypeData->actionBar = new AccountActionBar(this);
+	m_typeData.push_back(accountsTypeData);
 
 	m_bookmarks = new esdbBookmarkModule(this);
+	typeData *bookmarksTypeData = new typeData(m_bookmarks);
+	bookmarksTypeData->actionBar = new BookmarkActionBar(m_bookmarks, this);
 	m_typeData.push_back(new typeData(m_bookmarks));
 
 	genericTypeDesc *genericTypeDesc_;
 
-	if (USE_USER_DEFINED_TYPES) {
+	if (USE_PREDEFINED_TYPES) {
 		genericTypeDesc_ = new genericTypeDesc();
 		genericTypeDesc_->name = "Credit card";
 		genericTypeDesc_->fields.push_back(fieldSpec("Card Number","text"));
 		genericTypeDesc_->fields.push_back(fieldSpec("Exp month","integer"));
 		genericTypeDesc_->fields.push_back(fieldSpec("Exp year","integer"));
 		genericTypeDesc_->fields.push_back(fieldSpec("CCV","text"));
-		m_typeData.push_back(new typeData(new esdbGenericModule(genericTypeDesc_, this)));
+		typeData *d = new typeData(new esdbGenericModule(genericTypeDesc_, this, false, false));
+		d->actionBar = new GenericActionBar(d->module, genericTypeDesc_, this);
+		m_typeData.push_back(d);
 
 		genericTypeDesc_ = new genericTypeDesc();
 		genericTypeDesc_->name = "Contact";
@@ -201,20 +208,19 @@ LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, Q
 		genericTypeDesc_->fields.push_back(fieldSpec("Address 1","text"));
 		genericTypeDesc_->fields.push_back(fieldSpec("Address 2","text"));
 		genericTypeDesc_->fields.push_back(fieldSpec("City","text"));
-		m_typeData.push_back(new typeData(new esdbGenericModule(genericTypeDesc_, this)));
+		d = new typeData(new esdbGenericModule(genericTypeDesc_, this, false, false));
+		d->actionBar = new GenericActionBar(d->module, genericTypeDesc_, this);
+		m_typeData.push_back(d);
 	}
 
 	if (USE_MISC_TYPE) {
 		genericTypeDesc_ = new genericTypeDesc();
 		genericTypeDesc_->name = "Misc";
-		m_typeData.push_back(new typeData(new esdbGenericModule(genericTypeDesc_, this, false, false)));
+		typeData *d = new typeData(new esdbGenericModule(genericTypeDesc_, this, false, false));
+		d->actionBar = new GenericActionBar(d->module, genericTypeDesc_, this);
+		m_typeData.push_back(d);
 	}
 
-	if (USE_USER_DEFINED_TYPES) {
-		genericTypeDesc_ = new genericTypeDesc();
-		genericTypeDesc_->name = "User type";
-		m_typeData.push_back(new typeData(new esdbGenericModule(genericTypeDesc_, this)));
-	}
 	m_activeType = m_typeData.at(m_activeTypeIndex);
 
 	SignetApplication *app = SignetApplication::get();
@@ -244,9 +250,8 @@ LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, Q
 
 	m_actionBarStack = new QStackedWidget();
 	for (auto iter : m_typeData) {
-		EsdbActionBar *actionBar = iter->module->newActionBar();
-		connect(actionBar, SIGNAL(background()), this, SIGNAL(background()));
-		m_actionBarStack->addWidget(actionBar);
+		connect(iter->actionBar, SIGNAL(background()), this, SIGNAL(background()));
+		m_actionBarStack->addWidget(iter->actionBar);
 	}
 
 	m_filterLabel = new AspectRatioPixmapLabel();

@@ -4,11 +4,6 @@
 #include "esdb.h"
 #include "account.h"
 
-EsdbActionBar *esdbAccountModule::newActionBar()
-{
-	return new AccountActionBar(m_parent);
-}
-
 esdbEntry *esdbAccountModule::decodeEntry(int id, int revision, esdbEntry *prev, struct block *blk) const
 {
 	esdbEntry *entry = NULL;

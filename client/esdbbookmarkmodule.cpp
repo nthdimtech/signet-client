@@ -5,11 +5,6 @@
 
 class EsdbActionBar;
 
-EsdbActionBar *esdbBookmarkModule::newActionBar()
-{
-	return new BookmarkActionBar(this, m_parent);
-}
-
 esdbEntry *esdbBookmarkModule::decodeEntry(int id, int revision, esdbEntry *prev, struct block *blk) const
 {
 	bookmark *bm = NULL;

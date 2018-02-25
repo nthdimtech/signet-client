@@ -16,8 +16,6 @@ class ButtonWaitDialog;
 struct esdbAccountModule : public esdbTypeModule {
 private:
 	LoggedInWidget *m_parent;
-
-	EsdbActionBar *newActionBar();
 	esdbEntry *decodeEntry(int id, int revision, esdbEntry *prev, struct block *blk) const;
 	esdbEntry *decodeEntry(const QVector<genericField> &fields, bool aliasMatch = true) const;
 public:

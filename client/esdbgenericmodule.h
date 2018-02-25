@@ -20,7 +20,6 @@ private:
 	bool m_userDefined;
 	esdbEntry *decodeEntry(const QVector<genericField> &fields, bool doAliasMatch) const;
 public:
-	EsdbActionBar *newActionBar();
 	esdbGenericModule(genericTypeDesc *typeDesc, LoggedInWidget *parent, bool userDefined = false, bool plural = true);
 };
 

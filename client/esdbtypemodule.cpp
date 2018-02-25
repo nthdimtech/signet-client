@@ -7,12 +7,6 @@ esdbTypeModule::esdbTypeModule(const QString &name) :
 {
 }
 
-
-EsdbActionBar *esdbTypeModule::newActionBar()
-{
-	return NULL;
-}
-
 QVector<QStringList::const_iterator> esdbTypeModule::aliasMatch(const QVector<QStringList> &aliasedFields, const QStringList &fields) const
 {
 	QVector<QStringList::const_iterator> aliasMatched;

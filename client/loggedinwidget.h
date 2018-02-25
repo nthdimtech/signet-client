@@ -96,6 +96,7 @@ class LoggedInWidget : public QWidget
 	struct typeData {
 		esdbTypeModule *module;
 		QMap<int, esdbEntry *> *entries;
+		EsdbActionBar *actionBar;
 		QList<esdbEntry *> *filteredList;
 		EsdbModel *model;
 		bool expanded;

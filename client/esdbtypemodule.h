@@ -23,7 +23,6 @@ protected:
 	QVector<QStringList::const_iterator> aliasMatch(const QVector<QStringList> &aliasedFields, const QStringList &fields) const;
 	QVector<QString> aliasMatchValues(const QVector<QStringList> &aliasedFields, const QVector<QStringList::const_iterator> &aliasMatched, const QVector<genericField> &fields, genericFields *genFields) const;
 public:
-	virtual EsdbActionBar *newActionBar();
 	virtual esdbEntry *decodeEntry(int id, int revision, esdbEntry *prev, struct block *blk) const = 0;
 
 	virtual esdbEntry *decodeEntry(const QVector<genericField> &fields, bool aliasMatch = true) const {
