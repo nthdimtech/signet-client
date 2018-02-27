@@ -157,7 +157,12 @@ MainWindow::MainWindow(QWidget *parent) :
         minimize_action->setShortcut(Qt::CTRL | Qt::Key_W);
 	QObject::connect(minimize_action, SIGNAL(triggered(bool)), this, SLOT(hide()));
 
+#ifdef Q_OS_UNIX
+	QAction *quit_action = m_fileMenu->addAction("&Quit");
+        quit_action->setShortcut(Qt::CTRL | Qt::Key_Q);
+#else
 	QAction *quit_action = m_fileMenu->addAction("Exit");
+#endif
 	QObject::connect(quit_action, SIGNAL(triggered(bool)), this, SLOT(quit()));
 
 	connect(m_settingsAction, SIGNAL(triggered(bool)), this,
