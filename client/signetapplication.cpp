@@ -234,6 +234,7 @@ void SignetApplication::trayActivated(QSystemTrayIcon::ActivationReason reason)
 				m_main_window->setWindowState((m_main_window->windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
 			}
 			m_main_window->raise();
+			m_main_window->activateWindow();
 		} else {
 			if (m_main_window->isMinimized()) {
 				m_main_window->setWindowState((m_main_window->windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
@@ -241,6 +242,7 @@ void SignetApplication::trayActivated(QSystemTrayIcon::ActivationReason reason)
 			} else {
 				m_main_window->setWindowState((m_main_window->windowState() & ~Qt::WindowActive) | Qt::WindowMinimized);
 			}
+                        m_main_window->hide();
 		}
 		break;
 	default:
