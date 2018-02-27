@@ -154,12 +154,12 @@ MainWindow::MainWindow(QWidget *parent) :
 		this, SLOT(importCSVUI()));
 
 	QAction *minimize_action = m_fileMenu->addAction("Minimize &window");
-        minimize_action->setShortcut(Qt::CTRL | Qt::Key_W);
+	minimize_action->setShortcut(Qt::CTRL | Qt::Key_W);
 	QObject::connect(minimize_action, SIGNAL(triggered(bool)), this, SLOT(hide()));
 
 #ifdef Q_OS_UNIX
 	QAction *quit_action = m_fileMenu->addAction("&Quit");
-        quit_action->setShortcut(Qt::CTRL | Qt::Key_Q);
+	quit_action->setShortcut(Qt::CTRL | Qt::Key_Q);
 #else
 	QAction *quit_action = m_fileMenu->addAction("Exit");
 #endif
@@ -173,7 +173,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	m_deviceMenu = bar->addMenu("&Device");
 
-        // Some of these don't get keyboard accelerators by design to avoid accidental activation
+	// Some of these don't get keyboard accelerators by design to avoid accidental activation
 
 	m_logoutAction = m_deviceMenu->addAction("&Lock");
 	QObject::connect(m_logoutAction, SIGNAL(triggered(bool)),
