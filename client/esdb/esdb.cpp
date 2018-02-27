@@ -147,7 +147,9 @@ int esdbEntry::matchQuality(const QString &search) const
 	QString title = getTitle();
 	int quality = 0;
 	if (title.startsWith(search, Qt::CaseInsensitive)) {
-		quality++;
+		quality += 2;
+	}else if(title.contains(search, Qt::CaseInsensitive)) {
+		quality += 1;
 	}
 	return quality;
 }
