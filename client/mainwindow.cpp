@@ -153,6 +153,10 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_importCSVAction, SIGNAL(triggered(bool)),
 		this, SLOT(importCSVUI()));
 
+	QAction *minimize_action = m_fileMenu->addAction("Minimize &window");
+        minimize_action->setShortcut(Qt::CTRL | Qt::Key_W);
+	QObject::connect(minimize_action, SIGNAL(triggered(bool)), this, SLOT(hide()));
+
 	QAction *quit_action = m_fileMenu->addAction("Exit");
 	QObject::connect(quit_action, SIGNAL(triggered(bool)), this, SLOT(quit()));
 
