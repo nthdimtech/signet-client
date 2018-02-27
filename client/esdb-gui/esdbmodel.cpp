@@ -82,18 +82,46 @@ void EsdbModel::refresh(bool useGroups)
 	int rank = 0;
 	for (esdbEntry *ent : *m_entries) {
 		QString path = ent->getPath();
-		QStringList pathList;
-		//TODO: handle "//"
+		QStringList pathListInitial;
+		QStringList pathListFinal;
+
+		QString pathEscaped = path;
+
 		if (path.size()) {
-			pathList = ent->getPath().split(QString('/'));
-			if (!pathList.at(0).size()) {
-				pathList.removeAt(0);
+			pathListInitial = ent->getPath().split(QString('/'));
+			if (!path.startsWith("//")) {
+				if (pathListInitial.size() && !pathListInitial.at(0).size()) {
+					pathListInitial.removeAt(0);
+				}
 			}
 		}
-		if (useGroups && !pathList.size()) {
-			pathList.append("Unsorted");
+
+		bool appendNext = false;
+
+		QString pathItem;
+		for (int i = 0; i < pathListInitial.size(); i++) {
+			QString itemSegment = pathListInitial.at(i);
+			if (!itemSegment.size()) {
+				pathItem.append("/");
+				appendNext = true;
+			} else if (appendNext) {
+				pathItem.append(itemSegment);
+				appendNext = false;
+			} else {
+				if (pathItem.size()) {
+					pathListFinal.append(pathItem);
+				}
+				pathItem = itemSegment;
+			}
 		}
-		m_rootItem->refreshEntry(this, QModelIndex(), ent, rank, pathList, 0);
+		if (pathItem.size()) {
+			pathListFinal.append(pathItem);
+		}
+
+		if (useGroups && !pathListFinal.size()) {
+			pathListFinal.append("Unsorted");
+		}
+		m_rootItem->refreshEntry(this, QModelIndex(), ent, rank, pathListFinal, 0);
 		rank++;
 	}
 	m_rootItem->cullEmptyItems(QModelIndex(), this);
