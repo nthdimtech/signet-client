@@ -39,9 +39,13 @@ void KeePassImporter::traverse(QString path, Group *g)
 	const QList<Group*> &gl = g->children();
 	for (auto giter = gl.constBegin(); giter != gl.constEnd(); giter++) {
 		if (path.size()) {
-			traverse(path.append('/').append((*giter)->name().replace("/", "//")),  (*giter));
+			QString pathNext = path;
+			pathNext.append('/').append((*giter)->name().replace("/", "//"));
+			traverse(pathNext,  (*giter));
 		} else {
-			traverse(path.append((*giter)->name().replace("/", "//")),  (*giter));
+			QString pathNext = path;
+			pathNext.append((*giter)->name().replace("/", "//"));
+			traverse(pathNext,  (*giter));
 		}
 	}
 }
