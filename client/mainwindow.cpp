@@ -128,28 +128,28 @@ MainWindow::MainWindow(QWidget *parent) :
 	QObject::connect(&m_connectingTimer, SIGNAL(timeout()), this, SLOT(connectingTimer()));
 	QMenuBar *bar = new QMenuBar();
 	setMenuBar(bar);
-	m_fileMenu = bar->addMenu("File");
-	m_settingsAction = m_fileMenu->addAction("Settings");
+	m_fileMenu = bar->addMenu("&File");
+	m_settingsAction = m_fileMenu->addAction("&Settings");
 
-	m_exportMenu = m_fileMenu->addMenu("Export");
+	m_exportMenu = m_fileMenu->addMenu("&Export");
 	m_exportMenu->setVisible(false);
-	m_exportCSVAction = m_exportMenu->addAction("CSV");
+	m_exportCSVAction = m_exportMenu->addAction("&CSV");
 
-	m_importMenu = m_fileMenu->addMenu("Import");
+	m_importMenu = m_fileMenu->addMenu("&Import");
 	m_importMenu->setVisible(false);
 
-	m_importKeePassAction = m_importMenu->addAction("KeePass 2.x Database");
+	m_importKeePassAction = m_importMenu->addAction("&KeePass 2.x Database");
 	connect(m_importKeePassAction, SIGNAL(triggered(bool)),
 		this, SLOT(importKeePassUI()));
 
 #ifdef Q_OS_UNIX
-	m_importPassAction = m_importMenu->addAction("Pass Database");
+	m_importPassAction = m_importMenu->addAction("&Pass Database");
 	connect(m_importPassAction, SIGNAL(triggered(bool)),
 		this, SLOT(importPassUI()));
 	QString gpgId = PassImporter::getGPGId();
 	m_passDatabaseFound = (gpgId.size() != 0);
 #endif
-	m_importCSVAction = m_importMenu->addAction("CSV");
+	m_importCSVAction = m_importMenu->addAction("&CSV");
 	connect(m_importCSVAction, SIGNAL(triggered(bool)),
 		this, SLOT(importCSVUI()));
 
@@ -171,13 +171,15 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_exportCSVAction, SIGNAL(triggered(bool)), this,
 		SLOT(exportCSVUi()));
 
-	m_deviceMenu = bar->addMenu("Device");
+	m_deviceMenu = bar->addMenu("&Device");
 
-	m_logoutAction = m_deviceMenu->addAction("Lock");
+        // Some of these don't get keyboard accelerators by design to avoid accidental activation
+
+	m_logoutAction = m_deviceMenu->addAction("&Lock");
 	QObject::connect(m_logoutAction, SIGNAL(triggered(bool)),
 			 this, SLOT(logoutUi()));
 
-	m_backupAction = m_deviceMenu->addAction("Backup to file");
+	m_backupAction = m_deviceMenu->addAction("&Backup to file");
 	QObject::connect(m_backupAction, SIGNAL(triggered(bool)),
 			 this, SLOT(backupDeviceUi()));
 
@@ -197,16 +199,16 @@ MainWindow::MainWindow(QWidget *parent) :
 	QObject::connect(m_wipeDeviceAction, SIGNAL(triggered(bool)),
 			 this, SLOT(wipeDeviceUi()));
 
-	m_updateFirmwareAction = m_deviceMenu->addAction("Update firmware");
+	m_updateFirmwareAction = m_deviceMenu->addAction("Update &firmware");
 	QObject::connect(m_updateFirmwareAction, SIGNAL(triggered(bool)),
 			 this, SLOT(updateFirmwareUi()));
 
-	QMenu *helpMenu = bar->addMenu("Help");
+	QMenu *helpMenu = bar->addMenu("&Help");
 
-	QAction *onlineHelpAction = helpMenu->addAction("Online help");
+	QAction *onlineHelpAction = helpMenu->addAction("Online &help");
 	connect(onlineHelpAction, SIGNAL(triggered(bool)), this, SLOT(startOnlineHelp()));
 
-	QAction *about_action = helpMenu->addAction("About");
+	QAction *about_action = helpMenu->addAction("&About");
 	connect(about_action, SIGNAL(triggered(bool)), this, SLOT(aboutUi()));
 
 	m_logoutAction->setVisible(false);

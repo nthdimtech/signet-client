@@ -219,8 +219,8 @@ void SignetApplication::trayActivated(QSystemTrayIcon::ActivationReason reason)
 	switch(reason) {
 	case QSystemTrayIcon::Context: {
 		QMenu *popup = new QMenu();
-		QAction *open_action = popup->addAction("Open");
-		QAction *quit_action = popup->addAction("Quit");
+		QAction *open_action = popup->addAction("&Open");
+		QAction *quit_action = popup->addAction("&Quit");
 		connect(open_action, SIGNAL(triggered(bool)), m_main_window, SLOT(open()));
 		connect(quit_action, SIGNAL(triggered(bool)), m_main_window, SLOT(quit()));
 		popup->exec(QCursor::pos());
