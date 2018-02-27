@@ -355,6 +355,11 @@ void MainWindow::signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray bl
 		if (rc == -1) {
 			QMessageBox * box = SignetApplication::messageBoxError(QMessageBox::Critical, "Backup database to file", "Failed to write to backup file", this);
 			connect(box, SIGNAL(finished(int)), this, SLOT(backupError()));
+			m_backupFile->close();
+			m_backupFile->remove();
+			delete m_backupFile;
+			m_backupFile = NULL;
+			::signetdev_end_device_backup(NULL, &m_signetdevCmdToken);
 			return;
 		}
 		m_backupBlock++;
@@ -372,8 +377,16 @@ void MainWindow::signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray bl
 	case BUTTON_PRESS_TIMEOUT:
 	case SIGNET_ERROR_DISCONNECT:
 	case SIGNET_ERROR_QUIT:
+		m_backupFile->close();
+		m_backupFile->remove();
+		delete m_backupFile;
+		m_backupFile = NULL;
 		break;
 	default:
+		m_backupFile->close();
+		m_backupFile->remove();
+		delete m_backupFile;
+		m_backupFile = NULL;
 		abort();
 		return;
 	}
@@ -449,12 +462,20 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 			::signetdev_read_block(NULL, &m_signetdevCmdToken, m_backupBlock);
 		} else {
 			do_abort = do_abort && (code != BUTTON_PRESS_CANCELED && code != BUTTON_PRESS_TIMEOUT);
+			if (m_backupFile) {
+				m_backupFile->close();
+				m_backupFile->remove();
+				delete m_backupFile;
+				m_backupFile = NULL;
+			}
 		}
 		break;
 	case SIGNETDEV_CMD_END_DEVICE_BACKUP:
-		m_backupFile->close();
-		delete m_backupFile;
-		m_backupFile = NULL;
+		if (m_backupFile) {
+			m_backupFile->close();
+			delete m_backupFile;
+			m_backupFile = NULL;
+		}
 		if (code == OKAY) {
 			enterDeviceState(m_backupPrevState);
 		}
