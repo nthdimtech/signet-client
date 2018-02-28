@@ -108,6 +108,7 @@ LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, Q
 	m_filterLabel(NULL),
 	m_newAcctButton(NULL),
 	m_populating(true),
+	m_populatingCantRead(0),
 	m_searchListbox(NULL),
 	m_loadingProgress(loading_progress),
 	m_filterEdit(NULL),
@@ -307,6 +308,7 @@ LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, Q
 	m_newAcctButton->setEnabled(false);
 	m_filterLabel->setEnabled(false);
 	m_populating = true;
+	m_populatingCantRead = 0;
 	m_loadingProgress->setMinimum(0);
 	m_loadingProgress->setMaximum(1);
 
@@ -348,6 +350,15 @@ void LoggedInWidget::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int uid
 	m_loadingProgress->setValue(m_loadingProgress->maximum() - info.messages_remaining);
 
 	if (!info.messages_remaining) {
+		if (m_populatingCantRead) {
+			SignetApplication::messageBoxError(QMessageBox::Warning,
+							   "Unlocking",
+							   QString::number(m_populatingCantRead) +
+							   " entries could not be read because they were written by a newer client version."
+							   " You must upgrade your client to access all of your data",
+							   this);
+		}
+		m_populatingCantRead = 0;
 		m_populating = false;
 		m_searchListbox->setEnabled(true);
 		m_filterEdit->setEnabled(true);
@@ -735,6 +746,8 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 				} else {
 					//TODO
 				}
+			} else if (m_populating) {
+				m_populatingCantRead++;
 			}
 		}
 	}

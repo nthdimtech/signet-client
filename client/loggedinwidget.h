@@ -122,6 +122,7 @@ class LoggedInWidget : public QWidget
 	QList<entryAction> m_entryActions;
 
 	bool m_populating;
+	int m_populatingCantRead;
 	SearchListbox *m_searchListbox;
 	QStackedWidget *m_actionBarStack;
 
