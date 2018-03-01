@@ -20,7 +20,7 @@ SettingsDialog::SettingsDialog(MainWindow *mainWindow, bool initial) :
 	m_settings = mainWindow->getSettings();
 	setWindowTitle("System settings");
 
-	QPushButton *okayButton = new QPushButton("Save");
+	QPushButton *okayButton = new QPushButton("&Save");
 	connect(okayButton, SIGNAL(pressed()), this, SLOT(okayPressed()));
 
 	QPushButton *cancelButton = new QPushButton("Cancel");

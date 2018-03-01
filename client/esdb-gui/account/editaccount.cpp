@@ -84,7 +84,7 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 
 	m_undoChangesButton = new QPushButton("Undo");
 
-	m_saveButton = new QPushButton("Save");
+	m_saveButton = new QPushButton("&Save");
 	m_saveButton->setDisabled(true);
 	m_saveButton->setDefault(true);
 
