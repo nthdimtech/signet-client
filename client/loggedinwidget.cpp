@@ -541,6 +541,7 @@ void LoggedInWidget::selectEntry(esdbEntry *entry)
 		m_filterEdit->setFocus();
 		getActiveActionBar()->selectEntry(NULL);
 	} else {
+		m_searchListbox->setFocus();
 		EsdbActionBar *bar = getActionBarByEntry(entry);
 		if (bar)
 			bar->selectEntry(entry);
