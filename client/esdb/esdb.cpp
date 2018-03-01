@@ -142,12 +142,105 @@ void esdbEntry::toBlock(block *blk) const
 	blk->writeU16(version);
 }
 
+
+int esdbEntry::matchLocation(const QString &search, bool &wordStart, int &wordLocation) const
+{
+	QString title = getTitle();
+	if (!search.size()) {
+		return 0;
+	}
+	int wordStartMatch = -1;
+	int wordEndMatch = -1;
+	int wordCount = 1;
+	int index = -1;
+	for (int i = 0; i < title.size(); i++) {
+		int j = 0;
+		for (j = 0; j < search.size() && (j + i) < title.size(); j++) {
+			if (title.at(i+j).toLower() != search.at(j).toLower()) {
+				break;
+			}
+		}
+		if (j == search.size()) {
+			int wordEndMatchPrev = wordEndMatch;
+			if (i == 0) {
+				wordStartMatch = wordCount;
+			} else if (title.at(i).isUpper()) {
+				if (!title.at(i-1).isUpper())
+					wordStartMatch = wordCount;
+			} else if (title.at(i).isLower()) {
+				if (!title.at(i-1).isLetter())
+					wordStartMatch = wordCount;
+			} else if (title.at(i).isNumber()) {
+				if (!title.at(i-1).isNumber())
+					wordStartMatch = wordCount;
+			} else if (!title.at(i).isSpace()) {
+				if (title.at(i-1).isLetterOrNumber() || title.at(i-1).isSpace())
+					wordStartMatch = wordCount;
+			}
+
+			int endMark = i + search.size() - 1;
+			if (endMark == title.size() - 1) {
+				wordEndMatch = wordCount;
+			} else if (title.at(endMark + 1).isSpace()) {
+				wordEndMatch = wordCount;
+			}
+			if (wordStartMatch > 0) {
+				index = i;
+				break;
+			} else if (wordEndMatchPrev < 0 && wordEndMatch > 0) {
+				index = i;
+			}
+		}
+		if (i) {
+			if (!title.at(i).isUpper()) {
+				if (!title.at(i-1).isUpper())
+					wordCount++;
+			} else if (title.at(i).isLower()) {
+				if (!title.at(i-1).isLetter())
+					wordCount++;
+			} else if (title.at(i).isNumber()) {
+				if (!title.at(i-1).isNumber())
+					wordCount++;
+			}
+		}
+	}
+	if (wordStartMatch > 0) {
+		wordStart = true;
+		wordLocation = wordStartMatch;
+	} else if (wordEndMatch > 0) {
+		wordStart = false;
+		wordLocation = wordStartMatch;
+	}
+	return index;
+}
+
 int esdbEntry::matchQuality(const QString &search) const
 {
 	QString title = getTitle();
 	int quality = 0;
-	if (title.startsWith(search, Qt::CaseInsensitive)) {
-		quality++;
+	if (!search.size()) {
+		quality = 20;
+		return quality;
+	}
+	if (!title.compare(search, Qt::CaseInsensitive)) {
+		quality = 20;
+		return quality;
+	}
+
+	bool wordStart;
+	int wordLocation;
+	int index = matchLocation(search, wordStart, wordLocation);
+
+	if (wordLocation > 9) {
+		wordLocation = 9;
+	}
+
+	if (index >= 0) {
+		if (wordStart) {
+			quality = 20 - wordLocation;
+		} else {
+			quality = 10 - wordLocation;
+		}
 	}
 	return quality;
 }

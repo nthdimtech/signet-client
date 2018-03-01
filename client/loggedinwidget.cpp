@@ -348,7 +348,6 @@ void LoggedInWidget::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int uid
 		m_loadingProgress->setMaximum(info.messages_remaining);
 	}
 	m_loadingProgress->setValue(m_loadingProgress->maximum() - info.messages_remaining);
-
 	if (!info.messages_remaining) {
 		if (m_populatingCantRead) {
 			SignetApplication::messageBoxError(QMessageBox::Warning,
@@ -546,11 +545,15 @@ void LoggedInWidget::selectEntry(esdbEntry *entry)
 		if (bar)
 			bar->selectEntry(entry);
 		QString title = entry->getTitle();
+		bool wordStart;
+		int wordLocation;
+		int loc = entry->matchLocation(m_searchListbox->filterText(), wordStart, wordLocation);
+
 		int start = m_searchListbox->filterText().size();
 		if (start) {
 			m_filterEdit->setText(title);
-			int length = title.size() - start;
-			m_filterEdit->setSelection(start, length);
+			if (loc >= 0)
+				m_filterEdit->setSelection(loc, start);
 		} else {
 			m_filterEdit->setText("");
 		}

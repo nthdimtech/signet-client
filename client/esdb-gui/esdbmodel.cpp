@@ -140,13 +140,14 @@ static EsdbModelItemCompare s_esdbModelItemCompare;
 
 void EsdbModelGroupItem::sortItems()
 {
-	std::sort(m_items.begin(), m_items.end(), s_esdbModelItemCompare);
 	for (EsdbModelItem *item : m_items) {
 		if (!item->isLeafItem()) {
 			EsdbModelGroupItem *group = (EsdbModelGroupItem * )item;
 			group->sortItems();
+			group->setRank(group->m_items.first()->rank());
 		}
 	}
+	std::sort(m_items.begin(), m_items.end(), s_esdbModelItemCompare);
 }
 
 void EsdbModelGroupItem::cullEmptyItems(const QModelIndex &parent, EsdbModel *m)

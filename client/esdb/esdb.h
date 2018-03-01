@@ -125,6 +125,7 @@ struct esdbEntry {
 	}
 
 	virtual int matchQuality(const QString &search) const;
+	virtual int matchLocation(const QString &search, bool &wordStart, int &wordLocation) const;
 };
 
 enum esdbTypes {
