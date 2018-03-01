@@ -666,9 +666,6 @@ void LoggedInWidget::filterTextChanged(QString text)
 {
 	populateEntryList(m_activeType, text);
 	QList<esdbEntry *> *filteredList = m_activeType->filteredList;
-	if (filteredList->size() == 0 || text.size() == 0) {
-		m_filterEdit->setFocus();
-	}
 	if (!selectedEntry() && filteredList->size()) {
 		if (text.size() == 0) {
 			selectEntry(NULL);
@@ -995,6 +992,12 @@ void LoggedInWidget::populateEntryList(typeData *t, QString filter)
 	model->changed(hasGroups);
 	m_searchListbox->setRootIsDecorated(hasGroups);
 
+	if (!m_activeType->expanded) {
+		expandTreeItems();
+	} else {
+		model->syncExpanded(m_searchListbox);
+	}
+
 	if (t == m_activeType) {
 		QModelIndex index = model->findEntry(m_selectedEntry);
 		bool matched = index.isValid();
@@ -1008,11 +1011,5 @@ void LoggedInWidget::populateEntryList(typeData *t, QString filter)
 		} else {
 			m_searchListbox->setCurrentIndex(index);
 		}
-	}
-
-	if (!m_activeType->expanded) {
-		expandTreeItems();
-	} else {
-		model->syncExpanded(m_searchListbox);
 	}
 }
