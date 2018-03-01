@@ -63,7 +63,7 @@ OpenGeneric::OpenGeneric(generic *generic, genericTypeDesc *typeDesc, QWidget *p
 
 	m_undoChangesButton = new QPushButton("Undo");
 
-	m_saveButton = new QPushButton("Save");
+	m_saveButton = new QPushButton("&Save");
 	m_saveButton->setDisabled(true);
 	m_saveButton->setDefault(true);
 

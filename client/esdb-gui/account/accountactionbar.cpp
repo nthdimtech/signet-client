@@ -95,15 +95,15 @@ void AccountActionBar::defaultAction(esdbEntry *entry)
 	Q_UNUSED(entry);
 	QMenu *menu;
 	menu = new QMenu(this);
-	QAction *browseAction = menu->addAction("Browse");
+	QAction *browseAction = menu->addAction("&Browse");
 	menu->addSeparator();
-	QAction *loginAction = menu->addAction("Login");
-	QAction *usernameAction = menu->addAction("Username");
-	QAction *passwordAction = menu->addAction("Password");
-	QAction *copyUsernameAction = menu->addAction("Copy username");
-	QAction *copyPasswordAction = menu->addAction("Copy password");
+	QAction *loginAction = menu->addAction("&Login");
+	QAction *usernameAction = menu->addAction("&Username");
+	QAction *passwordAction = menu->addAction("&Password");
+	QAction *copyUsernameAction = menu->addAction("Copy user&name");
+	QAction *copyPasswordAction = menu->addAction("&Copy password");
 	menu->addSeparator();
-	QAction *openAction = menu->addAction("Open");
+	QAction *openAction = menu->addAction("&Open");
 	QAction *deleteAction = menu->addAction("Delete");
 
 	connect(browseAction, SIGNAL(triggered(bool)), this, SLOT(browseUrlUI()));
