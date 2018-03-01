@@ -806,6 +806,7 @@ void MainWindow::signetDevEvent(int code)
 void MainWindow::background()
 {
 	showMinimized();
+	hide();
 }
 
 extern "C" {
