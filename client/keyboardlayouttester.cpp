@@ -217,9 +217,9 @@ KeyboardLayoutTester::KeyboardLayoutTester(const QVector<struct signetdev_key> &
 	m_configurationWarning->hide();
 	m_configurationWarning->setAlignment(Qt::AlignCenter);
 
-	m_configureButton = new QPushButton("Configure");
-	m_resetButton = new QPushButton("Reset");
-	m_applyButton = new QPushButton("Apply");
+	m_configureButton = new QPushButton("&Configure");
+	m_resetButton = new QPushButton("&Reset");
+	m_applyButton = new QPushButton("&Apply");
 	QPushButton *cancelButton = new QPushButton("Cancel");
 
 	m_resetButton->setEnabled(false);
