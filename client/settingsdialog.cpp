@@ -103,6 +103,9 @@ SettingsDialog::SettingsDialog(MainWindow *mainWindow, bool initial) :
 		m_keyboardLayoutUnconfiguredWarning->hide();
 	}
 
+	m_minimizeToTray = new QCheckBox("&Minimize window to system tray");
+	m_minimizeToTray->setChecked(m_settings->minimizeToTray);
+
 	QVBoxLayout *topLayout = new QVBoxLayout();
 	topLayout->setAlignment(Qt::AlignTop);
 	topLayout->addWidget(m_localBackups);
@@ -114,6 +117,7 @@ SettingsDialog::SettingsDialog(MainWindow *mainWindow, bool initial) :
 	topLayout->addLayout(removableBackupIntervalLayout);
 	topLayout->addWidget(m_keyboardLayoutUnconfiguredWarning);
 	topLayout->addLayout(keyboardLayoutConfigurationLayout);
+	topLayout->addWidget(m_minimizeToTray);
 	topLayout->addLayout(buttonLayout);
 	setLayout(topLayout);
 	setEnableDisable();
@@ -182,6 +186,7 @@ void SettingsDialog::okayPressed()
 	m_settings->removableBackupInterval = m_removableBackupInterval->value();
 	m_settings->activeKeyboardLayout = m_activeKeyboardLayout;
 	m_settings->keyboardLayouts = m_keyboardLayouts;
+        m_settings->minimizeToTray = m_minimizeToTray->isChecked();
 	done(0);
 }
 
