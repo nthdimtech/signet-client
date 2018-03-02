@@ -158,7 +158,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	QAction *minimize_action = m_fileMenu->addAction("Minimize &window");
 	minimize_action->setShortcut(Qt::CTRL | Qt::Key_W);
-	QObject::connect(minimize_action, SIGNAL(triggered(bool)), this, SLOT(hide()));
+	QObject::connect(minimize_action, SIGNAL(triggered(bool)), this, SLOT(background()));
 
 #ifdef Q_OS_UNIX
 	QAction *quit_action = m_fileMenu->addAction("&Quit");
@@ -809,6 +809,9 @@ void MainWindow::signetDevEvent(int code)
 void MainWindow::background()
 {
 	showMinimized();
+	if (getSettings()->minimizeToTray) {
+		hide();
+	}
 }
 
 extern "C" {
@@ -833,6 +836,7 @@ void MainWindow::saveSettings()
 	obj.insert("lastRemoveableBackup", QJsonValue(m_settings.lastRemoveableBackup.toString()));
 	obj.insert("lastUpdatePrompt", QJsonValue(m_settings.lastUpdatePrompt.toString()));
 	obj.insert("activeKeyboardLayout", QJsonValue(m_settings.activeKeyboardLayout));
+	obj.insert("minimizeToTray", QJsonValue(m_settings.minimizeToTray));
 
 	QJsonObject keyboardLayouts;
 	for (QMap<QString, keyboardLayout>::iterator v = m_settings.keyboardLayouts.begin();
@@ -1073,6 +1077,13 @@ void MainWindow::loadSettings()
 		m_settings.lastUpdatePrompt = QDateTime::fromString(lastUpdatePrompt.toString());
 	} else {
 		m_settings.lastUpdatePrompt = QDateTime();
+	}
+
+	QJsonValue minimizeToTray = obj.value("minimizeToTray");
+	if (minimizeToTray.isBool()) {
+		m_settings.minimizeToTray = minimizeToTray.toBool();
+	} else {
+		m_settings.minimizeToTray = false;
 	}
 
 	QJsonValue activeKeyboardLayout = obj.value("activeKeyboardLayout");

@@ -29,7 +29,7 @@ SettingsDialog::SettingsDialog(MainWindow *mainWindow, bool initial) :
 	m_activeKeyboardLayout = m_settings->activeKeyboardLayout;
 	m_keyboardLayouts = m_settings->keyboardLayouts;
 
-	m_localBackups = new QCheckBox("Enable local backups");
+	m_localBackups = new QCheckBox("Enable &local backups");
 	m_localBackups->setChecked(m_settings->localBackups);
 
 	m_localBackupPath = new QLineEdit(m_settings->localBackupPath);
@@ -41,7 +41,7 @@ SettingsDialog::SettingsDialog(MainWindow *mainWindow, bool initial) :
 	m_localBackupInterval->setMaximum(60);
 	m_localBackupInterval->setValue(m_settings->localBackupInterval);
 
-	m_removableBackups = new QCheckBox("Enable removable backups");
+	m_removableBackups = new QCheckBox("Enable &removable backups");
 	m_removableBackups->setChecked(m_settings->removableBackups);
 
 	m_removableBackupVolume = new QLineEdit(m_settings->removableBackupVolume);
@@ -86,10 +86,10 @@ SettingsDialog::SettingsDialog(MainWindow *mainWindow, bool initial) :
 	QHBoxLayout *keyboardLayoutConfigurationLayout = new QHBoxLayout();
 	if (keyboardLayoutConfigured) {
 		keyboardLayoutConfigurationLayout->addWidget(new QLabel("Keyboard layout"));
-		m_configureKeyboardLayout = new QPushButton("Reconfigure");
+		m_configureKeyboardLayout = new QPushButton("Re&configure");
 	} else {
 		keyboardLayoutConfigurationLayout->addWidget(new QLabel("Keyboard layout"));
-		m_configureKeyboardLayout = new QPushButton("Configure");
+		m_configureKeyboardLayout = new QPushButton("&Configure");
 	}
 	keyboardLayoutConfigurationLayout->addWidget(m_configureKeyboardLayout);
 	connect(m_configureKeyboardLayout, SIGNAL(pressed()),
@@ -103,6 +103,9 @@ SettingsDialog::SettingsDialog(MainWindow *mainWindow, bool initial) :
 		m_keyboardLayoutUnconfiguredWarning->hide();
 	}
 
+	m_minimizeToTray = new QCheckBox("&Minimize window to system tray");
+	m_minimizeToTray->setChecked(m_settings->minimizeToTray);
+
 	QVBoxLayout *topLayout = new QVBoxLayout();
 	topLayout->setAlignment(Qt::AlignTop);
 	topLayout->addWidget(m_localBackups);
@@ -114,6 +117,7 @@ SettingsDialog::SettingsDialog(MainWindow *mainWindow, bool initial) :
 	topLayout->addLayout(removableBackupIntervalLayout);
 	topLayout->addWidget(m_keyboardLayoutUnconfiguredWarning);
 	topLayout->addLayout(keyboardLayoutConfigurationLayout);
+	topLayout->addWidget(m_minimizeToTray);
 	topLayout->addLayout(buttonLayout);
 	setLayout(topLayout);
 	setEnableDisable();
@@ -182,6 +186,7 @@ void SettingsDialog::okayPressed()
 	m_settings->removableBackupInterval = m_removableBackupInterval->value();
 	m_settings->activeKeyboardLayout = m_activeKeyboardLayout;
 	m_settings->keyboardLayouts = m_keyboardLayouts;
+	m_settings->minimizeToTray = m_minimizeToTray->isChecked();
 	done(0);
 }
 

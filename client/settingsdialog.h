@@ -30,6 +30,7 @@ Q_OBJECT
 	QMap<QString, keyboardLayout> m_keyboardLayouts;
 	QString m_activeKeyboardLayout;
 	QLabel *m_keyboardLayoutUnconfiguredWarning;
+	QCheckBox *m_minimizeToTray;
 public:
 	SettingsDialog(MainWindow *mainWindow, bool initial);
 public slots:
