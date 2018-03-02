@@ -186,7 +186,7 @@ void SettingsDialog::okayPressed()
 	m_settings->removableBackupInterval = m_removableBackupInterval->value();
 	m_settings->activeKeyboardLayout = m_activeKeyboardLayout;
 	m_settings->keyboardLayouts = m_keyboardLayouts;
-        m_settings->minimizeToTray = m_minimizeToTray->isChecked();
+	m_settings->minimizeToTray = m_minimizeToTray->isChecked();
 	done(0);
 }
 
