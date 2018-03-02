@@ -155,7 +155,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	QAction *minimize_action = m_fileMenu->addAction("Minimize &window");
 	minimize_action->setShortcut(Qt::CTRL | Qt::Key_W);
-	QObject::connect(minimize_action, SIGNAL(triggered(bool)), this, SLOT(hide()));
+	QObject::connect(minimize_action, SIGNAL(triggered(bool)), this, SLOT(background()));
 
 #ifdef Q_OS_UNIX
 	QAction *quit_action = m_fileMenu->addAction("&Quit");
