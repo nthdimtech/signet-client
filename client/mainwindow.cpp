@@ -26,10 +26,13 @@
 #include <QJsonDocument>
 #include <QStandardPaths>
 #include <QDateTime>
-#include <QStorageInfo>
 #include <QDesktopServices>
 #include <QJsonArray>
 #include <QString>
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
+#include <QStorageInfo>
+#endif
 
 #include <format/KeePass2Reader.h>
 #include <keys/PasswordKey.h>
@@ -909,6 +912,7 @@ void MainWindow::settingsChanged(bool checkForBackups)
 			}
 		}
 	}
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
 	if (m_settings.removableBackups && checkForBackups) {
 		if (!m_settings.lastRemoveableBackup.isValid() ||
 			m_settings.lastRemoveableBackup.daysTo(currentTime) > m_settings.removableBackupInterval) {
@@ -985,6 +989,7 @@ void MainWindow::settingsChanged(bool checkForBackups)
 			}
 		}
 	}
+#endif
 }
 
 void MainWindow::loadSettings()
