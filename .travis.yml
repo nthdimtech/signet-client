@@ -25,6 +25,6 @@ notifications:
   email:
   - nnesse@nthdimtech.com
 
-matrix:
-  allow_failures:
-    - os: linux
+#matrix:
+#  allow_failures:
+#    - os: linux
