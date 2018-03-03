@@ -864,8 +864,8 @@ QString MainWindow::backupFileBaseName()
 	QDateTime currentTime = QDateTime::currentDateTime();
 	return "signet-" +
 		QString::number(currentTime.date().year()) + "-" +
-		QString::number(currentTime.date().month()) + "-" +
-		QString::number(currentTime.date().day());
+		QString("%1").arg(QString::number(currentTime.date().month()), 2, '0') + "-" +
+		QString("%1").arg(QString::number(currentTime.date().day()), 2, '0');
 }
 
 void MainWindow::settingsChanged(bool checkForBackups)
