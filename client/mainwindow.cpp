@@ -221,6 +221,13 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_backupAction->setVisible(false);
 	m_restoreAction->setVisible(false);
 	enterDeviceState(STATE_NEVER_SHOWN);
+#ifdef Q_OS_UNIX
+	enterDeviceState(STATE_CONNECTING);
+	int rc = signetdev_open_connection();
+	if (rc == 0) {
+		deviceOpened();
+	}
+#endif
 }
 
 QString MainWindow::csvQuote(const QString &s)
@@ -727,18 +734,18 @@ void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, signetdev_start
 
 void MainWindow::showEvent(QShowEvent *event)
 {
+#ifdef _WIN32
 	if (!event->spontaneous()) {
 		if (m_deviceState == STATE_NEVER_SHOWN) {
 			enterDeviceState(STATE_CONNECTING);
-#ifdef _WIN32
 			signetdev_win32_set_window_handle((HANDLE)winId());
-#endif
 			int rc = signetdev_open_connection();
 			if (rc == 0) {
 				deviceOpened();
 			}
 		}
 	}
+#endif
 }
 
 

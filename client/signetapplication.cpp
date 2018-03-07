@@ -201,13 +201,7 @@ void SignetApplication::init(bool startInTray)
 	m_systray.setIcon(app_icon);
 
 	m_systray.show();
-	if (startInTray) {
-		/* FIXME: if we just hide() the window a button push will not show it
-		 *        but with showMinimized() it will briefly flash in the taskbar
-		 */
-		m_main_window->showMinimized();
-		m_main_window->hide();
-	} else {
+	if (!startInTray) {
 		m_main_window->show();
 	}
 }
