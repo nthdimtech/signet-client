@@ -52,6 +52,7 @@ int main(int argc, char **argv)
 		box->deleteLater();
 	}
 
+#ifdef Q_OS_UNIX
 	QCommandLineParser parser;
 	QCommandLineOption startInTrayOption("start-in-systray", "Start application minimized in the system tray");
 
@@ -59,7 +60,12 @@ int main(int argc, char **argv)
         parser.addHelpOption();
 	parser.process(a);
 
-	a.init(parser.isSet(startInTrayOption));
+        bool startInTray = parser.isSet(startInTrayOption);
+#else
+        bool startInTray = false;
+#endif
+
+	a.init(startInTray);
 	a.exec();
 	return 0;
 }
