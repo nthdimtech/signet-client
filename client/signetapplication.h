@@ -61,13 +61,13 @@ private:
 	int m_fwVersionStep;
 public:
 	static QDate getReleaseDate() {
-		return QDate(2018,2,15);
+		return QDate(2018,3,6);
 	}
 
 	void getClientVersion(int &major, int &minor, int &step, int &subStep) {
 		major = 0;
 		minor = 9;
-		step = 9;
+		step = 10;
 		subStep = 0;
 	}
 
