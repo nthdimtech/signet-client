@@ -36,7 +36,7 @@ class SignetApplication : public QtSingleApplication
 	static SignetApplication *g_singleton;
 public:
 	SignetApplication(int &argc, char **argv);
-	void init();
+	void init(bool startInTray);
 	static QMessageBox *messageBoxError(QMessageBox::Icon icon, const QString &title, const QString &text, QWidget *parent);
 	static SignetApplication *get()
 	{

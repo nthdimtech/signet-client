@@ -3,6 +3,7 @@
 #include "crypto/Crypto.h"
 
 #include <QThread>
+#include <QCommandLineParser>
 
 int main(int argc, char **argv)
 {
@@ -50,7 +51,21 @@ int main(int argc, char **argv)
 		}
 		box->deleteLater();
 	}
-	a.init();
+
+#ifdef Q_OS_UNIX
+	QCommandLineParser parser;
+	QCommandLineOption startInTrayOption("start-in-systray", "Start application minimized in the system tray");
+
+	parser.addOption(startInTrayOption);
+        parser.addHelpOption();
+	parser.process(a);
+
+        bool startInTray = parser.isSet(startInTrayOption);
+#else
+        bool startInTray = false;
+#endif
+
+	a.init(startInTray);
 	a.exec();
 	return 0;
 }

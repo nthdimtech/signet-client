@@ -169,7 +169,7 @@ void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int c
 	}
 }
 
-void SignetApplication::init()
+void SignetApplication::init(bool startInTray)
 {
 	signetdev_initialize_api();
 	signetdev_set_device_opened_cb(deviceOpenedS, this);
@@ -201,7 +201,9 @@ void SignetApplication::init()
 	m_systray.setIcon(app_icon);
 
 	m_systray.show();
-	m_main_window->show();
+	if (!startInTray) {
+		m_main_window->show();
+	}
 }
 
 QMessageBox *SignetApplication::messageBoxError(QMessageBox::Icon icon, const QString &title, const QString &text, QWidget *parent)
