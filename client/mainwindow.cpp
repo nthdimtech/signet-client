@@ -745,6 +745,8 @@ void MainWindow::showEvent(QShowEvent *event)
 			}
 		}
 	}
+#else
+        Q_UNUSED(event)
 #endif
 }
 
