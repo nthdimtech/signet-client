@@ -1,15 +1,15 @@
 [submodule "nettle"]
 	path = firmware/nettle
-	url = https://github.com/nthdimtech/nettle.git
+	url = ../nettle.git
 [submodule "crosstool-ng"]
 	path = firmware/crosstool-ng
-	url = https://github.com/nthdimtech/crosstool-ng.git
+	url = ../crosstool-ng.git
 [submodule "signet-base"]
 	path = signet-base
-	url = https://github.com/nthdimtech/signet-base.git
+	url = ../signet-base
 [submodule "keepassx"]
 	path = keepassx
-	url = https://github.com/nthdimtech/keepassx.git
+	url = ../keepassx.git
 [submodule "qtcsv"]
 	path = qtcsv
 	url = https://github.com/iamantony/qtcsv.git
