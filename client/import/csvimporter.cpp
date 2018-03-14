@@ -83,10 +83,8 @@ void CSVImporter::start()
 	for (;iter != csvData.end(); iter++) {
 		QVector<genericField> fields;
 		QStringList row = *iter;
-		int j = 0;
-		for (auto s : header) {
-			fields.append(genericField(s,"", row.at(j)));
-			j++;
+		for (int j = 0; j < row.length() && j < header.length(); j++) {
+			fields.append(genericField(header.at(j),"", row.at(j)));
 		}
 		esdbEntry *ent = t->decodeEntry(fields);
 		if (ent) {
