@@ -27,6 +27,9 @@ fi
 echo "Patching .gitmodules"
 sed -ibackup -e "s#url = \.\./#url = ${UPSTREAM_BASEURL}#" .gitmodules
 
+echo "Synchronizing new urls"
+git submodule sync
+
 echo "Initializing submodules"
 git submodule update --init
 
