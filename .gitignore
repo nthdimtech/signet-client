@@ -1,5 +1,6 @@
 *.o
 *.o.d
+moc_*
 *~
 *.swp
 *.pm_backup

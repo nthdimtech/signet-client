@@ -15,6 +15,19 @@ TEMPLATE = app
 QMAKE_CFLAGS += -std=c99 -msse4.1
 QMAKE_CXXFLAGS += -std=c++11 -msse4.1 -DQTCSV_STATIC_LIB
 
+# GITVERSION:
+# Add a git version description to the "About" dialog if
+# we are in a git repository
+system(touch $$PWD/gitversion.h)
+gitver.commands = bash $$PWD/gitversion.sh
+gitver.depends = FORCE
+about.o.depends += gitver
+### This will remove any DEFINES from the client/gitversion.h file
+### when the distclean target is called
+gitver_cleanup.commands = echo -n '' > $$PWD/gitversion.h
+distclean.depends += gitver_cleanup
+QMAKE_EXTRA_TARGETS += gitver gitver_cleanup distclean about.o
+
 macx {
 ICON = images/signet.icns
 LIBS += -framework CoreFoundation

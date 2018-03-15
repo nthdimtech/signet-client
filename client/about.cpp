@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QDebug>
 
 #include "signetapplication.h"
 
@@ -46,6 +47,11 @@ About::About(bool connectedDevice, QWidget *parent):
 	if (clientSubStepVer != 0) {
 		versionString += "." + QString::number(clientSubStepVer);
 	}
+
+#ifdef GITVERSION
+	versionString += " g:" + QString(GITVERSION);
+	qDebug() << "VERSION: " << versionString;
+#endif
 
 	QLabel *title = new QLabel(versionString);
 
