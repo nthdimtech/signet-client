@@ -14,13 +14,12 @@ struct genericTypeDesc;
 class esdbGenericModule : public esdbTypeModule
 {
 private:
-	LoggedInWidget *m_parent;
 	genericTypeDesc *m_typeDesc;
 	esdbEntry *decodeEntry(int id, int revision, esdbEntry *prev, struct block *blk) const;
 	bool m_userDefined;
 	esdbEntry *decodeEntry(const QVector<genericField> &fields, bool doAliasMatch) const;
 public:
-	esdbGenericModule(genericTypeDesc *typeDesc, LoggedInWidget *parent, bool userDefined = false, bool plural = true);
+	esdbGenericModule(genericTypeDesc *typeDesc, bool userDefined = false, bool plural = true);
 };
 
 #endif // ESDBGENERICMODULE_H

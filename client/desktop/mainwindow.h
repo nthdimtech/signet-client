@@ -70,21 +70,6 @@ public:
 
 	static QString csvQuote(const QString &s);
 
-	enum device_state {
-		STATE_INVALID,
-		STATE_NEVER_SHOWN,
-		STATE_CONNECTING,
-		STATE_RESET,
-		STATE_UNINITIALIZED,
-		STATE_LOGGED_OUT,
-		STATE_LOGGED_IN_LOADING_ACCOUNTS,
-		STATE_LOGGED_IN,
-		STATE_WIPING,
-		STATE_RESTORING,
-		STATE_BACKING_UP,
-		STATE_UPDATING_FIRMWARE,
-		STATE_EXPORTING
-	};
 	localSettings *getSettings() {
 		return &m_settings;
 	}
@@ -108,14 +93,14 @@ private:
 	QVector<QString> m_exportField;
 	QMap<QString, exportType> m_exportData;
 
-	enum device_state m_deviceState;
+	enum SignetApplication::device_state m_deviceState;
 
 	QWidget *m_backupWidget;
 	QProgressBar *m_backupProgress;
 	DatabaseImportController *m_dbImportController;
 	int m_backupBlock;
 	QFile *m_backupFile;
-	enum device_state m_backupPrevState;
+	enum SignetApplication::device_state m_backupPrevState;
 
 	QWidget *m_restoreWidget;
 	QProgressBar *m_restoreProgress;

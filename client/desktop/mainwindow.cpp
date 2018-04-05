@@ -85,11 +85,11 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_connectingLabel(NULL),
 	m_loggedIn(false),
 	m_wasConnected(false),
-	m_deviceState(STATE_INVALID),
+	m_deviceState(SignetApplication::STATE_INVALID),
 	m_backupWidget(NULL),
 	m_backupProgress(NULL),
 	m_backupFile(NULL),
-	m_backupPrevState(STATE_INVALID),
+	m_backupPrevState(SignetApplication::STATE_INVALID),
 	m_restoreWidget(NULL),
 	m_restoreBlock(0),
 	m_restoreFile(NULL),
@@ -220,9 +220,9 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_changePasswordAction->setVisible(false);
 	m_backupAction->setVisible(false);
 	m_restoreAction->setVisible(false);
-	enterDeviceState(STATE_NEVER_SHOWN);
+	enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
 #ifdef Q_OS_UNIX
-	enterDeviceState(STATE_CONNECTING);
+	enterDeviceState(SignetApplication::STATE_CONNECTING);
 	int rc = signetdev_open_connection();
 	if (rc == 0) {
 		deviceOpened();
@@ -256,7 +256,7 @@ void MainWindow::connectionError()
 {
 	if (!m_resetTimer.isActive()) {
 		m_wasConnected = true;
-		enterDeviceState(STATE_CONNECTING);
+		enterDeviceState(SignetApplication::STATE_CONNECTING);
 		int rc = signetdev_open_connection();
 		if (rc == 0) {
 			deviceOpened();
@@ -294,7 +294,7 @@ void MainWindow::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_g
 	m_signetdevCmdToken = -1;
 	int resp_code = info.resp_code;
 
-	if (m_deviceState == STATE_WIPING) {
+	if (m_deviceState == SignetApplication::STATE_WIPING) {
 		switch (resp_code) {
 		case OKAY:
 			m_wipeProgress->setRange(0, data.total_progress_maximum);
@@ -303,7 +303,7 @@ void MainWindow::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_g
 			::signetdev_get_progress(NULL, &m_signetdevCmdToken, data.total_progress, WIPING);
 			break;
 		case INVALID_STATE:
-			enterDeviceState(STATE_UNINITIALIZED);
+			enterDeviceState(SignetApplication::STATE_UNINITIALIZED);
 			break;
 		case SIGNET_ERROR_DISCONNECT:
 		case SIGNET_ERROR_QUIT:
@@ -312,7 +312,7 @@ void MainWindow::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_g
 			abort();
 			return;
 		}
-	} else if (m_deviceState == STATE_UPDATING_FIRMWARE) {
+	} else if (m_deviceState == SignetApplication::STATE_UPDATING_FIRMWARE) {
 		switch (resp_code) {
 		case OKAY:
 			m_firmwareUpdateProgress->setRange(0, data.total_progress_maximum);
@@ -467,7 +467,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 			m_buttonWaitDialog->done(QMessageBox::Ok);
 		if (code == OKAY) {
 			m_backupPrevState = m_deviceState;
-			enterDeviceState(STATE_BACKING_UP);
+			enterDeviceState(SignetApplication::STATE_BACKING_UP);
 			m_backupBlock = 0;
 			::signetdev_read_block(NULL, &m_signetdevCmdToken, m_backupBlock);
 		} else {
@@ -494,7 +494,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 		if (m_buttonWaitDialog)
 			m_buttonWaitDialog->done(QMessageBox::Ok);
 		if (code == OKAY) {
-			enterDeviceState(STATE_RESTORING);
+			enterDeviceState(SignetApplication::STATE_RESTORING);
 			m_restoreBlock = 0;
 			m_restoreProgress->setMinimum(0);
 			m_restoreProgress->setMaximum(NUM_DATA_BLOCKS);
@@ -518,21 +518,21 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 		break;
 	case SIGNETDEV_CMD_LOGOUT:
 		if (code == OKAY) {
-			enterDeviceState(STATE_LOGGED_OUT);
+			enterDeviceState(SignetApplication::STATE_LOGGED_OUT);
 		}
 		break;
 	case SIGNETDEV_CMD_WIPE:
 		if (m_buttonWaitDialog)
 			m_buttonWaitDialog->done(QMessageBox::Ok);
 		if (code == OKAY) {
-			enterDeviceState(STATE_WIPING);
+			enterDeviceState(SignetApplication::STATE_WIPING);
 		}
 		break;
 	case SIGNETDEV_CMD_BEGIN_UPDATE_FIRMWARE: {
 		if (m_buttonWaitDialog)
 			m_buttonWaitDialog->done(QMessageBox::Ok);
 		if (code == OKAY) {
-			enterDeviceState(STATE_UPDATING_FIRMWARE);
+			enterDeviceState(SignetApplication::STATE_UPDATING_FIRMWARE);
 		}
 	}
 	break;
@@ -576,7 +576,7 @@ void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QBy
 		m_buttonWaitDialog->done(QMessageBox::Ok);
 
 	if (m_startedExport) {
-		enterDeviceState(STATE_EXPORTING);
+		enterDeviceState(SignetApplication::STATE_EXPORTING);
 		m_backupProgress->setMaximum(info.messages_remaining);
 		m_backupProgress->setMinimum(0);
 		m_backupProgress->setValue(0);
@@ -667,7 +667,7 @@ void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QBy
 						this);
 		box->exec();
 		box->deleteLater();
-		enterDeviceState(STATE_LOGGED_IN);
+		enterDeviceState(SignetApplication::STATE_LOGGED_IN);
 	}
 }
 
@@ -708,15 +708,15 @@ void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, signetdev_start
 
 	switch (code) {
 	case UNKNOWN_DB_FORMAT:
-		enterDeviceState(STATE_UNINITIALIZED);
+		enterDeviceState(SignetApplication::STATE_UNINITIALIZED);
 		break;
 	case OKAY:
 		switch (device_state) {
 		case LOGGED_OUT:
-			enterDeviceState(STATE_LOGGED_OUT);
+			enterDeviceState(SignetApplication::STATE_LOGGED_OUT);
 			break;
 		case UNINITIALIZED:
-			enterDeviceState(STATE_UNINITIALIZED);
+			enterDeviceState(SignetApplication::STATE_UNINITIALIZED);
 			break;
 		}
 		break;
@@ -746,7 +746,7 @@ void MainWindow::showEvent(QShowEvent *event)
 		}
 	}
 #else
-        Q_UNUSED(event)
+	Q_UNUSED(event);
 #endif
 }
 
@@ -793,7 +793,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::logoutUi()
 {
-	if (m_deviceState == STATE_LOGGED_IN) {
+	if (m_deviceState == SignetApplication::STATE_LOGGED_IN) {
 		::signetdev_logout(NULL, &m_signetdevCmdToken);
 	}
 }
@@ -1266,26 +1266,26 @@ void MainWindow::keyboardLayoutTesterClosing(bool applyChanges)
 
 void MainWindow::enterDeviceState(int state)
 {
-	if (state == m_deviceState && (state != STATE_LOGGED_OUT))
+	if (state == m_deviceState && (state != SignetApplication::STATE_LOGGED_OUT))
 		return;
 	switch (m_deviceState) {
-	case STATE_LOGGED_IN:
+	case SignetApplication::STATE_LOGGED_IN:
 		break;
-	case STATE_BACKING_UP:
-	case STATE_EXPORTING:
+	case SignetApplication::STATE_BACKING_UP:
+	case SignetApplication::STATE_EXPORTING:
 		m_loggedInStack->setCurrentIndex(0);
 		m_loggedInStack->removeWidget(m_backupWidget);
 		m_backupWidget->deleteLater();
 		m_backupWidget = NULL;
 		break;
-	case STATE_LOGGED_IN_LOADING_ACCOUNTS: {
+	case SignetApplication::STATE_LOGGED_IN_LOADING_ACCOUNTS: {
 		QWidget *w = m_loggedInStack->currentWidget();
 		m_loggedInStack->setCurrentIndex(0);
 		m_loggedInStack->removeWidget(w);
 		w->deleteLater();
 	}
 	break;
-	case STATE_CONNECTING:
+	case SignetApplication::STATE_CONNECTING:
 		m_connectingTimer.stop();
 		m_connectingLabel = NULL;
 		break;
@@ -1293,10 +1293,10 @@ void MainWindow::enterDeviceState(int state)
 		break;
 	}
 
-	m_deviceState = (enum device_state) state;
+	m_deviceState = (enum SignetApplication::device_state) state;
 
 	switch (m_deviceState) {
-	case STATE_CONNECTING: {
+	case SignetApplication::STATE_CONNECTING: {
 		m_loggedIn = false;
 		QWidget *connecting_widget = new QWidget();
 		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
@@ -1319,10 +1319,10 @@ void MainWindow::enterDeviceState(int state)
 		setCentralWidget(connecting_widget);
 	}
 	break;
-	case STATE_RESET:
+	case SignetApplication::STATE_RESET:
 		m_loggedIn = false;
 		break;
-	case STATE_WIPING: {
+	case SignetApplication::STATE_WIPING: {
 		m_loggedIn = false;
 		m_wipingWidget = new QWidget(this);
 		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
@@ -1337,7 +1337,7 @@ void MainWindow::enterDeviceState(int state)
 		::signetdev_get_progress(NULL, &m_signetdevCmdToken, 0, WIPING);
 	}
 	break;
-	case STATE_LOGGED_IN_LOADING_ACCOUNTS: {
+	case SignetApplication::STATE_LOGGED_IN_LOADING_ACCOUNTS: {
 		m_loggedIn = true;
 		m_deviceMenu->setDisabled(true);
 		m_fileMenu->setDisabled(true);
@@ -1354,7 +1354,7 @@ void MainWindow::enterDeviceState(int state)
 		QWidget *loadingWidget = new QWidget();
 		loadingWidget->setLayout(layout);
 
-		m_loggedInWidget = new LoggedInWidget(this, loading_progress);
+		m_loggedInWidget = new LoggedInWidget(loading_progress);
 		connect(m_loggedInWidget, SIGNAL(abort()), this, SLOT(abort()));
 		connect(m_loggedInWidget, SIGNAL(enterDeviceState(int)),
 			this, SLOT(enterDeviceState(int)));
@@ -1368,7 +1368,7 @@ void MainWindow::enterDeviceState(int state)
 		setCentralWidget(m_loggedInStack);
 	}
 	break;
-	case STATE_BACKING_UP: {
+	case SignetApplication::STATE_BACKING_UP: {
 		m_loggedIn = true;
 		m_backupWidget = new QWidget();
 		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
@@ -1383,7 +1383,7 @@ void MainWindow::enterDeviceState(int state)
 		m_loggedInStack->setCurrentWidget(m_backupWidget);
 	}
 	break;
-	case STATE_EXPORTING: {
+	case SignetApplication::STATE_EXPORTING: {
 		m_loggedIn = true;
 		m_backupWidget = new QWidget();
 		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
@@ -1398,7 +1398,7 @@ void MainWindow::enterDeviceState(int state)
 		m_loggedInStack->setCurrentWidget(m_backupWidget);
 	}
 	break;
-	case STATE_RESTORING: {
+	case SignetApplication::STATE_RESTORING: {
 		m_loggedIn = false;
 		m_restoreWidget = new QWidget();
 		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
@@ -1412,7 +1412,7 @@ void MainWindow::enterDeviceState(int state)
 		setCentralWidget(m_restoreWidget);
 	}
 	break;
-	case STATE_UPDATING_FIRMWARE: {
+	case SignetApplication::STATE_UPDATING_FIRMWARE: {
 		m_firmwareUpdateWidget = new QWidget();
 		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
 		layout->setAlignment(Qt::AlignTop);
@@ -1452,7 +1452,7 @@ void MainWindow::enterDeviceState(int state)
 		setCentralWidget(m_firmwareUpdateWidget);
 	}
 	break;
-	case STATE_UNINITIALIZED: {
+	case SignetApplication::STATE_UNINITIALIZED: {
 		m_loggedIn = false;
 		m_deviceMenu->setDisabled(false);
 		m_fileMenu->setDisabled(false);
@@ -1485,7 +1485,7 @@ void MainWindow::enterDeviceState(int state)
 		setCentralWidget(m_uninitPrompt);
 	}
 	break;
-	case STATE_LOGGED_OUT: {
+	case SignetApplication::STATE_LOGGED_OUT: {
 		m_loggedIn = false;
 		m_deviceMenu->setDisabled(false);
 		m_fileMenu->setDisabled(false);
@@ -1514,7 +1514,7 @@ void MainWindow::enterDeviceState(int state)
 		setCentralWidget(login_window);
 	}
 	break;
-	case STATE_LOGGED_IN: {
+	case SignetApplication::STATE_LOGGED_IN: {
 		m_loggedIn = true;
 		resize(QSize(200, 300));
 		m_deviceMenu->setDisabled(false);
@@ -1537,7 +1537,7 @@ void MainWindow::enterDeviceState(int state)
 		break;
 	}
 
-	bool fileActionsEnabled = (m_deviceState == STATE_LOGGED_IN);
+	bool fileActionsEnabled = (m_deviceState == SignetApplication::STATE_LOGGED_IN);
 	m_exportMenu->menuAction()->setVisible(fileActionsEnabled);
 	m_settingsAction->setVisible(fileActionsEnabled);
 	m_importKeePassAction->setEnabled(fileActionsEnabled);
@@ -1560,7 +1560,7 @@ void MainWindow::openSettingsUi()
 
 void MainWindow::eraseDeviceUi()
 {
-	ResetDevice *rd = new ResetDevice(m_deviceState != STATE_UNINITIALIZED,this);
+	ResetDevice *rd = new ResetDevice(m_deviceState != SignetApplication::STATE_UNINITIALIZED, this);
 	connect(rd, SIGNAL(enterDeviceState(int)),
 		this, SLOT(enterDeviceState(int)));
 	connect(rd, SIGNAL(abort()), this, SLOT(abort()));
@@ -1582,7 +1582,7 @@ void MainWindow::connectingTimer()
 void MainWindow::resetTimer()
 {
 	m_resetTimer.stop();
-	enterDeviceState(STATE_CONNECTING);
+	enterDeviceState(SignetApplication::STATE_CONNECTING);
 	m_wasConnected = false;
 	int rc = ::signetdev_open_connection();
 	if (rc == 0) {
@@ -1753,8 +1753,8 @@ void MainWindow::backupDevice(QString fileName)
 
 void MainWindow::aboutUi()
 {
-	bool connected = (m_deviceState == STATE_LOGGED_IN) || (m_deviceState == STATE_LOGGED_OUT)
-			|| (m_deviceState == STATE_UNINITIALIZED);
+	bool connected = (m_deviceState == SignetApplication::STATE_LOGGED_IN) || (m_deviceState == SignetApplication::STATE_LOGGED_OUT)
+			|| (m_deviceState == SignetApplication::STATE_UNINITIALIZED);
 	QDialog *dlg = new About(connected ,this);
 	dlg->exec();
 }

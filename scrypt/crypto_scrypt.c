@@ -46,6 +46,8 @@
 
 #include "crypto_scrypt.h"
 
+#include <QtCore/qsystemdetection.h>
+
 static void (*smix_func)(uint8_t *, size_t, uint64_t, void *, void *) = NULL;
 
 /**
@@ -207,6 +209,7 @@ static void
 selectsmix(void)
 {
 
+#ifndef Q_OS_ANDROID
 //#ifdef CPUSUPPORT_X86_SSE2
 	/* If we're running on an SSE2-capable CPU, try that code. */
 	//if (cpusupport_x86_sse2()) {
@@ -218,7 +221,7 @@ selectsmix(void)
 		warn0("Disabling broken SSE2 scrypt support - please report bug!");
 	//}
 //#endif
-
+#endif
 	/* If generic smix works, use it. */
 	if (!testsmix(crypto_scrypt_smix)) {
 		smix_func = crypto_scrypt_smix;

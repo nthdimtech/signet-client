@@ -9,7 +9,6 @@
 #include <QThread>
 
 #include "buttonwaitdialog.h"
-#include "mainwindow.h"
 #include "signetapplication.h"
 #include "keygeneratorthread.h"
 
@@ -150,7 +149,7 @@ void LoginWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 
 	switch (resp_code) {
 	case OKAY:
-		emit enterDeviceState(MainWindow::STATE_LOGGED_IN_LOADING_ACCOUNTS);
+		emit enterDeviceState(SignetApplication::STATE_LOGGED_IN_LOADING_ACCOUNTS);
 		break;
 	case BAD_PASSWORD:
 		m_incorrectPassword->show();

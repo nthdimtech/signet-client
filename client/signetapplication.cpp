@@ -1,8 +1,14 @@
 #include "signetapplication.h"
-#include "mainwindow.h"
+
+#ifndef Q_OS_ANDROID
+#include "desktop/mainwindow.h"
+#else
+#include "android/signetdevicemanager.h"
+#endif
 
 #include <QMenu>
 #include <QDesktopWidget>
+#include <QApplication>
 
 extern "C" {
 #include "signetdev/host/signetdev.h"
@@ -32,8 +38,15 @@ void SignetApplication::connectionErrorS(void *this_)
 }
 
 SignetApplication::SignetApplication(int &argc, char **argv) :
+#ifdef Q_OS_ANDROID
+	QApplication(argc, argv)
+#else
 	QtSingleApplication("qtsingle-app-signetdev-" + QString(USB_VENDOR_ID) + "-" + QString(USB_SIGNET_DESKTOP_PRODUCT_ID) ,argc, argv)
+#endif
 {
+	QStringList path = m_qmlEngine.importPathList();
+	path.append("qrc:/");
+	m_qmlEngine.setImportPathList(path);
 	g_singleton = this;
 	qRegisterMetaType<signetdevCmdRespInfo>();
 	qRegisterMetaType<signetdev_startup_resp_data>();
@@ -177,7 +190,7 @@ void SignetApplication::init(bool startInTray)
 	signetdev_set_command_resp_cb(commandRespS, this);
 	signetdev_set_device_event_cb(deviceEventS, this);
 	signetdev_set_error_handler(connectionErrorS, this);
-
+#ifndef Q_OS_ANDROID
 	m_main_window = new MainWindow();
 
 	QDesktopWidget* d = QApplication::desktop();
@@ -185,7 +198,6 @@ void SignetApplication::init(bool startInTray)
 	m_main_window->adjustSize();
 	m_main_window->move(deskRect.width() / 2 - m_main_window->width() / 2 + deskRect.left(),
 		     deskRect.height() / 2 - m_main_window->height() / 2 + deskRect.top());
-
 
 	connect(this, SIGNAL(connectionError()), m_main_window, SLOT(connectionError()));
 
@@ -199,11 +211,14 @@ void SignetApplication::init(bool startInTray)
 	QIcon app_icon = QIcon(":/images/signet.png");
 	m_main_window->setWindowIcon(app_icon);
 	m_systray.setIcon(app_icon);
-
 	m_systray.show();
 	if (!startInTray) {
 		m_main_window->show();
 	}
+#else
+	m_signetDeviceManager = new SignetDeviceManager(m_qmlEngine, this);
+	Q_UNUSED(startInTray);
+#endif
 }
 
 QMessageBox *SignetApplication::messageBoxError(QMessageBox::Icon icon, const QString &title, const QString &text, QWidget *parent)
@@ -215,6 +230,7 @@ QMessageBox *SignetApplication::messageBoxError(QMessageBox::Icon icon, const QS
 	return box;
 }
 
+#ifndef Q_OS_ANDROID
 void SignetApplication::trayActivated(QSystemTrayIcon::ActivationReason reason)
 {
 	bool is_active = m_main_window->isActiveWindow();
@@ -252,3 +268,4 @@ void SignetApplication::trayActivated(QSystemTrayIcon::ActivationReason reason)
 		break;
 	}
 }
+#endif

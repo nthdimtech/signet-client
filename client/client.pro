@@ -6,14 +6,24 @@
 
 QT       += core gui widgets network concurrent
 
-unix:!macx {
+android {
+QT += quick
+}
+
+linux-g++ {
 QT += x11extras
 }
 
 TARGET = signet
 TEMPLATE = app
-QMAKE_CFLAGS += -std=c99 -msse4.1
-QMAKE_CXXFLAGS += -std=c++11 -msse4.1 -DQTCSV_STATIC_LIB
+QMAKE_CFLAGS += -std=c99
+QMAKE_CXXFLAGS += -std=c++11 -DQTCSV_STATIC_LIB
+
+
+macx|linux-g++|win32 {
+QMAKE_CFLAGS += -msse4.1
+QMAKE_CXXFLAGS += -msse4.1
+}
 
 # GITVERSION:
 # Add a git version description to the "About" dialog if
@@ -36,14 +46,14 @@ INCLUDEPATH+=/usr/local/include
 QMAKE_LFLAGS += -L/usr/local/lib
 }
 
-unix:!macx {
+linux-g++ {
 LIBS += -lgcrypt -lgpg-error -lz -lX11
 }
 
 #
 # Note: Use this fragment instead of the one above when making a static build
 #
-#unix:!macx{
+#linux-g++ {
 #LIBS += -l:libgcrypt.a -l:libgpg-error.a -l:libz.a -lX11
 #}
 
@@ -53,17 +63,16 @@ LIBS += -lhid -lsetupapi -lz -lgcrypt -lgpg-error
 }
 
 #
-# Signetdev sources/headers
+# Signetdev sources
 #
 
-SOURCES += ../signet-base/signetdev/host/signetdev.c
+SOURCES += ../signet-base/signetdev/host/signetdev.c \
+    android/signetdevicemanager.cpp
 
-unix {
-HEADERS += ../signet-base/signetdev/host/signetdev_unix.h \
-    import/passimporter.h \
+macx|linux-g++ {
+HEADERS += import/passimporter.h \
     import/passimportunlockdialog.h
-SOURCES += ../signet-base/signetdev/host/signetdev_unix.c \
-    import/passimporter.cpp \
+SOURCES += import/passimporter.cpp \
     import/passimportunlockdialog.cpp
 }
 
@@ -74,11 +83,19 @@ SOURCES += ../signet-base/signetdev/host/rawhid/hid_WINDOWS.c \
 
 macx {
 SOURCES += ../signet-base/signetdev/host/signetdev_osx.c
-HEADERS += ../signet-base/signetdev/host/signetdev_osx.h
 }
 
-unix:!macx {
+linux-g++ {
 SOURCES += ../signet-base/signetdev/host/signetdev_linux.c
+}
+
+android {
+SOURCES += ../signet-base/signetdev/host/signetdev_android.c
+}
+
+unix {
+SOURCES += ../signet-base/signetdev/host/signetdev_unix.c
+SOURCES += ../signet-base/signetdev/host/signetdev_unix.h
 }
 
 #
@@ -95,6 +112,17 @@ SOURCES += esdb/esdb.cpp \
     esdb/generic/esdbgenericmodule.cpp \
     esdb/generic/genericfields.cpp
 
+HEADERS += esdb/esdb.h \
+    esdb/esdbtypemodule.h \
+    esdb/account/account.h \
+    esdb/account/esdbaccountmodule.h \
+    esdb/bookmark/bookmark.h \
+    esdb/bookmark/esdbbookmarkmodule.h \
+    esdb/generic/generic.h \
+    esdb/generic/genericfields.h \
+    esdb/generic/generictypedesc.h \
+    esdb/generic/esdbgenericmodule.h \
+    android/signetdevicemanager.h
 
 #
 # ESDB GUI sources
@@ -120,6 +148,84 @@ SOURCES += esdb-gui/esdbmodel.cpp \
     esdb-gui/generic/newgeneric.cpp \
     esdb-gui/generic/opengeneric.cpp
 
+HEADERS +=  esdb-gui/esdbmodel.h \
+    esdb-gui/databasefield.h \
+    esdb-gui/passwordedit.h \
+    esdb-gui/esdbactionbar.h \
+    esdb-gui/linefieldedit.h \
+    esdb-gui/integerfieldedit.h \
+    esdb-gui/textblockfieldedit.h \
+    esdb-gui/genericfieldedit.h \
+    esdb-gui/genericfieldeditfactory.h \
+    esdb-gui/genericfieldseditor.h \
+    esdb-gui/typedescedit.h \
+    esdb-gui/typedesceditor.h \
+    esdb-gui/account/newaccount.h \
+    esdb-gui/account/editaccount.h \
+    esdb-gui/account/accountactionbar.h \
+    esdb-gui/bookmark/bookmarkactionbar.h \
+    esdb-gui/bookmark/newbookmark.h \
+    esdb-gui/generic/genericactionbar.h \
+    esdb-gui/generic/newgeneric.h \
+    esdb-gui/generic/opengeneric.h
+
+#
+# Common Misc
+#
+
+SOURCES += loggedinwidget.cpp \
+        aspectratiopixmaplabel.cpp \
+    changemasterpassword.cpp \
+    searchlistbox.cpp \
+    buttonwaitdialog.cpp \
+    searchfilteredit.cpp \
+    signetapplication.cpp \
+    keygeneratorthread.cpp \
+    loginwindow.cpp
+
+HEADERS  += loggedinwidget.h \
+        aspectratiopixmaplabel.h \
+    changemasterpassword.h \
+    searchlistbox.h \
+    buttonwaitdialog.h \
+    searchfilteredit.h \
+    signetapplication.h \
+    keygeneratorthread.h \
+    loginwindow.h
+
+#
+# QtCSV
+#
+SOURCES += ../qtcsv/sources/contentiterator.cpp \
+    ../qtcsv/sources/reader.cpp \
+    ../qtcsv/sources/stringdata.cpp \
+    ../qtcsv/sources/variantdata.cpp
+
+HEADERS += ../qtcsv/sources/contentiterator.h \
+    ../qtcsv/sources/filechecker.h \
+    ../qtcsv/sources/symbols.h
+
+#
+#SCrypt
+#
+SOURCES += ../scrypt/crypto_scrypt.c \
+    ../scrypt/insecure_memzero.c \
+    ../scrypt/sha256.c \
+    ../scrypt/warnp.c \
+    ../scrypt/crypto_scrypt_smix.c
+
+HEADERS += ../scrypt/crypto_scrypt_smix.h \
+    ../scrypt/crypto_scrypt.h \
+    ../scrypt/insecure_memzero.h \
+    ../scrypt/sha256.h \
+    ../scrypt/warnp.h
+
+!android {
+    SOURCES += ../scrypt/crypto_scrypt_smix_sse2.c
+    HEADERS += ../scrypt/crypto_scrypt_smix_sse2.h
+}
+
+linux-g++|macx|win32 {
 #
 # Importer sources
 #
@@ -131,44 +237,60 @@ SOURCES += import/entryrenamedialog.cpp \
     import/csvimporter.cpp \
     import/csvimportconfigure.cpp
 
-#
-# Main applicaiton sources
-#
-SOURCES += main.cpp \
-    mainwindow.cpp \
-    loginwindow.cpp \
-    aspectratiopixmaplabel.cpp \
-    loggedinwidget.cpp \
-    changemasterpassword.cpp \
-    searchlistbox.cpp \
-    buttonwaitdialog.cpp \
-    searchfilteredit.cpp \
-    systemtray.cpp \
-    signetapplication.cpp \
-    keygeneratorthread.cpp \
-    resetdevice.cpp \
-    about.cpp \
-    keyboardlayouttester.cpp \
-    settingsdialog.cpp
+HEADERS += import/keepassunlockdialog.h \
+    import/databaseimporter.h \
+    import/databaseimportcontroller.h \
+    import/keepassimporter.h \
+    import/entryrenamedialog.h \
+    import/csvimporter.h \
+    import/csvimportconfigure.h
 
 #
-# External headers
+# Desktop applicaiton sources
 #
-SOURCES += ../qtcsv/sources/contentiterator.cpp \
-    ../qtcsv/sources/reader.cpp \
-    ../qtcsv/sources/stringdata.cpp \
-    ../qtcsv/sources/variantdata.cpp \
-    qtsingleapplication/src/qtlocalpeer.cpp \
-    qtsingleapplication/src/qtsinglecoreapplication.cpp \
-    qtsingleapplication/src/qtsingleapplication.cpp \
-    qtsingleapplication/src/qtlockedfile.cpp \
-    ../scrypt/crypto_scrypt_smix_sse2.c \
-    ../scrypt/crypto_scrypt_smix.c \
-    ../scrypt/crypto_scrypt.c \
-    ../scrypt/insecure_memzero.c \
-    ../scrypt/sha256.c \
-    ../scrypt/warnp.c \
-    ../keepassx/src/keys/CompositeKey.cpp \
+SOURCES += desktop/main.cpp \
+        desktop/mainwindow.cpp \
+        desktop/systemtray.cpp \
+        desktop/settingsdialog.cpp \
+        desktop/keyboardlayouttester.cpp \
+        desktop/about.cpp \
+        desktop/resetdevice.cpp
+
+HEADERS +=  desktop/mainwindow.h \
+    desktop/localsettings.h \
+    desktop/settingsdialog.h \
+    desktop/keyboardlayouttester.h \
+    desktop/about.h \
+    desktop/systemtray.h \
+    desktop/resetdevice.h
+
+#
+# Qt single appliction
+#
+SOURCES += qtsingleapplication/src/qtlocalpeer.cpp \
+        qtsingleapplication/src/qtsinglecoreapplication.cpp \
+        qtsingleapplication/src/qtsingleapplication.cpp \
+        qtsingleapplication/src/qtlockedfile.cpp
+
+HEADERS +=  qtsingleapplication/src/qtlocalpeer.h \
+    qtsingleapplication/src/QtLockedFile \
+    qtsingleapplication/src/qtsinglecoreapplication.h \
+    qtsingleapplication/src/QtSingleApplication \
+    qtsingleapplication/src/qtsingleapplication.h \
+    qtsingleapplication/src/qtlockedfile.h
+
+win32 {
+SOURCES += qtsingleapplication/src/qtlockedfile_win.cpp
+}
+
+macx:linux-g++ {
+SOURCES += qtsingleapplication/src/qtlockedfile_unix.cpp
+}
+
+#
+# KeepassX
+#
+SOURCES += ../keepassx/src/keys/CompositeKey.cpp \
     ../keepassx/src/keys/PasswordKey.cpp \
     ../keepassx/src/keys/FileKey.cpp \
     ../keepassx/src/core/AutoTypeAssociations.cpp \
@@ -210,96 +332,7 @@ SOURCES += ../qtcsv/sources/contentiterator.cpp \
     ../keepassx/src/format/KeePass2XmlReader.cpp \
     ../keepassx/src/format/KeePass2XmlWriter.cpp
 
-win32 {
-SOURCES += qtsingleapplication/src/qtlockedfile_win.cpp
-}
-
-unix {
-SOURCES += qtsingleapplication/src/qtlockedfile_unix.cpp
-}
-
-#
-# ESDB headers
-#
-HEADERS += esdb/esdb.h \
-    esdb/esdbtypemodule.h \
-    esdb/account/account.h \
-    esdb/account/esdbaccountmodule.h \
-    esdb/bookmark/bookmark.h \
-    esdb/bookmark/esdbbookmarkmodule.h \
-    esdb/generic/generic.h \
-    esdb/generic/genericfields.h \
-    esdb/generic/generictypedesc.h \
-    esdb/generic/esdbgenericmodule.h
-
-#
-# ESDB GUI headers
-#
-HEADERS +=  esdb-gui/esdbmodel.h \
-    esdb-gui/databasefield.h \
-    esdb-gui/passwordedit.h \
-    esdb-gui/esdbactionbar.h \
-    esdb-gui/linefieldedit.h \
-    esdb-gui/integerfieldedit.h \
-    esdb-gui/textblockfieldedit.h \
-    esdb-gui/genericfieldedit.h \
-    esdb-gui/genericfieldeditfactory.h \
-    esdb-gui/genericfieldseditor.h \
-    esdb-gui/typedescedit.h \
-    esdb-gui/typedesceditor.h \
-    esdb-gui/account/newaccount.h \
-    esdb-gui/account/editaccount.h \
-    esdb-gui/account/accountactionbar.h \
-    esdb-gui/bookmark/bookmarkactionbar.h \
-    esdb-gui/bookmark/newbookmark.h \
-    esdb-gui/generic/genericactionbar.h \
-    esdb-gui/generic/newgeneric.h \
-    esdb-gui/generic/opengeneric.h
-
-#
-# Importer headers
-#
-HEADERS += import/keepassunlockdialog.h \
-    import/databaseimporter.h \
-    import/databaseimportcontroller.h \
-    import/keepassimporter.h \
-    import/entryrenamedialog.h \
-    import/csvimporter.h \
-    import/csvimportconfigure.h
-
-HEADERS  += mainwindow.h \
-    loginwindow.h \
-    aspectratiopixmaplabel.h \
-    loggedinwidget.h \
-    changemasterpassword.h \
-    searchlistbox.h \
-    buttonwaitdialog.h \
-    searchfilteredit.h \
-    systemtray.h \
-    signetapplication.h \
-    keygeneratorthread.h \
-    resetdevice.h \
-    about.h \
-    keyboardlayouttester.h \
-    localsettings.h \
-    settingsdialog.h
-
-HEADERS += ../qtcsv/sources/contentiterator.h \
-    ../qtcsv/sources/filechecker.h \
-    ../qtcsv/sources/symbols.h \
-    qtsingleapplication/src/qtlocalpeer.h \
-    qtsingleapplication/src/QtLockedFile \
-    qtsingleapplication/src/qtsinglecoreapplication.h \
-    qtsingleapplication/src/QtSingleApplication \
-    qtsingleapplication/src/qtsingleapplication.h \
-    qtsingleapplication/src/qtlockedfile.h \
-    ../scrypt/crypto_scrypt_smix_sse2.h \
-    ../scrypt/crypto_scrypt_smix.h \
-    ../scrypt/crypto_scrypt.h \
-    ../scrypt/insecure_memzero.h \
-    ../scrypt/sha256.h \
-    ../scrypt/warnp.h \
-    ../keepassx/src/core/AutoTypeAssociations.h \
+HEADERS += ../keepassx/src/core/AutoTypeAssociations.h \
     ../keepassx/src/core/Config.h \
     ../keepassx/src/core/Database.h \
     ../keepassx/src/core/DatabaseIcons.h \
@@ -349,6 +382,12 @@ HEADERS += ../qtcsv/sources/contentiterator.h \
     ../keepassx/src/keys/Key.h \
     ../keepassx/src/keys/PasswordKey.h
 
+win32 {
+RC_FILE = signet.rc
+}
+
+}
+
 #
 # Include path
 #
@@ -367,10 +406,6 @@ INCLUDEPATH+=../qtcsv/include \
         esdb-gui/account \
         esdb-gui/bookmark \
         esdb-gui/generic
-
-win32 {
-RC_FILE = signet.rc
-}
 
 RESOURCES = resources.qrc
 
@@ -395,5 +430,29 @@ DISTFILES += signet.rc \
     images/vault.xcf \
     images/vault_open.xcf
 
-FORMS += \
-    mainwindow.ui
+android {
+
+SOURCES += android/main.cpp \
+        android/jni/signetactivity.cpp
+
+RESOURCES += android/qml.qrc
+
+QML_IMPORT_PATH =
+
+QML_DESIGNER_IMPORT_PATH =
+
+OTHER_FILES += \
+    android/package/AndroidManifest.xml
+
+DISTFILES += \
+    android/package/gradle/wrapper/gradle-wrapper.jar \
+    android/package/gradlew \
+    android/package/res/values/libs.xml \
+    android/package/build.gradle \
+    android/package/gradle/wrapper/gradle-wrapper.properties \
+    android/package/gradlew.bat \
+    android/package/res/xml/device_filter.xml \
+    android/package/src/com/nthdimtech/SignetActivity.java
+
+ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android/package
+}

@@ -7,9 +7,8 @@
 
 class EsdbActionBar;
 
-esdbGenericModule::esdbGenericModule(genericTypeDesc *typeDesc, LoggedInWidget *parent, bool userDefined, bool plural) :
+esdbGenericModule::esdbGenericModule(genericTypeDesc *typeDesc, bool userDefined, bool plural) :
 	esdbTypeModule(plural ? typeDesc->name + "s" : typeDesc->name),
-	m_parent(parent),
 	m_typeDesc(typeDesc),
 	m_userDefined(userDefined)
 {

@@ -29,7 +29,6 @@
 #include "searchlistbox.h"
 #include "searchfilteredit.h"
 #include "buttonwaitdialog.h"
-#include "mainwindow.h"
 #include "signetapplication.h"
 #include "esdbactionbar.h"
 #include "generictypedesc.h"
@@ -45,7 +44,6 @@ extern "C" {
 
 #include "bookmark.h"
 #include "generic.h"
-#include "mainwindow.h"
 
 #define USE_MISC_TYPE 1
 #define USE_PREDEFINED_TYPES 0
@@ -102,7 +100,7 @@ LoggedInWidget::typeData::~typeData()
 	delete module;
 }
 
-LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, QWidget *parent) : QWidget(parent),
+LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, QWidget *parent) : QWidget(parent),
 	m_activeType(0),
 	m_selectedEntry(NULL),
 	m_filterLabel(NULL),
@@ -117,7 +115,6 @@ LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, Q
 	m_id(-1),
 	m_idTask(ID_TASK_NONE)
 {
-	Q_UNUSED(mw);
 	m_icon_accounts.append(
 	    iconAccount("facebook")
 	);
@@ -179,12 +176,12 @@ LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, Q
 	place->name = "";
 	m_genericDecoder = new esdbGenericModule(place, this);
 
-	m_accounts = new esdbAccountModule(this);
+	m_accounts = new esdbAccountModule();
 	typeData *accountsTypeData = new typeData(m_accounts);
 	accountsTypeData->actionBar = new AccountActionBar(this);
 	m_typeData.push_back(accountsTypeData);
 
-	m_bookmarks = new esdbBookmarkModule(this);
+	m_bookmarks = new esdbBookmarkModule();
 	typeData *bookmarksTypeData = new typeData(m_bookmarks);
 	bookmarksTypeData->actionBar = new BookmarkActionBar(m_bookmarks, this);
 	m_typeData.push_back(bookmarksTypeData);
@@ -198,7 +195,7 @@ LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, Q
 		genericTypeDesc_->fields.push_back(fieldSpec("Exp month","integer"));
 		genericTypeDesc_->fields.push_back(fieldSpec("Exp year","integer"));
 		genericTypeDesc_->fields.push_back(fieldSpec("CCV","text"));
-		typeData *d = new typeData(new esdbGenericModule(genericTypeDesc_, this, false, false));
+		typeData *d = new typeData(new esdbGenericModule(genericTypeDesc_, false, false));
 		d->actionBar = new GenericActionBar(d->module, genericTypeDesc_, this);
 		m_typeData.push_back(d);
 
@@ -209,7 +206,7 @@ LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, Q
 		genericTypeDesc_->fields.push_back(fieldSpec("Address 1","text"));
 		genericTypeDesc_->fields.push_back(fieldSpec("Address 2","text"));
 		genericTypeDesc_->fields.push_back(fieldSpec("City","text"));
-		d = new typeData(new esdbGenericModule(genericTypeDesc_, this, false, false));
+		d = new typeData(new esdbGenericModule(genericTypeDesc_, false, false));
 		d->actionBar = new GenericActionBar(d->module, genericTypeDesc_, this);
 		m_typeData.push_back(d);
 	}
@@ -217,7 +214,7 @@ LoggedInWidget::LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, Q
 	if (USE_MISC_TYPE) {
 		genericTypeDesc_ = new genericTypeDesc();
 		genericTypeDesc_->name = "Misc";
-		typeData *d = new typeData(new esdbGenericModule(genericTypeDesc_, this, false, false));
+		typeData *d = new typeData(new esdbGenericModule(genericTypeDesc_, false, false));
 		d->actionBar = new GenericActionBar(d->module, genericTypeDesc_, this);
 		m_typeData.push_back(d);
 	}
@@ -364,7 +361,7 @@ void LoggedInWidget::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int uid
 		m_newAcctButton->setEnabled(true);
 		m_filterLabel->setEnabled(true);
 		populateEntryList(m_activeType, m_searchListbox->filterText());
-		emit enterDeviceState(MainWindow::STATE_LOGGED_IN);
+		emit enterDeviceState(SignetApplication::STATE_LOGGED_IN);
 		m_signetdevCmdToken = -1;
 	}
 

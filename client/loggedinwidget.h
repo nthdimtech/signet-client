@@ -166,7 +166,7 @@ public:
 		ID_TASK_DELETE,
 		ID_TASK_READ
 	} m_idTask;
-	explicit LoggedInWidget(MainWindow *mw, QProgressBar *loading_progress, QWidget *parent = 0);
+	explicit LoggedInWidget(QProgressBar *loading_progress, QWidget *parent = 0);
 	~LoggedInWidget();
 	void finishTask(bool deselect = true);
 	void beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar);

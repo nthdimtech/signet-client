@@ -275,6 +275,6 @@ void ResetDevice::resetButtonPromptFinished(int code)
 
 void ResetDevice::resetDeviceFinalize()
 {
-	emit enterDeviceState(MainWindow::STATE_LOGGED_OUT);
+	emit enterDeviceState(SignetApplication::STATE_LOGGED_OUT);
 	close();
 }

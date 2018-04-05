@@ -1,0 +1,14 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>../images/signet.png</file>
+        <file>no_device.qml</file>
+        <file>login.qml</file>
+        <file>loading_entries.qml</file>
+        <file>unlocked.qml</file>
+        <file>../images/search.png</file>
+        <file>../images/plus.png</file>
+        <file>connecting.qml</file>
+        <file>components/Banner.qml</file>
+    </qresource>
+</RCC>

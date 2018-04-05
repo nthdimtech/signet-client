@@ -10,6 +10,7 @@
 #include <QDesktopServices>
 #include <QClipboard>
 #include <QMenu>
+#include <QApplication>
 
 AccountActionBar::AccountActionBar(LoggedInWidget *parent) :
 	m_buttonWaitDialog(NULL),

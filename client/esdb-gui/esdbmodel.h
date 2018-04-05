@@ -11,8 +11,10 @@ struct esdbModelGroup;
 
 class EsdbModelGroupItem;
 class QTreeView;
+#include <QQuickItem>
 
-class EsdbModelItem : public QObject {
+class EsdbModelItem : public QObject
+{
 	int m_rank;
 public:
 	int rank() const {

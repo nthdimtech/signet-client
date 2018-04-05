@@ -3,15 +3,20 @@
 
 #include <QObject>
 #include <QMessageBox>
-#include <QtSingleApplication>
 #include <qdatetime.h>
 #include <qmetatype.h>
-#include "systemtray.h"
+#ifndef Q_OS_ANDROID
+#include <QtSingleApplication>
+#include "desktop/systemtray.h"
+#else
+#include <QApplication>
+#include <QQmlApplicationEngine>
+class SignetDeviceManager;
+#endif
 
 class QMessageBox;
 class QByteArray;
 class QString;
-class MainWindow;
 
 struct signetdevCmdRespInfo {
 	void *param;
@@ -30,7 +35,11 @@ Q_DECLARE_METATYPE(signetdevCmdRespInfo)
 Q_DECLARE_METATYPE(signetdev_startup_resp_data)
 Q_DECLARE_METATYPE(signetdev_get_progress_resp_data)
 
+#ifdef Q_OS_ANDROID
+class SignetApplication : public QApplication
+#else
 class SignetApplication : public QtSingleApplication
+#endif
 {
 	Q_OBJECT
 	static SignetApplication *g_singleton;
@@ -43,8 +52,13 @@ public:
 		return g_singleton;
 	}
 private:
+#ifndef Q_OS_ANDROID
 	SystemTray m_systray;
 	MainWindow *m_main_window;
+#else
+	QQmlApplicationEngine m_qmlEngine;
+	SignetDeviceManager *m_signetDeviceManager;
+#endif
 	static void deviceOpenedS(void *this_);
 	static void deviceClosedS(void *this_);
 	static void commandRespS(void *cb_param, void *cmd_user_param, int cmd_token, int cmd, int end_device_state, int messages_remaining, int resp_code, void *resp_data);
@@ -60,6 +74,25 @@ private:
 	int m_fwVersionMin;
 	int m_fwVersionStep;
 public:
+	QQmlApplicationEngine &qmlEngine() {
+		return m_qmlEngine;
+	}
+	enum device_state {
+		STATE_INVALID,
+		STATE_NEVER_SHOWN,
+		STATE_CONNECTING,
+		STATE_RESET,
+		STATE_UNINITIALIZED,
+		STATE_LOGGED_OUT,
+		STATE_LOGGED_IN_LOADING_ACCOUNTS,
+		STATE_LOGGED_IN,
+		STATE_WIPING,
+		STATE_RESTORING,
+		STATE_BACKING_UP,
+		STATE_UPDATING_FIRMWARE,
+		STATE_EXPORTING
+	};
+
 	static QDate getReleaseDate() {
 		return QDate(2018,3,6);
 	}
@@ -155,7 +188,9 @@ signals:
 	void signetdevTimerEvent(int seconds_remaining);
 public slots:
 	void mainDestroyed();
+#ifndef Q_OS_ANDROID
 	void trayActivated(QSystemTrayIcon::ActivationReason reason);
+#endif
 };
 
 #endif // SIGNETAPPLICATION_H
