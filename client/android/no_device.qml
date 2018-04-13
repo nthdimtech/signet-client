@@ -4,6 +4,8 @@ import QtQuick.Controls 2.2
 import "components" as Components
 
 Column {
+    padding: 10
+    spacing: 10
     Components.Banner {
         id: banner
     }

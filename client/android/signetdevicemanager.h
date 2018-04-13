@@ -18,6 +18,7 @@ class EsdbEntryModel;
 class EsdbGroupModel;
 
 class KeyGeneratorThread;
+#include <QString>
 
 class SignetDeviceManager : public QObject
 {
@@ -30,16 +31,23 @@ class SignetDeviceManager : public QObject
 	void setLoaderSource(QString str);
 	QObject *findQMLObject(QString name);
 	QList<esdbEntry *> m_entries;
+	QList<esdbEntry *> m_entriesFiltered;
 	esdbAccountModule m_acctTypeModule;
 	EsdbEntryModel *m_model;
 	EsdbGroupModel *m_groupModel;
 	QSet<QString> m_groups;
 	QStringList m_groupsSorted;
+	QObject *m_loadingProgress;
+	QString m_filterGroup;
+	QString m_filterEntry;
+	int m_entriesLoaded;
+	void filterEntries(QString groupName, QString search);
 public:
 	explicit SignetDeviceManager(QQmlApplicationEngine &engine, QObject *parent = nullptr);
 
 signals:
 	void abort();
+	void badPasswordEntered();
 public slots:
 	void connectingTimer();
 	void connectionError();
@@ -55,6 +63,9 @@ private slots:
 	void loaded();
 	void loginSignal(QString password);
 	void keyGenerationFinished();
+	void lockSignal();
+	void filterTextChangedSignal(QString text);
+	void filterGroupChangedSignal(int index);
 };
 
 #endif // SIGNETDEVICEMANAGER_H

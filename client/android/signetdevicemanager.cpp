@@ -1,6 +1,7 @@
 #include "signetdevicemanager.h"
 #include "signetapplication.h"
 #include "keygeneratorthread.h"
+#include "esdbgroupmodel.h"
 
 #include <android/log.h>
 
@@ -11,6 +12,8 @@
 #include <QList>
 #include <QStringList>
 
+#include <algorithm>
+
 class EsdbEntryModel : public QAbstractListModel
 {
 	QList<esdbEntry *> *m_entries;
@@ -18,6 +21,8 @@ public:
 	EsdbEntryModel(QList<esdbEntry *> *entries);
 	QVariant data(const QModelIndex &index, int role) const;
 	int rowCount(const QModelIndex &parent) const;
+public slots:
+	QString text(int index);
 };
 
 EsdbEntryModel::EsdbEntryModel(QList<esdbEntry *> *entries) :
@@ -40,33 +45,13 @@ int EsdbEntryModel::rowCount(const QModelIndex &parent) const
 	return m_entries->length();
 }
 
-class EsdbGroupModel : public QAbstractListModel
+QString EsdbEntryModel::text(int index)
 {
-	QStringList *m_entries;
-public:
-	EsdbGroupModel(QStringList *entries);
-	QVariant data(const QModelIndex &index, int role) const;
-	int rowCount(const QModelIndex &parent) const;
-};
-
-EsdbGroupModel::EsdbGroupModel(QStringList *entries) :
-	m_entries(entries)
-{
-}
-
-QVariant EsdbGroupModel::data(const QModelIndex &index, int role) const
-{
-	if (role == Qt::DisplayRole) {
-		if (index.row() < m_entries->size()) {
-			return m_entries->at(index.row());
-		}
+	if (index != -1) {
+		return m_entries->at(index)->getTitle();
+	} else {
+		return QString();
 	}
-	return QVariant();
-}
-
-int EsdbGroupModel::rowCount(const QModelIndex &parent) const
-{
-	return m_entries->length();
 }
 
 SignetDeviceManager::SignetDeviceManager(QQmlApplicationEngine &engine, QObject *parent) :
@@ -75,7 +60,7 @@ SignetDeviceManager::SignetDeviceManager(QQmlApplicationEngine &engine, QObject 
 {
 	SignetApplication *app = SignetApplication::get();
 
-	m_model = new EsdbEntryModel(&m_entries);
+	m_model = new EsdbEntryModel(&m_entriesFiltered);
 	m_groupModel = new EsdbGroupModel(&m_groupsSorted);
 
 	m_keyGeneratorThread = new KeyGeneratorThread();
@@ -149,6 +134,23 @@ QObject *SignetDeviceManager::findQMLObject(QString name)
 	return ret;
 }
 
+void SignetDeviceManager::filterEntries(QString groupName, QString search)
+{
+	m_entriesFiltered.clear();
+	for (auto e : m_entries) {
+		if (e->getPath() == groupName && e->getTitle().startsWith(search, Qt::CaseInsensitive)) {
+			m_entriesFiltered.push_back(e);
+		}
+	}
+	struct {
+		bool operator() (esdbEntry *& i, esdbEntry *& j) {
+			return (QString::compare(i->getTitle(), j->getTitle(), Qt::CaseInsensitive) < 0);
+		}
+	} entrySortOp;
+	std::sort(m_entries.begin(), m_entries.end(), entrySortOp);
+	m_model->layoutChanged();
+}
+
 void SignetDeviceManager::setLoaderSource(QString str)
 {
 	QObject *mainLoader = findQMLObject("mainLoader");
@@ -165,10 +167,24 @@ void SignetDeviceManager::loaded()
 		QObject *loginComponent = loader->findChild<QObject *>("loginComponent");
 		if (loginComponent) {
 			connect(loginComponent, SIGNAL(loginSignal(QString)), this, SLOT(loginSignal(QString)));
+			connect(this, SIGNAL(badPasswordEntered()), loginComponent, SLOT(badPasswordEntered()));
 		}
 		} break;
 	case SignetApplication::STATE_LOGGED_IN_LOADING_ACCOUNTS: {
+		QObject *loader = findQMLObject("mainLoader");
+		m_loadingProgress = loader->findChild<QObject *>("loadingProgress");
+		m_entriesLoaded = 0;
 		::signetdev_read_all_uids(NULL, &m_signetdevCmdToken, 1);
+		} break;
+	case SignetApplication::STATE_LOGGED_IN: {
+		QObject *loader = findQMLObject("mainLoader");
+		QObject *unlockedItem = loader->findChild<QObject *>("unlockedItem");
+		if (unlockedItem) {
+			connect(unlockedItem, SIGNAL(lockSignal()), this, SLOT(lockSignal()));
+			connect(unlockedItem, SIGNAL(filterTextChangedSignal(QString)), this, SLOT(filterTextChangedSignal(QString)));
+			connect(unlockedItem, SIGNAL(filterGroupChangedSignal(int)), this, SLOT(filterGroupChangedSignal(int)));
+		}
+
 		} break;
 	default:
 		break;
@@ -185,14 +201,51 @@ void SignetDeviceManager::loginSignal(QString password)
 	m_keyGeneratorThread->start();
 }
 
+void SignetDeviceManager::lockSignal()
+{
+	__android_log_print(ANDROID_LOG_DEBUG, "SIGNET_ACTIVITY", "Lock");
+	::signetdev_logout(NULL, &m_signetdevCmdToken);
+}
+
+void SignetDeviceManager::filterTextChangedSignal(QString text)
+{
+	m_filterEntry = text;
+	filterEntries(m_filterGroup, m_filterEntry);
+}
+
+void SignetDeviceManager::filterGroupChangedSignal(int index)
+{
+	if (index == -1) {
+		m_filterGroup = QString();
+	} else {
+		m_filterGroup = m_groupsSorted.at(index);
+	}
+	if (m_filterGroup == QString("Unsorted")) {
+		m_filterGroup = QString();
+	}
+	filterEntries(m_filterGroup, m_filterEntry);
+}
+
 void SignetDeviceManager::enterDeviceState(int state)
 {
+	if (m_deviceState == SignetApplication::STATE_LOGGED_IN &&
+			state != SignetApplication::STATE_LOGGED_IN) {
+		m_groups.clear();
+		m_groupsSorted.clear();
+		m_entriesFiltered.clear();
+		m_model->layoutChanged();
+		for (auto e : m_entries) {
+			delete e;
+		}
+		m_entries.clear();
+	}
 	m_deviceState = (SignetApplication::device_state)(state);
 	__android_log_print(ANDROID_LOG_DEBUG, "SIGNET_ACTIVITY", "MainWindow(): Device state %d", state);
+
 	switch (m_deviceState) {
 	case SignetApplication::STATE_CONNECTING: {
 		m_connectingTimer.setSingleShot(true);
-		m_connectingTimer.setInterval(2000);
+		m_connectingTimer.setInterval(1000);
 		m_connectingTimer.start();
 		setLoaderSource("connecting.qml");
 	}
@@ -292,14 +345,16 @@ void  SignetDeviceManager::signetdevCmdResp(signetdevCmdRespInfo info)
 	switch (info.cmd) {
 	case SIGNETDEV_CMD_LOGIN:
 		if (info.resp_code == BAD_PASSWORD) {
-			QObject *loader = findQMLObject("mainLoader");
-			QObject *loginComponent = loader->findChild<QObject *>("loginComponent");
-			QObject *badPasswordWarning = loginComponent->findChild<QObject *>("badpasswordWarning");
-			badPasswordWarning->setProperty("visible", QVariant(true));
+			badPasswordEntered();
 		} else if (info.resp_code == OKAY){
 			enterDeviceState(SignetApplication::STATE_LOGGED_IN_LOADING_ACCOUNTS);
 		} else {
 			__android_log_print(ANDROID_LOG_DEBUG, "SIGNET_ACTIVITY", "Unknown error");
+		}
+		break;
+	case SIGNETDEV_CMD_LOGOUT:
+		if (info.resp_code == OKAY) {
+			enterDeviceState(SignetApplication::STATE_LOGGED_OUT);
 		}
 		break;
 	default:
@@ -315,8 +370,6 @@ void SignetDeviceManager::signetdevGetProgressResp(signetdevCmdRespInfo info, si
 
 }
 
-#include <algorithm>
-
 void SignetDeviceManager::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask)
 {
 	if (info.token != m_signetdevCmdToken) {
@@ -327,11 +380,16 @@ void SignetDeviceManager::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, in
 	b->mask = mask;
 	esdbEntry_1 tmp(id);
 	tmp.fromBlock(b);
+	m_entriesLoaded++;
+	if (m_loadingProgress) {
+		m_loadingProgress->setProperty("from", QVariant(0));
+		m_loadingProgress->setProperty("to", QVariant(info.messages_remaining + m_entriesLoaded));
+		m_loadingProgress->setProperty("value", QVariant(m_entriesLoaded));
+	}
 	if (tmp.type == ESDB_TYPE_ACCOUNT) {
 		esdbEntry *entry = m_acctTypeModule.decodeEntry(id, tmp.revision, NULL, b);
 		if (entry) {
 			m_entries.push_back(entry);
-			m_model->layoutChanged();
 		}
 		QString group = entry->getPath();
 		if (!group.size()) {
@@ -349,14 +407,9 @@ void SignetDeviceManager::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, in
 			  return (QString::compare(i, j, Qt::CaseInsensitive) < 0);
 		  }
 		} groupSortOp;
-		struct {
-		  bool operator() (esdbEntry *& i, esdbEntry *& j) {
-			  return (QString::compare(i->getTitle(), j->getTitle(), Qt::CaseInsensitive) < 0);
-		  }
-		} entrySortOp;
 		std::sort(m_groupsSorted.begin(), m_groupsSorted.end(), groupSortOp);
-		std::sort(m_entries.begin(), m_entries.end(), entrySortOp);
 		m_groupModel->layoutChanged();
+		filterEntries("","");
 		enterDeviceState(SignetApplication::STATE_LOGGED_IN);
 	}
 }

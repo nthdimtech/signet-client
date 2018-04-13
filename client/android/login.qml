@@ -1,6 +1,6 @@
 import QtQuick 2.9
-import QtQuick.Window 2.2
-import QtQuick.Controls 2.2
+import QtQuick.Window 2.3
+import QtQuick.Controls 2.3
 import "components" as Components
 
 Item {
@@ -8,13 +8,22 @@ Item {
     objectName: "loginComponent"
     signal loginSignal(string msg)
 
+    function badPasswordEntered()
+    {
+        password.text = ""
+        badpasswordWarning.visible = true
+    }
+
     Components.Banner {
+        anchors.top: parent.top
+        anchors.topMargin: 10
         id: banner
     }
 
     Rectangle {
         id: controls
         anchors.top: banner.bottom
+        anchors.topMargin: 10
         width: childrenRect.width
         height: childrenRect.height
         anchors.horizontalCenter: parent.horizontalCenter
@@ -58,8 +67,7 @@ Item {
         text: "Incorrect password, try again."
         objectName: "badpasswordWarning"
         anchors.top: controls.bottom
-        anchors.left: password.left
+        anchors.left: controls.left
         visible: false
-        color: red
     }
 }
