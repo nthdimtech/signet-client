@@ -9,6 +9,9 @@ Item {
     signal lockSignal();
     signal filterTextChangedSignal(string text);
     signal filterGroupChangedSignal(int index);
+    signal copyUsernameSignal(int index);
+    signal copyPasswordSignal(int index);
+
     Item {
         id: filterRow
         anchors.top: parent.top
@@ -41,7 +44,6 @@ Item {
                 inputMethodHints: Qt.ImhNoPredictiveText
                 padding: 4
                 text: ""
-                focus: true
                 onTextChanged: {
                     console.debug("edited:" + filterText.text)
                     filterTextChangedSignal(filterText.text)
@@ -112,7 +114,7 @@ Item {
         id: entryView
         border.width: 2
         anchors.top: groupRow.bottom
-        anchors.bottom: lockButton.top
+        anchors.bottom: actionsRow.top
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.margins: 10
@@ -138,6 +140,28 @@ Item {
             }
             focus: true
             highlightFollowsCurrentItem: true
+        }
+    }
+
+    Row {
+        id: actionsRow
+        anchors.bottom: lockButton.top
+        anchors.bottomMargin: 10
+        anchors.horizontalCenter: parent.horizontalCenter
+        spacing: 10
+        Button {
+            id: copyUsername
+            text: "Copy Username"
+            onClicked: {
+                copyUsernameSignal(entryListView.currentIndex)
+            }
+        }
+        Button {
+            id: copyPassword
+            text: "Copy Password"
+            onClicked: {
+                copyPasswordSignal(entryListView.currentIndex)
+            }
         }
     }
 

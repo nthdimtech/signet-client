@@ -55,9 +55,11 @@ public slots:
 	void deviceOpened();
 	void deviceClosed();
 	void signetdevCmdResp(signetdevCmdRespInfo info);
+	void signetdevEvent(int eventType);
 	void signetdevStartupResp(signetdevCmdRespInfo info, signetdev_startup_resp_data resp);
 	void signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray block);
 	void signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_get_progress_resp_data data);
+	void signetdevReadUIdResp(signetdevCmdRespInfo info, QByteArray data, QByteArray mask);
 	void signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
 private slots:
 	void loaded();
@@ -66,6 +68,8 @@ private slots:
 	void lockSignal();
 	void filterTextChangedSignal(QString text);
 	void filterGroupChangedSignal(int index);
+	void copyUsernameSignal(int index);
+	void copyPasswordSignal(int index);
 };
 
 #endif // SIGNETDEVICEMANAGER_H

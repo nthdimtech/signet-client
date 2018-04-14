@@ -11,6 +11,7 @@
 #include <QListView>
 #include <QList>
 #include <QStringList>
+#include <QClipboard>
 
 #include <algorithm>
 
@@ -81,6 +82,9 @@ SignetDeviceManager::SignetDeviceManager(QQmlApplicationEngine &engine, QObject 
 		this, SLOT(signetdevReadBlockResp(signetdevCmdRespInfo, QByteArray)));
 	connect(app, SIGNAL(signetdevReadAllUIdsResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)),
 		this, SLOT(signetdevReadAllUIdsResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)));
+	connect(app, SIGNAL(signetdevReadUIdResp(signetdevCmdRespInfo, QByteArray, QByteArray)),
+		this, SLOT(signetdevReadUIdResp(signetdevCmdRespInfo, QByteArray, QByteArray)));
+	connect(app, SIGNAL(signetdevEvent(int)), this, SLOT(signetdevEvent(int)));
 	connect(app, SIGNAL(connectionError()), this, SLOT(connectionError()));
 
 	QObject::connect(&m_connectingTimer, SIGNAL(timeout()), this, SLOT(connectingTimer()));
@@ -183,6 +187,8 @@ void SignetDeviceManager::loaded()
 			connect(unlockedItem, SIGNAL(lockSignal()), this, SLOT(lockSignal()));
 			connect(unlockedItem, SIGNAL(filterTextChangedSignal(QString)), this, SLOT(filterTextChangedSignal(QString)));
 			connect(unlockedItem, SIGNAL(filterGroupChangedSignal(int)), this, SLOT(filterGroupChangedSignal(int)));
+			connect(unlockedItem, SIGNAL(copyUsernameSignal(int)), this, SLOT(copyUsernameSignal(int)));
+			connect(unlockedItem, SIGNAL(copyPasswordSignal(int)), this, SLOT(copyPasswordSignal(int)));
 		}
 
 		} break;
@@ -190,8 +196,6 @@ void SignetDeviceManager::loaded()
 		break;
 	}
 }
-
-#include "keygeneratorthread.h"
 
 void SignetDeviceManager::loginSignal(QString password)
 {
@@ -224,6 +228,23 @@ void SignetDeviceManager::filterGroupChangedSignal(int index)
 		m_filterGroup = QString();
 	}
 	filterEntries(m_filterGroup, m_filterEntry);
+}
+
+void SignetDeviceManager::copyUsernameSignal(int index)
+{
+	if (index >= 0) {
+		account *a = (account *)m_entriesFiltered.at(index);
+		QClipboard *clipboard = SignetApplication::clipboard();
+		clipboard->setText(a->userName);
+	}
+}
+
+void SignetDeviceManager::copyPasswordSignal(int index)
+{
+	if (index >= 0) {
+		account *a = (account *)m_entriesFiltered.at(index);
+		::signetdev_read_uid(NULL, &m_signetdevCmdToken, a->id, 0);
+	}
 }
 
 void SignetDeviceManager::enterDeviceState(int state)
@@ -365,6 +386,10 @@ void  SignetDeviceManager::signetdevCmdResp(signetdevCmdRespInfo info)
 	}
 }
 
+void SignetDeviceManager::signetdevEvent(int eventType)
+{
+}
+
 void SignetDeviceManager::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_get_progress_resp_data data)
 {
 
@@ -401,11 +426,10 @@ void SignetDeviceManager::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, in
 		}
 	}
 	if (!info.messages_remaining) {
-		//m_groupsSorted
 		struct {
-		  bool operator() (const QString &i, const QString &j) {
-			  return (QString::compare(i, j, Qt::CaseInsensitive) < 0);
-		  }
+			bool operator() (const QString &i, const QString &j) {
+				return (QString::compare(i, j, Qt::CaseInsensitive) < 0);
+			}
 		} groupSortOp;
 		std::sort(m_groupsSorted.begin(), m_groupsSorted.end(), groupSortOp);
 		m_groupModel->layoutChanged();
@@ -416,4 +440,24 @@ void SignetDeviceManager::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, in
 
 void SignetDeviceManager::signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray block)
 {
+	Q_UNUSED(info);
+	Q_UNUSED(block);
+}
+
+void SignetDeviceManager::signetdevReadUIdResp(signetdevCmdRespInfo info, QByteArray data, QByteArray mask)
+{
+	if (info.resp_code == OKAY) {
+		block *b = new block();
+		b->data = data;
+		b->mask = mask;
+		esdbEntry_1 tmp(-1);
+		tmp.fromBlock(b);
+		QClipboard *clipboard = SignetApplication::get()->clipboard();
+		esdbEntry *entry = m_acctTypeModule.decodeEntry(-1, tmp.revision, NULL, b);
+		if (entry) {
+			account *a = (account *)entry;
+			clipboard->setText(a->password);
+			delete entry;
+		}
+	}
 }
