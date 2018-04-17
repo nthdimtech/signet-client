@@ -18,6 +18,7 @@ apply plugin: 'com.android.application'
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile "com.android.support:support-v4:19.0.+"
 }
 
 android {
@@ -40,14 +41,14 @@ android {
 
     sourceSets {
         main {
-            manifest.srcFile 'AndroidManifest.xml'
-            java.srcDirs = [qt5AndroidDir + '/src', 'src', 'java']
-            aidl.srcDirs = [qt5AndroidDir + '/src', 'src', 'aidl']
-            res.srcDirs = [qt5AndroidDir + '/res', 'res']
-            resources.srcDirs = ['src']
-            renderscript.srcDirs = ['src']
-            assets.srcDirs = ['assets']
-            jniLibs.srcDirs = ['libs']
+	    manifest.srcFile 'AndroidManifest.xml'
+	    java.srcDirs = [qt5AndroidDir + '/src', 'src', 'java']
+	    aidl.srcDirs = [qt5AndroidDir + '/src', 'src', 'aidl']
+	    res.srcDirs = [qt5AndroidDir + '/res', 'res']
+	    resources.srcDirs = ['src']
+	    renderscript.srcDirs = ['src']
+	    assets.srcDirs = ['assets']
+	    jniLibs.srcDirs = ['libs']
        }
     }
 

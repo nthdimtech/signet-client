@@ -39,10 +39,11 @@ void SignetApplication::connectionErrorS(void *this_)
 
 SignetApplication::SignetApplication(int &argc, char **argv) :
 #ifdef Q_OS_ANDROID
-	QApplication(argc, argv)
+	QApplication(argc, argv),
 #else
-	QtSingleApplication("qtsingle-app-signetdev-" + QString(USB_VENDOR_ID) + "-" + QString(USB_SIGNET_DESKTOP_PRODUCT_ID) ,argc, argv)
+	QtSingleApplication("qtsingle-app-signetdev-" + QString(USB_VENDOR_ID) + "-" + QString(USB_SIGNET_DESKTOP_PRODUCT_ID) ,argc, argv),
 #endif
+	m_signetAsyncListener(NULL)
 {
 	QStringList path = m_qmlEngine.importPathList();
 	path.append("qrc:/");
@@ -105,12 +106,20 @@ void SignetApplication::deviceEventS(void *cb_param, int event_type, void *data,
 	SignetApplication *this_ = (SignetApplication *)cb_param;;
 	switch(event_type) {
 	case 1:
+		if (this_->m_signetAsyncListener) {
+			this_->m_signetAsyncListener->signetdevEventAsync(event_type);
+		}
 		this_->signetdevEvent(event_type);
 		break;
 	case 2:
 		this_->signetdevTimerEvent(((u8 *)data)[0]);
 		break;
 	}
+}
+
+void SignetApplication::setAsyncListener(SignetAsyncListener *l)
+{
+	m_signetAsyncListener = l;
 }
 
 void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int cmd_token, int cmd, int end_device_state, int messages_remaining, int resp_code, void *resp_data)

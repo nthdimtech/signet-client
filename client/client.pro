@@ -7,7 +7,7 @@
 QT       += core gui widgets network concurrent
 
 android {
-QT += quick
+QT += quick androidextras
 }
 
 linux-g++ {
@@ -430,7 +430,8 @@ DISTFILES += signet.rc \
     images/keyboard.xcf \
     images/signet.xcf \
     images/vault.xcf \
-    images/vault_open.xcf
+    images/vault_open.xcf \
+    android/package/src/com/nthdimtech/SignetService.java
 
 android {
 

@@ -35,6 +35,12 @@ Q_DECLARE_METATYPE(signetdevCmdRespInfo)
 Q_DECLARE_METATYPE(signetdev_startup_resp_data)
 Q_DECLARE_METATYPE(signetdev_get_progress_resp_data)
 
+class SignetAsyncListener
+{
+public:
+	virtual void signetdevEventAsync(int eventType) = 0;
+};
+
 #ifdef Q_OS_ANDROID
 class SignetApplication : public QApplication
 #else
@@ -73,6 +79,7 @@ private:
 	int m_fwVersionMaj;
 	int m_fwVersionMin;
 	int m_fwVersionStep;
+	SignetAsyncListener *m_signetAsyncListener;
 public:
 	QQmlApplicationEngine &qmlEngine() {
 		return m_qmlEngine;
@@ -173,6 +180,7 @@ public:
 	}
 
 	static void generateKey(const QString &password, QByteArray &key, const QByteArray &hashfn, const QByteArray &salt, int keyLength);
+	void setAsyncListener(SignetAsyncListener *l);
 signals:
 	void deviceOpened();
 	void deviceClosed();

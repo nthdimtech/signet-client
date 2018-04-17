@@ -12,6 +12,8 @@
 #include <QList>
 #include <QStringList>
 #include <QClipboard>
+#include <QtAndroidExtras/QAndroidJniEnvironment>
+#include <QtAndroidExtras/QAndroidJniObject>
 
 #include <algorithm>
 
@@ -69,6 +71,8 @@ SignetDeviceManager::SignetDeviceManager(QQmlApplicationEngine &engine, QObject 
 
 	QObject *mainLoader = findQMLObject("mainLoader");
 	connect(mainLoader, SIGNAL(loaded()), this, SLOT(loaded()));
+
+	app->setAsyncListener(this);
 
 	connect(app, SIGNAL(deviceOpened()), this, SLOT(deviceOpened()));
 	connect(app, SIGNAL(deviceClosed()), this, SLOT(deviceClosed()));
@@ -384,6 +388,12 @@ void  SignetDeviceManager::signetdevCmdResp(signetdevCmdRespInfo info)
 	if (do_abort) {
 		abort();
 	}
+}
+
+void SignetDeviceManager::signetdevEventAsync(int eventType)
+{
+	__android_log_print(ANDROID_LOG_DEBUG, "SIGNET_ACTIVITY", "Button Event");
+	QAndroidJniObject::callStaticMethod<void>("com/nthdimtech/SignetService", "foregroundActivity");
 }
 
 void SignetDeviceManager::signetdevEvent(int eventType)

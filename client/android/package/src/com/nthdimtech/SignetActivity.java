@@ -13,12 +13,24 @@ import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbConstants;
 import android.content.BroadcastReceiver;
-import android.content.BroadcastReceiver;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.app.Application;
+import android.app.Service;
+import android.content.ServiceConnection;
+import android.os.IBinder;
+import android.os.Binder;
 import java.util.HashMap;
 import java.util.Iterator;
+import android.content.ComponentName;
+
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.content.pm.PackageManager;
+import android.Manifest;
 
 import org.qtproject.qt5.android.bindings.QtActivity;
+import com.nthdimtech.SignetService;
 
 public class SignetActivity extends QtActivity {
 	private static SignetActivity mInstance;
@@ -35,6 +47,7 @@ public class SignetActivity extends QtActivity {
 	private static final int PID=1;
 	private boolean mSignetHasKeyboard;
 
+	private static Context mContext;
 
 	public SignetActivity () {
 		mInstance = this;
@@ -106,6 +119,8 @@ public class SignetActivity extends QtActivity {
         @Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Intent serviceIntent = new Intent(this, SignetService.class);
+		startService(serviceIntent);
 		mManager = (UsbManager) getSystemService(Context.USB_SERVICE);
 		registerReceiver(mUsbReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_ATTACHED));
 		registerReceiver(mUsbReceiver, new IntentFilter(UsbManager.ACTION_USB_DEVICE_DETACHED));
@@ -116,7 +131,7 @@ public class SignetActivity extends QtActivity {
 			        @Override
 				public void run()
 				{
-				checkForDevices();
+					checkForDevices();
 				}
 			}, 1000);
 	}

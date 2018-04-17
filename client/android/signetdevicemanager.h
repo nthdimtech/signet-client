@@ -20,7 +20,7 @@ class EsdbGroupModel;
 class KeyGeneratorThread;
 #include <QString>
 
-class SignetDeviceManager : public QObject
+class SignetDeviceManager : public QObject, public SignetAsyncListener
 {
 	Q_OBJECT
 	enum SignetApplication::device_state m_deviceState;
@@ -45,6 +45,7 @@ class SignetDeviceManager : public QObject
 public:
 	explicit SignetDeviceManager(QQmlApplicationEngine &engine, QObject *parent = nullptr);
 
+	void signetdevEventAsync(int eventType);
 signals:
 	void abort();
 	void badPasswordEntered();
