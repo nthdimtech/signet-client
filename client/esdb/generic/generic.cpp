@@ -28,11 +28,7 @@ void generic::toBlock(block *blk) const
 
 int generic::matchQuality(const QString &search) const
 {
-	int quality = esdbEntry::matchQuality(search);
-	if (quality && hasIcon()) {
-		quality++;
-	}
-	return quality;
+	return esdbEntry::matchQuality(search);
 }
 
 void generic::getFields(QVector<genericField> &fields_) const

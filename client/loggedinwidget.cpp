@@ -115,6 +115,7 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, QWidget *parent) 
 	m_id(-1),
 	m_idTask(ID_TASK_NONE)
 {
+	m_genericIcon = QIcon(":images/generic-entry.png");
 	m_icon_accounts.append(
 	    iconAccount("facebook")
 	);
@@ -905,7 +906,7 @@ void LoggedInWidget::entryIconCheck(esdbEntry *entry)
 		fn.append(bestMatch->iconName);
 		entry->setIcon(QIcon(fn));
 	} else {
-		entry->clearIcon();
+		entry->setIcon(m_genericIcon);
 	}
 }
 

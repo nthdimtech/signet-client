@@ -18,9 +18,5 @@ void bookmark::toBlock(block *blk) const
 
 int bookmark::matchQuality(const QString &search) const
 {
-	int quality = esdbEntry::matchQuality(search);
-	if (quality && hasIcon()) {
-		quality++;
-	}
-	return quality;
+	return esdbEntry::matchQuality(search);
 }

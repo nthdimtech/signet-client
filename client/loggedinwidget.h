@@ -9,6 +9,7 @@
 #include <QUrl>
 #include <QMap>
 #include <QVector>
+#include <QIcon>
 
 class MainWindow;
 class CommThread;
@@ -87,6 +88,7 @@ struct genericTypeDesc;
 class LoggedInWidget : public QWidget
 {
 	Q_OBJECT
+	QIcon m_genericIcon;
 
 	bool m_fileMode;
 

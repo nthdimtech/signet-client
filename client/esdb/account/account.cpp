@@ -98,9 +98,6 @@ void account::getFields(QVector<genericField> &fields_) const
 int account::matchQuality(const QString &search) const
 {
 	int quality = esdbEntry::matchQuality(search);
-	if (quality && hasIcon()) {
-		quality += 20;
-	}
 	if (CROWD_SUPPLY_BIAS) {
 		if (acctName == QString("Crowd Supply") && search.size() == 0) {
 			quality += 100;

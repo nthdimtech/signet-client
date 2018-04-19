@@ -114,7 +114,6 @@ esdbEntry::esdbEntry(int id_, int type_, int revision_, int uid_, int version_) 
 	version(version_),
 	iconSet(false)
 {
-
 }
 
 esdbEntry::esdbEntry(int id_) :

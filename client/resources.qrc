@@ -31,5 +31,6 @@
         <file>images/logos/chase_bank.png</file>
         <file>images/logos/dropbox.png</file>
         <file>images/logos/crowdsupply.png</file>
+        <file>images/generic-entry.png</file>
     </qresource>
 </RCC>
