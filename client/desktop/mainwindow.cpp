@@ -107,9 +107,9 @@ MainWindow::MainWindow(QWidget *parent) :
 	SignetApplication *app = SignetApplication::get();
 	genericTypeDesc *g = new genericTypeDesc();
 	g->name = "generic";
-	m_genericTypeModule = new esdbGenericModule(g, NULL);
-	m_accountTypeModule = new esdbAccountModule(NULL);
-	m_bookmarkTypeModule = new esdbBookmarkModule(NULL);
+	m_genericTypeModule = new esdbGenericModule(g);
+	m_accountTypeModule = new esdbAccountModule();
+	m_bookmarkTypeModule = new esdbBookmarkModule();
 
 	connect(app, SIGNAL(deviceOpened()), this, SLOT(deviceOpened()));
 	connect(app, SIGNAL(deviceClosed()), this, SLOT(deviceClosed()));

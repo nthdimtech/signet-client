@@ -8,6 +8,7 @@
 #ifndef Q_OS_ANDROID
 #include <QtSingleApplication>
 #include "desktop/systemtray.h"
+class MainWindow;
 #else
 #include <QApplication>
 #include <QQmlApplicationEngine>
@@ -81,9 +82,11 @@ private:
 	int m_fwVersionStep;
 	SignetAsyncListener *m_signetAsyncListener;
 public:
+#ifdef Q_OS_ANDROID
 	QQmlApplicationEngine &qmlEngine() {
 		return m_qmlEngine;
 	}
+#endif
 	enum device_state {
 		STATE_INVALID,
 		STATE_NEVER_SHOWN,

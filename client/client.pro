@@ -66,9 +66,7 @@ LIBS += -lhid -lsetupapi -lz -lgcrypt -lgpg-error
 # Signetdev sources
 #
 
-SOURCES += ../signet-base/signetdev/host/signetdev.c \
-    android/signetdevicemanager.cpp \
-    android/esdbgroupmodel.cpp
+SOURCES += ../signet-base/signetdev/host/signetdev.c
 
 macx|linux-g++ {
 HEADERS += import/passimporter.h \
@@ -122,10 +120,7 @@ HEADERS += esdb/esdb.h \
     esdb/generic/generic.h \
     esdb/generic/genericfields.h \
     esdb/generic/generictypedesc.h \
-    esdb/generic/esdbgenericmodule.h \
-    android/signetdevicemanager.h \
-    android/esdbgroupmodel.h
-
+    esdb/generic/esdbgenericmodule.h
 #
 # ESDB GUI sources
 #
@@ -436,7 +431,13 @@ DISTFILES += signet.rc \
 android {
 
 SOURCES += android/main.cpp \
+        android/signetdevicemanager.cpp \
+        android/esdbgroupmodel.cpp \
         android/jni/signetactivity.cpp
+
+HEADERS += android/signetdevicemanager.h \
+    android/esdbgroupmodel.h
+
 
 RESOURCES += android/qml.qrc
 

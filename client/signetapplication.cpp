@@ -45,9 +45,6 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 #endif
 	m_signetAsyncListener(NULL)
 {
-	QStringList path = m_qmlEngine.importPathList();
-	path.append("qrc:/");
-	m_qmlEngine.setImportPathList(path);
 	g_singleton = this;
 	qRegisterMetaType<signetdevCmdRespInfo>();
 	qRegisterMetaType<signetdev_startup_resp_data>();

@@ -11,7 +11,6 @@ struct esdbModelGroup;
 
 class EsdbModelGroupItem;
 class QTreeView;
-#include <QQuickItem>
 
 class EsdbModelItem : public QObject
 {
