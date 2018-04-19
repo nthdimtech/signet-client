@@ -125,6 +125,7 @@ void EsdbModel::refresh(bool useGroups)
 		rank++;
 	}
 	m_rootItem->cullEmptyItems(QModelIndex(), this);
+	createUnsortedGroups(QModelIndex(), m_rootItem);
 	m_rootItem->sortItems();
 }
 
@@ -137,6 +138,49 @@ public:
 };
 
 static EsdbModelItemCompare s_esdbModelItemCompare;
+
+void EsdbModel::createUnsortedGroups(QModelIndex idx, EsdbModelGroupItem *g)
+{
+	bool hasLeaf = false;
+	bool hasGroup = false;
+	for (EsdbModelItem *item : g->m_items) {
+		if (!item->isLeafItem()) {
+			hasGroup = true;
+		} else {
+			hasLeaf = true;
+		}
+	}
+	if (hasGroup && hasLeaf) {
+		EsdbModelGroupItem *unsortedGroup = new EsdbModelGroupItem("Unsorted", 0, g);
+		g->m_items.push_front(unsortedGroup);
+		int row = 0;
+		int destRow = 0;
+		QList<EsdbModelItem *>::iterator iter = g->m_items.begin();
+		while (iter != g->m_items.end()) {
+			EsdbModelItem *item = *iter;
+			if (item->isLeafItem()) {
+				EsdbModelLeafItem *leaf = (EsdbModelLeafItem *)item;
+				beginMoveRows(idx, row, row, createIndex(0, 0, unsortedGroup), destRow);
+				unsortedGroup->m_items.push_back(leaf);
+				leaf->m_parent = unsortedGroup;
+				iter = g->m_items.erase(iter);
+				endMoveRows();
+				destRow++;
+			} else {
+				row++;
+				iter++;
+			}
+		}
+	}
+	int row = 0;
+	for (EsdbModelItem *item : g->m_items) {
+		if (!item->isLeafItem()) {
+			EsdbModelGroupItem *child = (EsdbModelGroupItem *)item;
+			createUnsortedGroups(createIndex(row, 0, child), child);
+		}
+		row++;
+	}
+}
 
 void EsdbModelGroupItem::sortItems()
 {
@@ -154,6 +198,7 @@ void EsdbModelGroupItem::cullEmptyItems(const QModelIndex &parent, EsdbModel *m)
 {
 	QList<EsdbModelItem *>::iterator iter = m_items.begin();
 	int row = 0;
+
 	while (iter != m_items.end()) {
 		EsdbModelItem *item = *iter;
 		if (!item->isLeafItem()) {

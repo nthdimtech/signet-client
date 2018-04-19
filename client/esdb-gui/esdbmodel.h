@@ -38,10 +38,10 @@ public:
 
 class EsdbModelLeafItem : public EsdbModelItem {
 	esdbEntry *m_item;
-	EsdbModelGroupItem *m_parent;
 	QIcon m_icon;
 public:
 	QString m_name;
+	EsdbModelGroupItem *m_parent;
 	esdbEntry *leafNode() {
 		return m_item;
 	}
@@ -93,10 +93,10 @@ public:
 class EsdbModel;
 
 class EsdbModelGroupItem : public EsdbModelItem {
-	EsdbModelGroupItem *m_parent;
 	QString m_name;
 	bool m_expanded;
 public:
+	EsdbModelGroupItem *m_parent;
 	QList<EsdbModelItem *> m_items;
 	QList<EsdbModelGroupItem *> m_hiddenGroups;
 	QList<EsdbModelLeafItem *> m_hiddenItems;
@@ -143,8 +143,8 @@ public:
 
 	EsdbModelGroupItem(QString name, int rank, EsdbModelGroupItem *parent, bool expanded = true) :
 		EsdbModelItem(rank),
-		m_parent(parent),
 		m_name(name),
+		m_parent(parent),
 		m_expanded(expanded)
 	{
 
@@ -179,6 +179,7 @@ public:
 	QModelIndex findEntry(esdbEntry *ent);
 	void expand(QModelIndex &index, bool expand);
 	void syncExpanded(QTreeView *v);
+	void createUnsortedGroups(QModelIndex idx, EsdbModelGroupItem *g);
 private:
 	QModelIndex findEntry(EsdbModelGroupItem *g, esdbEntry *ent);
 	QList<esdbEntry *> *m_entries;
