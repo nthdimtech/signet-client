@@ -371,15 +371,20 @@ void LoggedInWidget::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int uid
 	}
 }
 
-void LoggedInWidget::expandTreeItems()
+void LoggedInWidget::expandTreeItems(QModelIndex parent)
 {
-	int rows = m_activeType->model->rowCount();
-	for (int i = 0; i < rows; i++) {
-		QModelIndex index = m_activeType->model->index(i);
-		if (!((EsdbModelItem *)index.internalPointer())->isLeafItem()) {
-			m_searchListbox->setExpanded(index, true);
+	for (int i = 0; i < m_activeType->model->rowCount(parent); i++) {
+		QModelIndex child = m_activeType->model->index(i, 0, parent);
+		if (!((EsdbModelItem *)child.internalPointer())->isLeafItem()) {
+			m_searchListbox->setExpanded(child, true);
+			expandTreeItems(child);
 		}
 	}
+}
+
+void LoggedInWidget::expandTreeItems()
+{
+	expandTreeItems(QModelIndex());
 	m_activeType->expanded = true;
 }
 

@@ -162,6 +162,7 @@ class LoggedInWidget : public QWidget
 	void expandTreeItems();
 	bool selectFirstVisible();
 	bool selectFirstVisible(QModelIndex &parent);
+	void expandTreeItems(QModelIndex parent);
 public:
 	enum ID_TASK {
 		ID_TASK_NONE,
