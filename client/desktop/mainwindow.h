@@ -58,13 +58,14 @@ struct exportType {
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
+	QString m_dbFilename;
 	localSettings m_settings;
 	esdbTypeModule *m_genericTypeModule;
 	esdbTypeModule *m_accountTypeModule;
 	esdbTypeModule *m_bookmarkTypeModule;
 	LoggedInWidget *m_loggedInWidget;
 public:
-	explicit MainWindow(QWidget *parent = 0);
+	explicit MainWindow(QString dbFilename, QWidget *parent = 0);
 	void closeEvent(QCloseEvent *event);
 	~MainWindow();
 
@@ -122,7 +123,6 @@ private:
 	QMenu *m_importMenu;
 
 	QAction *m_saveAction;
-	QAction *m_importAction;
 	QAction *m_settingsAction;
 	QAction *m_exportCSVAction;
 	QAction *m_importKeePassAction;

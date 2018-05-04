@@ -52,20 +52,33 @@ int main(int argc, char **argv)
 		box->deleteLater();
 	}
 
-#ifdef Q_OS_UNIX
-	QCommandLineParser parser;
-	QCommandLineOption startInTrayOption("start-in-systray", "Start application minimized in the system tray");
+	QString dbFile;
 
+	QCommandLineParser parser;
+	QCommandLineOption file("file", "Read database from specified file", "file-name");
+	parser.addOption(file);
+	parser.addHelpOption();
+#ifdef Q_OS_UNIX
+	QCommandLineOption startInTrayOption("start-in-systray", "Start application minimized in the system tray");
 	parser.addOption(startInTrayOption);
-        parser.addHelpOption();
+#endif
 	parser.process(a);
 
-        bool startInTray = parser.isSet(startInTrayOption);
+#ifdef Q_OS_UNIX
+	bool startInTray = parser.isSet(startInTrayOption);
 #else
-        bool startInTray = false;
+	bool startInTray = false;
 #endif
+	if (parser.isSet(file)) {
+		dbFile = parser.value(file);
+	}
 
-	a.init(startInTray);
+	a.init(startInTray, dbFile);
 	a.exec();
+
+	if (dbFile.size()) {
+		signetdev_emulate_end();
+		signetdev_emulate_deinit();
+	}
 	return 0;
 }

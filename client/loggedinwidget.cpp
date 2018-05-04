@@ -179,7 +179,7 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, QWidget *parent) 
 
 	m_accounts = new esdbAccountModule();
 	typeData *accountsTypeData = new typeData(m_accounts);
-	accountsTypeData->actionBar = new AccountActionBar(this);
+	accountsTypeData->actionBar = new AccountActionBar(this, false, false);
 	m_typeData.push_back(accountsTypeData);
 
 	m_bookmarks = new esdbBookmarkModule();
@@ -677,10 +677,7 @@ void LoggedInWidget::filterTextChanged(QString text)
 		} else {
 			selectFirstVisible();
 		}
-	} else if (text.size() == 0) {
-		selectEntry(NULL);
-		m_searchListbox->setCurrentIndex(QModelIndex());
-	} else {
+	} else if (text.size()) {
 		selectEntry(selectedEntry());
 	}
 }

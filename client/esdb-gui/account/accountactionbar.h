@@ -18,6 +18,8 @@ extern "C" {
 class AccountActionBar : public EsdbActionBar
 {
 	Q_OBJECT
+	bool m_writeEnabled;
+	bool m_typeEnabled;
 	NewAccount *m_newAccountDlg;
 	void selectEntry(esdbEntry *entry);
 	void defaultAction(esdbEntry *entry);
@@ -37,7 +39,7 @@ class AccountActionBar : public EsdbActionBar
 	void accessAccount(account *acct, bool username, bool password);
 	void newInstanceUI(int id, const QString &name);
 	void typeAccountData(account *acct);
-	void copyAccountData(account *acct);
+	void copyAccountData(account *acct, bool username, bool password);
 	void openAccount(account *acct);
 
 	enum intent {
@@ -61,7 +63,7 @@ signals:
 	void background();
 	void abort();
 public:
-	AccountActionBar(LoggedInWidget *parent);
+	AccountActionBar(LoggedInWidget *parent, bool writeEnabled = true, bool typeEnabled = true);
 	void getEntryDone(esdbEntry *entry, int intent);
 	void idTaskComplete(int id, int task, int intent);
 public slots:

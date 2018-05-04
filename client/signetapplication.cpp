@@ -188,7 +188,7 @@ void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int c
 	}
 }
 
-void SignetApplication::init(bool startInTray)
+void SignetApplication::init(bool startInTray, QString dbFilename)
 {
 	signetdev_initialize_api();
 	signetdev_set_device_opened_cb(deviceOpenedS, this);
@@ -196,8 +196,17 @@ void SignetApplication::init(bool startInTray)
 	signetdev_set_command_resp_cb(commandRespS, this);
 	signetdev_set_device_event_cb(deviceEventS, this);
 	signetdev_set_error_handler(connectionErrorS, this);
+
+	if (dbFilename.size()) {
+		int rc = signetdev_emulate_init(dbFilename.toLocal8Bit().data());
+		if (rc) {
+			signetdev_emulate_begin();
+			m_dbFilename = dbFilename;
+		}
+	}
+
 #ifndef Q_OS_ANDROID
-	m_main_window = new MainWindow();
+	m_main_window = new MainWindow(m_dbFilename);
 
 	QDesktopWidget* d = QApplication::desktop();
 	QRect deskRect = d->screenGeometry(d->screenNumber(QCursor::pos()));

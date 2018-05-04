@@ -12,7 +12,9 @@
 #include <QMenu>
 #include <QApplication>
 
-AccountActionBar::AccountActionBar(LoggedInWidget *parent) :
+AccountActionBar::AccountActionBar(LoggedInWidget *parent, bool writeEnabled, bool typeEnabled) :
+	m_writeEnabled(writeEnabled),
+	m_typeEnabled(typeEnabled),
 	m_buttonWaitDialog(NULL),
 	m_parent(parent),
 	m_quickTypeState(QUICKTYPE_STATE_INITIAL),
@@ -26,6 +28,7 @@ AccountActionBar::AccountActionBar(LoggedInWidget *parent) :
 	m_DeleteButton->setToolTip("Delete");
 	m_DeleteButton->setAutoDefault(true);
 	connect(m_DeleteButton, SIGNAL(pressed()), this, SLOT(deleteAccountUI()));
+	m_DeleteButton->setDisabled(!m_writeEnabled);
 
 	QIcon edit_icn = QIcon(":/images/open.png");
 	m_openButton = new QPushButton(edit_icn, "");
@@ -35,7 +38,10 @@ AccountActionBar::AccountActionBar(LoggedInWidget *parent) :
 
 	QIcon login_icn = QIcon(":/images/login.png");
 	m_loginButton = new QPushButton(login_icn, "");
-	m_loginButton->setToolTip("Login");
+	if (m_typeEnabled)
+		m_loginButton->setToolTip("Login");
+	else
+		m_loginButton->setToolTip("Copy username and password");
 	m_loginButton->setAutoDefault(true);
 	connect(m_loginButton, SIGNAL(pressed()), this, SLOT(typeAccountUserPassUI()));
 
@@ -52,13 +58,19 @@ AccountActionBar::AccountActionBar(LoggedInWidget *parent) :
 	QSize icon_display_sz = m_typePasswordButton->iconSize();
 	icon_display_sz.setWidth((icon_display_sz.width()*180)/131);
 	m_typePasswordButton->setIconSize(icon_display_sz);
-	m_typePasswordButton->setToolTip("Type password");
+	if (m_typeEnabled)
+		m_typePasswordButton->setToolTip("Type password");
+	else
+		m_typePasswordButton->setToolTip("Copy password");
 	m_typePasswordButton->setAutoDefault(true);
 	connect(m_typePasswordButton, SIGNAL(pressed()), this, SLOT(typeAccountPassUI()));
 
 	QIcon user_icn = QIcon(":/images/user.png");
 	m_typeUsernameButton = new QPushButton(user_icn, "");
-	m_typeUsernameButton->setToolTip("Type username");
+	if (m_typeEnabled)
+		m_typeUsernameButton->setToolTip("Type username");
+	else
+		m_typeUsernameButton->setToolTip("Copy username");
 	m_typeUsernameButton->setAutoDefault(true);
 	connect(m_typeUsernameButton, SIGNAL(pressed()), this, SLOT(typeAccountUserUI()));
 
@@ -98,9 +110,19 @@ void AccountActionBar::defaultAction(esdbEntry *entry)
 	menu = new QMenu(this);
 	QAction *browseAction = menu->addAction("&Browse");
 	menu->addSeparator();
-	QAction *loginAction = menu->addAction("&Login");
-	QAction *usernameAction = menu->addAction("&Username");
-	QAction *passwordAction = menu->addAction("&Password");
+	QAction *loginAction = NULL;
+	QAction *copyUsernamePasswordAction = NULL;
+	if (m_typeEnabled) {
+		loginAction = menu->addAction("&Login");
+	} else {
+		copyUsernamePasswordAction = menu->addAction("Copy username and password");
+	}
+	QAction *usernameAction = NULL;
+	QAction *passwordAction = NULL;
+	if (m_typeEnabled) {
+		usernameAction = menu->addAction("&Username");
+		passwordAction = menu->addAction("&Password");
+	}
 	QAction *copyUsernameAction = menu->addAction("Copy user&name");
 	QAction *copyPasswordAction = menu->addAction("&Copy password");
 	menu->addSeparator();
@@ -108,13 +130,18 @@ void AccountActionBar::defaultAction(esdbEntry *entry)
 	QAction *deleteAction = menu->addAction("Delete");
 
 	connect(browseAction, SIGNAL(triggered(bool)), this, SLOT(browseUrlUI()));
-	connect(loginAction, SIGNAL(triggered(bool)), this, SLOT(typeAccountUserPassUI()));
-	connect(usernameAction, SIGNAL(triggered(bool)), this, SLOT(typeAccountUserUI()));
-	connect(passwordAction, SIGNAL(triggered(bool)), this, SLOT(typeAccountPassUI()));
+	if (m_typeEnabled) {
+		connect(loginAction, SIGNAL(triggered(bool)), this, SLOT(typeAccountUserPassUI()));
+		connect(usernameAction, SIGNAL(triggered(bool)), this, SLOT(typeAccountUserUI()));
+		connect(passwordAction, SIGNAL(triggered(bool)), this, SLOT(typeAccountPassUI()));
+	}
 	connect(openAction, SIGNAL(triggered(bool)), this, SLOT(openAccountUI()));
 	connect(deleteAction, SIGNAL(triggered(bool)), this, SLOT(deleteAccountUI()));
 	connect(copyUsernameAction, SIGNAL(triggered(bool)), this, SLOT(copyUsername()));
 	connect(copyPasswordAction, SIGNAL(triggered(bool)), this, SLOT(copyPassword()));
+	if (!m_typeEnabled) {
+		connect(copyUsernamePasswordAction, SIGNAL(triggered(bool)), this, SLOT(typeAccountUserPassUI()));
+	}
 	switch (m_quickTypeState) {
 	case QUICKTYPE_STATE_INITIAL:
 		menu->setActiveAction(browseAction);
@@ -154,7 +181,8 @@ void AccountActionBar::selectEntry(esdbEntry *entry)
 	}
 	m_loginButton->setEnabled(enable);
 	m_openButton->setEnabled(enable);
-	m_DeleteButton->setEnabled(enable);
+	if (m_writeEnabled)
+		m_DeleteButton->setEnabled(enable);
 	m_browseUrlButton->setEnabled(browse_enable);
 	m_typePasswordButton->setEnabled(enable);
 	m_typeUsernameButton->setEnabled(enable);
@@ -289,14 +317,24 @@ void AccountActionBar::accessAccount(account *acct, bool username, bool password
 	QString message;
 	QString title = acct->acctName;
 	if (username && password) {
-		message.append("to login to ");
+		if (m_typeEnabled) {
+			message.append("to login to ");
+		} else {
+			message.append("to copy username and password for ");
+		}
 		message.append(acct->acctName);
 	} else {
 		if (username) {
-			message.append("type username ");
+			if (m_typeEnabled)
+				message.append("type username ");
+			else
+				message.append("copy username ");
 			m_quickTypeState = QUICKTYPE_STATE_USERNAME;
 		} else if (password) {
-			message.append("type password ");
+			if (m_typeEnabled)
+				message.append("type password ");
+			else
+				message.append("copy password ");
 			m_quickTypeState = QUICKTYPE_STATE_PASSWORD;
 		}
 		message.append("for ");
@@ -310,7 +348,7 @@ void AccountActionBar::accessAccount(account *acct, bool username, bool password
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(accessAccountFinished(int)));
 		m_buttonWaitDialog->show();
 	}
-	m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, TYPE_DATA, this);
+	m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ,  m_typeEnabled ? TYPE_DATA : COPY_DATA, this);
 }
 
 void AccountActionBar::accessAccountFinished(int code)
@@ -322,7 +360,7 @@ void AccountActionBar::accessAccountFinished(int code)
 	if (code != QMessageBox::Ok) {
 		::signetdev_cancel_button_wait();
 	}
-	m_parent->finishTask(m_accessUsername && m_accessPassword);
+	m_parent->finishTask(m_accessUsername && m_accessPassword && m_typeEnabled);
 }
 
 void AccountActionBar::idTaskComplete(int id, int task, int intent)
@@ -384,7 +422,7 @@ void AccountActionBar::typeAccountData(account *acct)
 		msg->exec();
 		QAbstractButton *button = msg->clickedButton();
 		if (button == copyData) {
-			copyAccountData(acct);
+			copyAccountData(acct, m_accessUsername, m_accessPassword);
 		}
 		msg->deleteLater();
 		return;
@@ -394,17 +432,17 @@ void AccountActionBar::typeAccountData(account *acct)
 	}
 }
 
-void AccountActionBar::copyAccountData(account *acct)
+void AccountActionBar::copyAccountData(account *acct, bool username, bool password)
 {
 	if (m_buttonWaitDialog) {
 		m_buttonWaitDialog->done(QMessageBox::Ok);
 	}
 	QString s;
-	if (m_accessUsername) {
+	if (username) {
 		s = acct->userName;
 	}
-	if (m_accessPassword) {
-		if (m_accessUsername) {
+	if (password) {
+		if (username) {
 			s.append(" : ");
 		}
 		s.append(acct->password);
@@ -438,7 +476,7 @@ void AccountActionBar::getEntryDone(esdbEntry *entry, int intent)
 		typeAccountData(acct);
 		break;
 	case COPY_DATA:
-		copyAccountData(acct);
+		copyAccountData(acct, m_accessUsername, m_accessPassword);
 		break;
 	case OPEN_ACCOUNT:
 		openAccount(acct);

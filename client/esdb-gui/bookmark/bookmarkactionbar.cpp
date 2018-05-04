@@ -12,7 +12,9 @@
 #include "loggedinwidget.h"
 #include "buttonwaitdialog.h"
 
-BookmarkActionBar::BookmarkActionBar(esdbTypeModule *module, LoggedInWidget *parent) :
+BookmarkActionBar::BookmarkActionBar(esdbTypeModule *module, LoggedInWidget *parent, bool writeEnabled, bool typeEnabled) :
+	m_writeEnabled(writeEnabled),
+	m_typeEnabled(typeEnabled),
 	m_parent(parent),
 	m_buttonWaitDialog(NULL),
 	m_newEntryDlg(NULL),
@@ -33,6 +35,7 @@ BookmarkActionBar::BookmarkActionBar(esdbTypeModule *module, LoggedInWidget *par
 
 	button = addButton("Delete", ":/images/delete.png");
 	connect(button, SIGNAL(pressed()), this, SLOT(deleteEntryUI()));
+	button->setDisabled(!m_writeEnabled);
 }
 
 QPushButton *BookmarkActionBar::addButton(const QString &tooltip, const QString &imagePath)

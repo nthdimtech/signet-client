@@ -19,6 +19,8 @@ class NewBookmark;
 class BookmarkActionBar : public EsdbActionBar
 {
 	Q_OBJECT
+	bool m_writeEnabled;
+	bool m_typeEnabled;
 	LoggedInWidget *m_parent;
 	ButtonWaitDialog *m_buttonWaitDialog;
 	NewBookmark *m_newEntryDlg;
@@ -42,7 +44,7 @@ class BookmarkActionBar : public EsdbActionBar
 	QPushButton *m_browseButton;
 	QList<QPushButton *> m_allButtons;
 public:
-	BookmarkActionBar(esdbTypeModule *module, LoggedInWidget *parent);
+	BookmarkActionBar(esdbTypeModule *module, LoggedInWidget *parent, bool writeEnabled = true, bool typeEnabled = true);
 public slots:
 	void entryCreated(esdbEntry *entry);
 	void newEntryFinished(int);

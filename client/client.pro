@@ -66,7 +66,8 @@ LIBS += -lhid -lsetupapi -lz -lgcrypt -lgpg-error
 # Signetdev sources
 #
 
-SOURCES += ../signet-base/signetdev/host/signetdev.c
+SOURCES += ../signet-base/signetdev/host/signetdev.c \
+    ../signet-base/signetdev/host/signetdev_emulate.c
 
 macx|linux-g++ {
 HEADERS += import/passimporter.h \

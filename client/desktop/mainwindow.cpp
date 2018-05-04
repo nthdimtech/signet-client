@@ -73,8 +73,9 @@ extern "C" {
 #include "esdbaccountmodule.h"
 #include "generictypedesc.h"
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	QMainWindow(parent),
+	m_dbFilename(dbFilename),
 	m_wipeProgress(NULL),
 	m_wipingWidget(NULL),
 	m_connected(false),
@@ -174,7 +175,11 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(m_exportCSVAction, SIGNAL(triggered(bool)), this,
 		SLOT(exportCSVUi()));
 
-	m_deviceMenu = bar->addMenu("&Device");
+	if (!m_dbFilename.size()) {
+		m_deviceMenu = bar->addMenu("&Device");
+	} else {
+		m_deviceMenu = bar->addMenu("&Database");
+	}
 
 	// Some of these don't get keyboard accelerators by design to avoid accidental activation
 
@@ -220,14 +225,20 @@ MainWindow::MainWindow(QWidget *parent) :
 	m_changePasswordAction->setVisible(false);
 	m_backupAction->setVisible(false);
 	m_restoreAction->setVisible(false);
-	enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
-#ifdef Q_OS_UNIX
-	enterDeviceState(SignetApplication::STATE_CONNECTING);
-	int rc = signetdev_open_connection();
-	if (rc == 0) {
+	if (m_dbFilename.size()) {
+		enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
+		enterDeviceState(SignetApplication::STATE_CONNECTING);
 		deviceOpened();
-	}
+	} else {
+		enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
+#ifdef Q_OS_UNIX
+		enterDeviceState(SignetApplication::STATE_CONNECTING);
+		int rc = signetdev_open_connection();
+		if (rc == 0) {
+			deviceOpened();
+		}
 #endif
+	}
 }
 
 QString MainWindow::csvQuote(const QString &s)
@@ -1535,6 +1546,15 @@ void MainWindow::enterDeviceState(int state)
 	break;
 	default:
 		break;
+	}
+	bool databaseFile = m_dbFilename.size();
+
+	if (databaseFile) {
+		m_changePasswordAction->setVisible(false);
+		m_backupAction->setVisible(false);
+		m_restoreAction->setVisible(false);
+		m_updateFirmwareAction->setVisible(false);
+		m_importMenu->setDisabled(true);
 	}
 
 	bool fileActionsEnabled = (m_deviceState == SignetApplication::STATE_LOGGED_IN);

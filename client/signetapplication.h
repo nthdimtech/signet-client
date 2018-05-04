@@ -50,9 +50,10 @@ class SignetApplication : public QtSingleApplication
 {
 	Q_OBJECT
 	static SignetApplication *g_singleton;
+	QString m_dbFilename;
 public:
 	SignetApplication(int &argc, char **argv);
-	void init(bool startInTray);
+	void init(bool startInTray, QString emulateFilename);
 	static QMessageBox *messageBoxError(QMessageBox::Icon icon, const QString &title, const QString &text, QWidget *parent);
 	static SignetApplication *get()
 	{
