@@ -77,8 +77,9 @@ void CSVImporter::start()
 	QList<QStringList>::iterator iter = csvData.begin();
 	const QStringList &header = *(iter++);
 	m_db = new database();
-	m_accountType = new databaseType();
-	m_db->insert(t->name(), m_accountType);
+	databaseType *selectedType = new databaseType();
+
+	m_db->insert(t->name(), selectedType);
 
 	for (;iter != csvData.end(); iter++) {
 		QVector<genericField> fields;
@@ -88,7 +89,7 @@ void CSVImporter::start()
 		}
 		esdbEntry *ent = t->decodeEntry(fields);
 		if (ent) {
-			m_accountType->append(ent);
+			selectedType->append(ent);
 		}
 	}
 	done(true);
