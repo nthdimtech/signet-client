@@ -159,6 +159,16 @@ bool DatabaseImportController::nextEntry()
 	return true;
 }
 
+void DatabaseImportController::importAccountFinished(int code)
+{
+	if (code != QMessageBox::Ok) {
+		::signetdev_cancel_button_wait();
+	}
+	m_buttonWaitDialog->deleteLater();
+	m_buttonWaitDialog = NULL;
+	importDone(false);
+}
+
 void DatabaseImportController::importDone(bool success)
 {
 	if (success) {

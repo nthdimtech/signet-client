@@ -43,6 +43,8 @@ public slots:
 	void importDone(bool success);
 	void start();
 	void signetdevCmdResp(signetdevCmdRespInfo info);
+private slots:
+	void importAccountFinished(int code);
 };
 
 #endif // DATABASEIMPORTCONTROLLER_H

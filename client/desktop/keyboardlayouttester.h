@@ -83,6 +83,8 @@ public slots:
 	void reset();
 	void applicationStateChanged(Qt::ApplicationState state);
 	void focusWindowChanged(QWindow *);
+private slots:
+	void canelPressed();
 };
 
 #endif // KEYBOARDLAYOUTTESTER_H

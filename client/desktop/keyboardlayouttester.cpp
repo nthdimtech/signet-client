@@ -225,8 +225,7 @@ KeyboardLayoutTester::KeyboardLayoutTester(const QVector<struct signetdev_key> &
 	m_resetButton->setEnabled(false);
 	m_applyButton->setEnabled(false);
 
-	connect(cancelButton, SIGNAL(pressed()), this, SLOT(close()));
-	connect(this, SIGNAL(close()), this, SLOT(deleteLater()));
+	connect(cancelButton, SIGNAL(pressed()), this, SLOT(canelPressed()));
 	connect(m_configureButton, SIGNAL(pressed()), this, SLOT(configure()));
 	connect(m_applyButton, SIGNAL(pressed()), this, SLOT(apply()));
 	connect(m_resetButton, SIGNAL(pressed()), this, SLOT(reset()));
@@ -259,6 +258,11 @@ KeyboardLayoutTester::KeyboardLayoutTester(const QVector<struct signetdev_key> &
 		this, SLOT(focusWindowChanged(QWindow *)));
 
 	showCurrentLayout();
+}
+
+void KeyboardLayoutTester::canelPressed()
+{
+	done(QDialog::Rejected);
 }
 
 void KeyboardLayoutTester::initGridLayout()
