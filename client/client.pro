@@ -20,9 +20,13 @@ QMAKE_CFLAGS += -std=c99
 QMAKE_CXXFLAGS += -std=c++11 -DQTCSV_STATIC_LIB
 
 
-macx|linux-g++|win32 {
-QMAKE_CFLAGS += -msse4.1
-QMAKE_CXXFLAGS += -msse4.1
+macx|linux-g++|win32:contains(QMAKE_HOST.arch, x86_64) {
+CONFIG += use_sse
+}
+
+use_sse {
+QMAKE_CFLAGS += -msse4.1 -DUSE_SSE
+QMAKE_CXXFLAGS += -msse4.1 -DUSE_SSE
 }
 
 # GITVERSION:
@@ -218,7 +222,9 @@ HEADERS += ../scrypt/crypto_scrypt_smix.h \
     ../scrypt/sha256.h \
     ../scrypt/warnp.h
 
-!android {
+
+
+use_sse {
     SOURCES += ../scrypt/crypto_scrypt_smix_sse2.c
     HEADERS += ../scrypt/crypto_scrypt_smix_sse2.h
 }

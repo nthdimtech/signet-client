@@ -209,7 +209,7 @@ static void
 selectsmix(void)
 {
 
-#ifndef Q_OS_ANDROID
+#ifdef USE_SSE
 //#ifdef CPUSUPPORT_X86_SSE2
 	/* If we're running on an SSE2-capable CPU, try that code. */
 	//if (cpusupport_x86_sse2()) {
