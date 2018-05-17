@@ -1193,7 +1193,7 @@ void MainWindow::loadSettings()
 		saveSettings();
 		box->deleteLater();
 		if (rc == QMessageBox::Yes) {
-			QUrl url("https://nthdimtech.com/signet-releases");
+			QUrl url("https://nthdimtech.com/signet/downloads");
 			QDesktopServices::openUrl(url);
 		}
 	}
