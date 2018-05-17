@@ -208,12 +208,6 @@ void SignetApplication::init(bool startInTray, QString dbFilename)
 #ifndef Q_OS_ANDROID
 	m_main_window = new MainWindow(m_dbFilename);
 
-	QDesktopWidget* d = QApplication::desktop();
-	QRect deskRect = d->screenGeometry(d->screenNumber(QCursor::pos()));
-	m_main_window->adjustSize();
-	m_main_window->move(deskRect.width() / 2 - m_main_window->width() / 2 + deskRect.left(),
-		     deskRect.height() / 2 - m_main_window->height() / 2 + deskRect.top());
-
 	connect(this, SIGNAL(connectionError()), m_main_window, SLOT(connectionError()));
 
 	QObject::connect(m_main_window, SIGNAL(destroyed(QObject*)), this, SLOT(mainDestroyed()));

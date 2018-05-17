@@ -24,6 +24,7 @@ struct localSettings {
 	QDateTime lastUpdatePrompt;
 	QMap<QString, keyboardLayout> keyboardLayouts;
 	QString activeKeyboardLayout;
+	QByteArray windowGeometry;
 	bool minimizeToTray;
 };
 

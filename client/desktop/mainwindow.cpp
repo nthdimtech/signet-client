@@ -29,6 +29,7 @@
 #include <QDesktopServices>
 #include <QJsonArray>
 #include <QString>
+#include <QDesktopWidget>
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
 #include <QStorageInfo>
@@ -238,6 +239,17 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 			deviceOpened();
 		}
 #endif
+	}
+
+	loadSettings();
+	if (!m_settings.windowGeometry.size()) {
+		QDesktopWidget* d = QApplication::desktop();
+		QRect deskRect = d->screenGeometry(d->screenNumber(QCursor::pos()));
+		adjustSize();
+		move(deskRect.width() / 2 - width() / 2 + deskRect.left(),
+			     deskRect.height() / 2 - height() / 2 + deskRect.top());
+	} else {
+		restoreGeometry(m_settings.windowGeometry);
 	}
 }
 
@@ -458,7 +470,8 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 			m_restoreBlock++;
 			m_restoreProgress->setMinimum(0);
 			m_restoreProgress->setMaximum(NUM_DATA_BLOCKS);
-			m_restoreProgress->setValue(m_restoreBlock);
+
+			loadSettings();m_restoreProgress->setValue(m_restoreBlock);
 			if (m_restoreBlock < MAX_DATA_BLOCK) {
 				QByteArray block(BLK_SIZE, 0);
 				int sz = m_restoreFile->read(block.data(), block.length());
@@ -788,6 +801,8 @@ void MainWindow::changePasswordUi()
 void MainWindow::closeEvent(QCloseEvent *event)
 {
 	if (m_quitting) {
+		m_settings.windowGeometry = saveGeometry();
+		saveSettings();
 		event->accept();
 	} else {
 		emit hide();
@@ -857,6 +872,7 @@ void MainWindow::saveSettings()
 	obj.insert("lastUpdatePrompt", QJsonValue(m_settings.lastUpdatePrompt.toString()));
 	obj.insert("activeKeyboardLayout", QJsonValue(m_settings.activeKeyboardLayout));
 	obj.insert("minimizeToTray", QJsonValue(m_settings.minimizeToTray));
+	obj.insert("windowGeometry", QJsonValue(QLatin1String(m_settings.windowGeometry.toBase64())));
 
 	QJsonObject keyboardLayouts;
 	for (QMap<QString, keyboardLayout>::iterator v = m_settings.keyboardLayouts.begin();
@@ -1111,6 +1127,11 @@ void MainWindow::loadSettings()
 		m_settings.activeKeyboardLayout = activeKeyboardLayout.toString();
 	} else {
 		m_settings.activeKeyboardLayout = "";
+	}
+
+	QJsonValue windowGeometry = obj.value("windowGeometry");
+	if (windowGeometry.isString()) {
+		m_settings.windowGeometry = QByteArray::fromBase64(windowGeometry.toString().toLatin1());
 	}
 
 	QJsonValue keyboardLayoutsV = obj.value("keyboardLayouts");
@@ -1527,7 +1548,6 @@ void MainWindow::enterDeviceState(int state)
 	break;
 	case SignetApplication::STATE_LOGGED_IN: {
 		m_loggedIn = true;
-		resize(QSize(200, 300));
 		m_deviceMenu->setDisabled(false);
 		m_fileMenu->setDisabled(false);
 		m_logoutAction->setVisible(true);
@@ -1538,8 +1558,6 @@ void MainWindow::enterDeviceState(int state)
 		m_restoreAction->setVisible(false);
 		m_wipeDeviceAction->setVisible(false);
 		m_eraseDeviceAction->setVisible(false);
-
-		loadSettings();
 
 		m_loggedInStack->setCurrentIndex(0);
 	}
