@@ -42,11 +42,14 @@ extern "C" {
 #include "signetdev/host/signetdev.h"
 };
 
+#include "../desktop/mainwindow.h"
+
 #include "bookmark.h"
 #include "generic.h"
 
 #define USE_MISC_TYPE 1
 #define USE_PREDEFINED_TYPES 0
+
 int iconAccount::matchQuality(esdbEntry *entry)
 {
 	int quality = 0;
@@ -100,7 +103,7 @@ LoggedInWidget::typeData::~typeData()
 	delete module;
 }
 
-LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, QWidget *parent) : QWidget(parent),
+LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, QWidget *parent) : QWidget(parent),
 	m_activeType(0),
 	m_selectedEntry(NULL),
 	m_filterLabel(NULL),
@@ -286,6 +289,16 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, QWidget *parent) 
 
 	QBoxLayout *top_layout = new QBoxLayout(QBoxLayout::TopToBottom);
 	top_layout->setAlignment(Qt::AlignTop);
+
+	if (mw->getDatabaseFileName().size()) {
+		QLabel *l = new QLabel();
+		l->setText("Database file: " + mw->getDatabaseFileName());
+		QFrame *f = new QFrame();
+		f->setFrameStyle(QFrame::HLine);
+		top_layout->addWidget(l);
+		top_layout->addWidget(f);
+	}
+
 	top_layout->addLayout(filter_layout);
 	top_layout->addWidget(m_viewSelector);
 	top_layout->addWidget(m_searchListbox);

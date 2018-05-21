@@ -1414,7 +1414,7 @@ void MainWindow::enterDeviceState(int state)
 		QWidget *loadingWidget = new QWidget();
 		loadingWidget->setLayout(layout);
 
-		m_loggedInWidget = new LoggedInWidget(loading_progress);
+		m_loggedInWidget = new LoggedInWidget(loading_progress, this);
 		connect(m_loggedInWidget, SIGNAL(abort()), this, SLOT(abort()));
 		connect(m_loggedInWidget, SIGNAL(enterDeviceState(int)),
 			this, SLOT(enterDeviceState(int)));

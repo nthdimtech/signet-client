@@ -43,6 +43,7 @@ class esdbGenericModule;
 #include "esdbtypemodule.h"
 #include "esdbaccountmodule.h"
 #include "esdbbookmarkmodule.h"
+#include "../desktop/mainwindow.h"
 
 struct iconAccount {
 	QString name;
@@ -169,7 +170,7 @@ public:
 		ID_TASK_DELETE,
 		ID_TASK_READ
 	} m_idTask;
-	explicit LoggedInWidget(QProgressBar *loading_progress, QWidget *parent = 0);
+	explicit LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, QWidget *parent = 0);
 	~LoggedInWidget();
 	void finishTask(bool deselect = true);
 	void beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar);

@@ -16,6 +16,8 @@ extern "C" {
 #include "signetdev/host/signetdev.h"
 };
 
+#include "../desktop/mainwindow.h"
+
 LoginWindow::LoginWindow(QWidget *parent) : QWidget(parent),
 	m_buttonWait(NULL),
 	m_loggingIn(false),
@@ -47,6 +49,15 @@ LoginWindow::LoginWindow(QWidget *parent) : QWidget(parent),
 
 	layout->addWidget(password_label);
 	layout->addWidget(m_passwordInput);
+	MainWindow *mw = (MainWindow *) parent;
+	if (mw->getDatabaseFileName().size()) {
+		QLabel *l = new QLabel();
+		l->setText("Database file: " + mw->getDatabaseFileName());
+		QFrame *f = new QFrame();
+		f->setFrameStyle(QFrame::HLine);
+		top_layout->addWidget(l);
+		top_layout->addWidget(f);
+	}
 	top_layout->addWidget(new QLabel("Enter your master password"));
 	top_layout->addItem(layout);
 	top_layout->addWidget(m_incorrectPassword);

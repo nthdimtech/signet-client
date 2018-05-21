@@ -74,6 +74,10 @@ public:
 	localSettings *getSettings() {
 		return &m_settings;
 	}
+
+	QString getDatabaseFileName() {
+		return m_dbFilename;
+	}
 private:
 	Database *m_keePassDatabase;
 	QProgressBar *m_wipeProgress;
