@@ -122,6 +122,8 @@ private:
 	QMenu *m_exportMenu;
 	QMenu *m_importMenu;
 
+	QAction *m_openAction;
+	QAction *m_closeAction;
 	QAction *m_saveAction;
 	QAction *m_settingsAction;
 	QAction *m_exportCSVAction;
@@ -165,6 +167,7 @@ private slots:
 	void restoreError();
 	void backupError();
 	void importDone(bool success);
+	void closeUi();
 public slots:
 	void signetDevEvent(int);
 	void deviceOpened();
@@ -184,6 +187,7 @@ public slots:
 	void operationFinished(int);
 	void enterDeviceState(int);
 
+	void openUi();
 	void logoutUi();
 	void changePasswordUi();
 	void eraseDeviceUi();

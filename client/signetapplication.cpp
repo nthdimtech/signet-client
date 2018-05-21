@@ -197,14 +197,6 @@ void SignetApplication::init(bool startInTray, QString dbFilename)
 	signetdev_set_device_event_cb(deviceEventS, this);
 	signetdev_set_error_handler(connectionErrorS, this);
 
-	if (dbFilename.size()) {
-		int rc = signetdev_emulate_init(dbFilename.toLocal8Bit().data());
-		if (rc) {
-			signetdev_emulate_begin();
-			m_dbFilename = dbFilename;
-		}
-	}
-
 #ifndef Q_OS_ANDROID
 	m_main_window = new MainWindow(m_dbFilename);
 

@@ -113,6 +113,14 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	m_accountTypeModule = new esdbAccountModule();
 	m_bookmarkTypeModule = new esdbBookmarkModule();
 
+	if (dbFilename.size()) {
+		int rc = signetdev_emulate_init(dbFilename.toLatin1().data());
+		if (rc) {
+			signetdev_emulate_begin();
+			m_dbFilename = dbFilename;
+		}
+	}
+
 	connect(app, SIGNAL(deviceOpened()), this, SLOT(deviceOpened()));
 	connect(app, SIGNAL(deviceClosed()), this, SLOT(deviceClosed()));
 	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
@@ -139,6 +147,13 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	m_exportMenu = m_fileMenu->addMenu("&Export");
 	m_exportMenu->setVisible(false);
 	m_exportCSVAction = m_exportMenu->addAction("&CSV");
+
+	m_openAction = m_fileMenu->addAction("&Open");
+	connect(m_openAction, SIGNAL(triggered(bool)), this, SLOT(openUi()));
+
+	m_closeAction = m_fileMenu->addAction("&Close");
+	connect(m_closeAction, SIGNAL(triggered(bool)), this, SLOT(closeUi()));
+	m_closeAction->setDisabled(true);
 
 	m_importMenu = m_fileMenu->addMenu("&Import");
 	m_importMenu->setVisible(false);
@@ -229,14 +244,14 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	if (m_dbFilename.size()) {
 		enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
 		enterDeviceState(SignetApplication::STATE_CONNECTING);
-		deviceOpened();
+		::signetdev_startup(NULL, &m_signetdevCmdToken);
 	} else {
 		enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
 #ifdef Q_OS_UNIX
 		enterDeviceState(SignetApplication::STATE_CONNECTING);
 		int rc = signetdev_open_connection();
 		if (rc == 0) {
-			deviceOpened();
+			::signetdev_startup(NULL, &m_signetdevCmdToken);
 		}
 #endif
 	}
@@ -282,7 +297,7 @@ void MainWindow::connectionError()
 		enterDeviceState(SignetApplication::STATE_CONNECTING);
 		int rc = signetdev_open_connection();
 		if (rc == 0) {
-			deviceOpened();
+			::signetdev_startup(NULL, &m_signetdevCmdToken);
 		}
 	}
 }
@@ -1298,6 +1313,19 @@ void MainWindow::keyboardLayoutTesterClosing(bool applyChanges)
 
 void MainWindow::enterDeviceState(int state)
 {
+	bool databaseFile = m_dbFilename.size();
+
+	if (databaseFile) {
+		m_changePasswordAction->setVisible(false);
+		m_backupAction->setVisible(false);
+		m_restoreAction->setVisible(false);
+		m_updateFirmwareAction->setVisible(false);
+		m_importMenu->setDisabled(true);
+		m_deviceMenu->setTitle("&Database");
+	} else {
+		m_deviceMenu->setTitle("&Device");
+	}
+	m_closeAction->setDisabled(!databaseFile);
 	if (state == m_deviceState && (state != SignetApplication::STATE_LOGGED_OUT))
 		return;
 	switch (m_deviceState) {
@@ -1565,15 +1593,6 @@ void MainWindow::enterDeviceState(int state)
 	default:
 		break;
 	}
-	bool databaseFile = m_dbFilename.size();
-
-	if (databaseFile) {
-		m_changePasswordAction->setVisible(false);
-		m_backupAction->setVisible(false);
-		m_restoreAction->setVisible(false);
-		m_updateFirmwareAction->setVisible(false);
-		m_importMenu->setDisabled(true);
-	}
 
 	bool fileActionsEnabled = (m_deviceState == SignetApplication::STATE_LOGGED_IN);
 	m_exportMenu->menuAction()->setVisible(fileActionsEnabled);
@@ -1583,6 +1602,51 @@ void MainWindow::enterDeviceState(int state)
 	m_importPassAction->setEnabled(fileActionsEnabled && m_passDatabaseFound);
 #endif
 	m_importCSVAction->setEnabled(fileActionsEnabled);
+}
+
+void MainWindow::openUi()
+{
+	QFileDialog fd(this);
+	QStringList filters;
+
+	filters.append("*.sdb");
+	filters.append("*");
+	fd.setNameFilters(filters);
+	fd.setFileMode(QFileDialog::AnyFile);
+	fd.setAcceptMode(QFileDialog::AcceptOpen);
+	fd.setDirectory(m_settings.localBackupPath);
+	fd.setWindowModality(Qt::WindowModal);
+	if (!fd.exec())
+		return;
+	QStringList sl = fd.selectedFiles();
+	if (sl.empty()) {
+		return;
+	}
+	QString fn = sl.first();
+	if (signetdev_emulate_init(fn.toLatin1().data())) {
+		m_dbFilename = fn;
+		::signetdev_close_connection();
+		::signetdev_emulate_begin();
+		enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
+		enterDeviceState(SignetApplication::STATE_CONNECTING);
+		::signetdev_startup(NULL, &m_signetdevCmdToken);
+	} else {
+		//TODO
+	}
+}
+
+void MainWindow::closeUi()
+{
+	if (m_dbFilename.size()) {
+		::signetdev_emulate_end();
+		m_dbFilename.clear();
+		enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
+		enterDeviceState(SignetApplication::STATE_CONNECTING);
+		int rc = signetdev_open_connection();
+		if (rc == 0) {
+			::signetdev_startup(NULL, &m_signetdevCmdToken);
+		}
+	}
 }
 
 void MainWindow::openSettingsUi()
@@ -1624,7 +1688,7 @@ void MainWindow::resetTimer()
 	m_wasConnected = false;
 	int rc = ::signetdev_open_connection();
 	if (rc == 0) {
-		deviceOpened();
+		::signetdev_startup(NULL, &m_signetdevCmdToken);
 	}
 }
 
