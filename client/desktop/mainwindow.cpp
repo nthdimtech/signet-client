@@ -142,11 +142,6 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	QMenuBar *bar = new QMenuBar();
 	setMenuBar(bar);
 	m_fileMenu = bar->addMenu("&File");
-	m_settingsAction = m_fileMenu->addAction("&Settings");
-
-	m_exportMenu = m_fileMenu->addMenu("&Export");
-	m_exportMenu->setVisible(false);
-	m_exportCSVAction = m_exportMenu->addAction("&CSV");
 
 	m_openAction = m_fileMenu->addAction("&Open");
 	connect(m_openAction, SIGNAL(triggered(bool)), this, SLOT(openUi()));
@@ -154,6 +149,12 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	m_closeAction = m_fileMenu->addAction("&Close");
 	connect(m_closeAction, SIGNAL(triggered(bool)), this, SLOT(closeUi()));
 	m_closeAction->setDisabled(true);
+
+	m_settingsAction = m_fileMenu->addAction("&Settings");
+
+	m_exportMenu = m_fileMenu->addMenu("&Export");
+	m_exportMenu->setVisible(false);
+	m_exportCSVAction = m_exportMenu->addAction("&CSV");
 
 	m_importMenu = m_fileMenu->addMenu("&Import");
 	m_importMenu->setVisible(false);
