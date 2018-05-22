@@ -93,10 +93,12 @@ public:
 class EsdbModel;
 
 class EsdbModelGroupItem : public EsdbModelItem {
+public:
 	QString m_name;
+	EsdbModelGroupItem *m_parent;
+private:
 	bool m_expanded;
 public:
-	EsdbModelGroupItem *m_parent;
 	QList<EsdbModelItem *> m_items;
 	QList<EsdbModelGroupItem *> m_hiddenGroups;
 	QList<EsdbModelLeafItem *> m_hiddenItems;

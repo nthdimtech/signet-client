@@ -175,25 +175,11 @@ HEADERS +=  esdb-gui/esdbmodel.h \
 # Common Misc
 #
 
-SOURCES += loggedinwidget.cpp \
-        aspectratiopixmaplabel.cpp \
-    changemasterpassword.cpp \
-    searchlistbox.cpp \
-    buttonwaitdialog.cpp \
-    searchfilteredit.cpp \
-    signetapplication.cpp \
-    keygeneratorthread.cpp \
-    loginwindow.cpp
+SOURCES += signetapplication.cpp \
+        keygeneratorthread.cpp
 
-HEADERS  += loggedinwidget.h \
-        aspectratiopixmaplabel.h \
-    changemasterpassword.h \
-    searchlistbox.h \
-    buttonwaitdialog.h \
-    searchfilteredit.h \
-    signetapplication.h \
-    keygeneratorthread.h \
-    loginwindow.h
+HEADERS  += signetapplication.h \
+        keygeneratorthread.h
 
 #
 # QtCSV
@@ -230,6 +216,10 @@ use_sse {
 }
 
 linux-g++|macx|win32 {
+
+
+INCLUDEPATH += desktop
+
 #
 # Importer sources
 #
@@ -258,15 +248,29 @@ SOURCES += desktop/main.cpp \
         desktop/settingsdialog.cpp \
         desktop/keyboardlayouttester.cpp \
         desktop/about.cpp \
-        desktop/resetdevice.cpp
+        desktop/resetdevice.cpp \
+        desktop\loggedinwidget.cpp \
+        desktop\aspectratiopixmaplabel.cpp \
+        desktop\changemasterpassword.cpp \
+        desktop\searchlistbox.cpp \
+        desktop\buttonwaitdialog.cpp \
+        desktop\searchfilteredit.cpp \
+        desktop\loginwindow.cpp
 
 HEADERS +=  desktop/mainwindow.h \
-    desktop/localsettings.h \
-    desktop/settingsdialog.h \
-    desktop/keyboardlayouttester.h \
-    desktop/about.h \
-    desktop/systemtray.h \
-    desktop/resetdevice.h
+        desktop/localsettings.h \
+        desktop/settingsdialog.h \
+        desktop/keyboardlayouttester.h \
+        desktop/about.h \
+        desktop/systemtray.h \
+        desktop/resetdevice.h \
+        desktop\loggedinwidget.h \
+        desktop\aspectratiopixmaplabel.h \
+        desktop\changemasterpassword.h \
+        desktop\searchlistbox.h \
+        desktop\buttonwaitdialog.h \
+        desktop\searchfilteredit.h \
+        desktop\loginwindow.h
 
 #
 # Qt single appliction

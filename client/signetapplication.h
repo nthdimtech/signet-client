@@ -7,7 +7,7 @@
 #include <qmetatype.h>
 #ifndef Q_OS_ANDROID
 #include <QtSingleApplication>
-#include "desktop/systemtray.h"
+#include "systemtray.h"
 class MainWindow;
 #else
 #include <QApplication>
