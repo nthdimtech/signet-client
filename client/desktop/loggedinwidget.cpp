@@ -176,18 +176,21 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 
 	m_activeTypeIndex = 0;
 
+
+	bool fromFile = mw->getDatabaseFileName().size();
+
 	genericTypeDesc *place = new genericTypeDesc();
 	place->name = "";
 	m_genericDecoder = new esdbGenericModule(place, this);
 
 	m_accounts = new esdbAccountModule();
 	typeData *accountsTypeData = new typeData(m_accounts);
-	accountsTypeData->actionBar = new AccountActionBar(this, false, false);
+	accountsTypeData->actionBar = new AccountActionBar(this, !fromFile, !fromFile);
 	m_typeData.push_back(accountsTypeData);
 
 	m_bookmarks = new esdbBookmarkModule();
 	typeData *bookmarksTypeData = new typeData(m_bookmarks);
-	bookmarksTypeData->actionBar = new BookmarkActionBar(m_bookmarks, this);
+	bookmarksTypeData->actionBar = new BookmarkActionBar(m_bookmarks, this, !fromFile, !fromFile);
 	m_typeData.push_back(bookmarksTypeData);
 
 	genericTypeDesc *genericTypeDesc_;
