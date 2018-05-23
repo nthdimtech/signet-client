@@ -1315,7 +1315,6 @@ void MainWindow::keyboardLayoutTesterClosing(bool applyChanges)
 void MainWindow::enterDeviceState(int state)
 {
 	bool databaseFile = m_dbFilename.size();
-
 	if (databaseFile) {
 		m_changePasswordAction->setVisible(false);
 		m_backupAction->setVisible(false);
@@ -1627,10 +1626,11 @@ void MainWindow::openUi()
 	if (signetdev_emulate_init(fn.toLatin1().data())) {
 		m_dbFilename = fn;
 		::signetdev_close_connection();
-		::signetdev_emulate_begin();
-		enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
-		enterDeviceState(SignetApplication::STATE_CONNECTING);
-		::signetdev_startup(NULL, &m_signetdevCmdToken);
+		if (::signetdev_emulate_begin()) {
+			enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
+			enterDeviceState(SignetApplication::STATE_CONNECTING);
+			::signetdev_startup(NULL, &m_signetdevCmdToken);
+		}
 	} else {
 		//TODO
 	}
