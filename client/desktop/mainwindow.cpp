@@ -1632,7 +1632,7 @@ void MainWindow::openUi()
 			::signetdev_startup(NULL, &m_signetdevCmdToken);
 		}
 	} else {
-		//TODO
+		SignetApplication::messageBoxError(QMessageBox::Warning, "Open", "Database file not valid", this);
 	}
 }
 
