@@ -575,7 +575,8 @@ void LoggedInWidget::selectEntry(esdbEntry *entry)
 			if (loc >= 0)
 				m_filterEdit->setSelection(loc, start);
 		} else {
-			m_filterEdit->setText("");
+			m_filterEdit->setText(QString());
+			m_filterEdit->setFocus();
 		}
 	}
 }
@@ -693,7 +694,7 @@ void LoggedInWidget::filterTextChanged(QString text)
 		} else {
 			selectFirstVisible();
 		}
-	} else if (text.size()) {
+	} else {
 		selectEntry(selectedEntry());
 	}
 }
