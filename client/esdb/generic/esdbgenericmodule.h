@@ -14,9 +14,9 @@ struct genericTypeDesc;
 class esdbGenericModule : public esdbTypeModule
 {
 private:
-	genericTypeDesc *m_typeDesc;
+	//genericTypeDesc *m_typeDesc;
 	esdbEntry *decodeEntry(int id, int revision, esdbEntry *prev, struct block *blk) const;
-	bool m_userDefined;
+	//bool m_userDefined;
 	esdbEntry *decodeEntry(const QVector<genericField> &fields, bool doAliasMatch) const;
 public:
 	esdbGenericModule(genericTypeDesc *typeDesc, bool userDefined = false, bool plural = true);

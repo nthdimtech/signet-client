@@ -4,7 +4,7 @@
 #include <QDialog>
 class CSVImporter;
 class QComboBox;
-class esdbTypeModule;
+struct esdbTypeModule;
 
 class CSVImportConfigure : public QDialog
 {

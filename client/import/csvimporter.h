@@ -8,7 +8,7 @@ class QWidget;
 #include <QList>
 
 class databaseType;
-class esdbTypeModule;
+struct esdbTypeModule;
 
 class CSVImporter : public DatabaseImporter
 {

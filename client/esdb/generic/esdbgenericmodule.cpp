@@ -8,11 +8,9 @@
 class EsdbActionBar;
 
 esdbGenericModule::esdbGenericModule(genericTypeDesc *typeDesc, bool userDefined, bool plural) :
-	esdbTypeModule(plural ? typeDesc->name + "s" : typeDesc->name),
-	m_typeDesc(typeDesc),
-	m_userDefined(userDefined)
+	esdbTypeModule(plural ? typeDesc->name + "s" : typeDesc->name)
 {
-
+	Q_UNUSED(userDefined);
 }
 
 esdbEntry *esdbGenericModule::decodeEntry(int id, int revision, esdbEntry *prev, struct block *blk) const
