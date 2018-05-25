@@ -173,6 +173,18 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	m_icon_accounts.append(
 	    iconAccount("dropbox")
 	);
+	m_icon_accounts.append(
+	    iconAccount("tumblr")
+	);
+	m_icon_accounts.append(
+	    iconAccount("steam")
+	);
+	m_icon_accounts.append(
+	    iconAccount("amazon")
+	);
+	m_icon_accounts.append(
+	    iconAccount("microsoft")
+	);
 
 	m_activeTypeIndex = 0;
 
