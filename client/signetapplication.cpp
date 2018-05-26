@@ -198,6 +198,7 @@ void SignetApplication::init(bool startInTray, QString dbFilename)
 	signetdev_set_error_handler(connectionErrorS, this);
 
 #ifndef Q_OS_ANDROID
+	m_dbFilename = dbFilename;
 	m_main_window = new MainWindow(m_dbFilename);
 
 	connect(this, SIGNAL(connectionError()), m_main_window, SLOT(connectionError()));
@@ -219,6 +220,7 @@ void SignetApplication::init(bool startInTray, QString dbFilename)
 #else
 	m_signetDeviceManager = new SignetDeviceManager(m_qmlEngine, this);
 	Q_UNUSED(startInTray);
+	Q_UNUSED(dbFIlename);
 #endif
 }
 
@@ -229,6 +231,14 @@ QMessageBox *SignetApplication::messageBoxError(QMessageBox::Icon icon, const QS
 	box->setWindowModality(Qt::WindowModal);
 	box->show();
 	return box;
+}
+
+
+SignetApplication::~SignetApplication()
+{
+#ifndef Q_OS_ANDROID
+	m_systray.hide();
+#endif
 }
 
 #ifndef Q_OS_ANDROID

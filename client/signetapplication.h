@@ -53,6 +53,7 @@ class SignetApplication : public QtSingleApplication
 	QString m_dbFilename;
 public:
 	SignetApplication(int &argc, char **argv);
+	~SignetApplication();
 	void init(bool startInTray, QString emulateFilename);
 	static QMessageBox *messageBoxError(QMessageBox::Icon icon, const QString &title, const QString &text, QWidget *parent);
 	static SignetApplication *get()

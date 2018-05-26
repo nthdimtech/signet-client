@@ -6,3 +6,7 @@
 SystemTray::SystemTray()
 {
 }
+
+SystemTray::~SystemTray()
+{
+}

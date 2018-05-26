@@ -8,6 +8,7 @@ class SystemTray : public QSystemTrayIcon
 	Q_OBJECT
 public:
 	SystemTray();
+	virtual ~SystemTray();
 };
 
 #endif // SYSTEMTRAY_H
