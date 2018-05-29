@@ -185,6 +185,9 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	m_icon_accounts.append(
 	    iconAccount("microsoft")
 	);
+	m_icon_accounts.append(
+	    iconAccount("reddit")
+	);
 
 	m_activeTypeIndex = 0;
 

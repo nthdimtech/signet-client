@@ -36,5 +36,6 @@
         <file>images/logos/dropbox.png</file>
         <file>images/logos/crowdsupply.png</file>
         <file>images/generic-entry.png</file>
+        <file>images/logos/reddit.png</file>
     </qresource>
 </RCC>
