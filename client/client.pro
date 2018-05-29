@@ -71,7 +71,9 @@ LIBS += -lhid -lsetupapi -lz -lgcrypt -lgpg-error
 #
 
 SOURCES += ../signet-base/signetdev/host/signetdev.c \
-    ../signet-base/signetdev/host/signetdev_emulate.c
+    ../signet-base/signetdev/host/signetdev_emulate.c \
+    desktop/cleartextpasswordeditor.cpp \
+    desktop/cleartextpasswordselector.cpp
 
 macx|linux-g++ {
 HEADERS += import/passimporter.h \
@@ -125,7 +127,9 @@ HEADERS += esdb/esdb.h \
     esdb/generic/generic.h \
     esdb/generic/genericfields.h \
     esdb/generic/generictypedesc.h \
-    esdb/generic/esdbgenericmodule.h
+    esdb/generic/esdbgenericmodule.h \
+    desktop/cleartextpasswordeditor.h \
+    desktop/cleartextpasswordselector.h
 #
 # ESDB GUI sources
 #
@@ -249,13 +253,13 @@ SOURCES += desktop/main.cpp \
         desktop/keyboardlayouttester.cpp \
         desktop/about.cpp \
         desktop/resetdevice.cpp \
-        desktop\loggedinwidget.cpp \
-        desktop\aspectratiopixmaplabel.cpp \
-        desktop\changemasterpassword.cpp \
-        desktop\searchlistbox.cpp \
-        desktop\buttonwaitdialog.cpp \
-        desktop\searchfilteredit.cpp \
-        desktop\loginwindow.cpp
+        desktop/loggedinwidget.cpp \
+        desktop/aspectratiopixmaplabel.cpp \
+        desktop/changemasterpassword.cpp \
+        desktop/searchlistbox.cpp \
+        desktop/buttonwaitdialog.cpp \
+        desktop/searchfilteredit.cpp \
+        desktop/loginwindow.cpp
 
 HEADERS +=  desktop/mainwindow.h \
         desktop/localsettings.h \

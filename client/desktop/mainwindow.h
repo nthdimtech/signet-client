@@ -135,6 +135,7 @@ private:
 	QAction *m_importCSVAction;
 	QAction *m_backupAction;
 	QAction *m_restoreAction;
+	QAction *m_OSPasswordSlots;
 	QAction *m_logoutAction;
 	QAction *m_wipeDeviceAction;
 	QAction *m_eraseDeviceAction;
@@ -181,6 +182,7 @@ public slots:
 	void signetdevStartupResp(signetdevCmdRespInfo info, signetdev_startup_resp_data resp);
 	void signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray block);
 	void signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
+	void signetdevReadCleartextPasswordNames(signetdevCmdRespInfo info, QStringList names);
 
 	void wipeDeviceDialogFinished(int code);
 	void connectionError();
@@ -204,6 +206,7 @@ public slots:
 	void background();
 	void openSettingsUi();
 	void importKeePassUI();
+	void OSPasswordSlotsUi();
 #ifdef Q_OS_UNIX
 	void importPassUI();
 #endif

@@ -49,6 +49,7 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 	qRegisterMetaType<signetdevCmdRespInfo>();
 	qRegisterMetaType<signetdev_startup_resp_data>();
 	qRegisterMetaType<signetdev_get_progress_resp_data>();
+	qRegisterMetaType<cleartext_pass>();
 }
 
 void SignetApplication::mainDestroyed()
@@ -181,6 +182,26 @@ void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int c
 			QByteArray mask;
 			this_->signetdevReadUIdResp(info, data, mask);
 		}
+	}
+	break;
+	case SIGNETDEV_CMD_READ_CLEARTEXT_PASSWORD_NAMES: {
+		QStringList l;
+		if (resp_data && resp_code == OKAY) {
+			for (int i = 0; i < NUM_CLEARTEXT_PASS; i++) {
+				QString s = QString::fromUtf8(((const char *)resp_data + i * CLEARTEXT_PASS_NAME_SIZE));
+				l.push_back(s);
+			}
+		}
+		this_->signetdevReadCleartextPasswordNames(info, l);
+	}
+	break;
+	case SIGNETDEV_CMD_READ_CLEARTEXT_PASSWORD: {
+		cleartext_pass resp;
+		if (resp_code == OKAY && resp_data) {
+			cleartext_pass *resp_ = (cleartext_pass *)resp_data;
+			resp = *resp_;
+		}
+		this_->signetdevReadCleartextPassword(info, resp);
 	}
 	break;
 	default:

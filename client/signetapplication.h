@@ -35,6 +35,7 @@ extern "C" {
 Q_DECLARE_METATYPE(signetdevCmdRespInfo)
 Q_DECLARE_METATYPE(signetdev_startup_resp_data)
 Q_DECLARE_METATYPE(signetdev_get_progress_resp_data)
+Q_DECLARE_METATYPE(cleartext_pass)
 
 class SignetAsyncListener
 {
@@ -197,6 +198,8 @@ signals:
 	void signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
 	void signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray block);
 	void signetdevGetRandBits(signetdevCmdRespInfo info, QByteArray block);
+	void signetdevReadCleartextPasswordNames(signetdevCmdRespInfo info, QStringList l);
+	void signetdevReadCleartextPassword(signetdevCmdRespInfo info, cleartext_pass pass);
 	void signetdevEvent(int event_type);
 	void signetdevTimerEvent(int seconds_remaining);
 public slots:

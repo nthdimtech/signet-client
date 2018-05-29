@@ -31,6 +31,8 @@
 #include <QString>
 #include <QDesktopWidget>
 
+#include "cleartextpasswordeditor.h"
+
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
 #include <QStorageInfo>
 #endif
@@ -133,6 +135,8 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 		this, SLOT(signetdevReadBlockResp(signetdevCmdRespInfo, QByteArray)));
 	connect(app, SIGNAL(signetdevReadAllUIdsResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)),
 		this, SLOT(signetdevReadAllUIdsResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)));
+	connect(app, SIGNAL(signetdevReadCleartextPasswordNames(signetdevCmdRespInfo,QStringList)),
+		this, SLOT(signetdevReadCleartextPasswordNames(signetdevCmdRespInfo,QStringList)));
 	connect(app, SIGNAL(connectionError()),
 		this, SLOT(connectionError()));
 
@@ -211,6 +215,10 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	m_restoreAction = m_deviceMenu->addAction("Restore from file");
 	QObject::connect(m_restoreAction, SIGNAL(triggered(bool)),
 			 this, SLOT(restoreDeviceUi()));
+
+	m_OSPasswordSlots = m_deviceMenu->addAction("OS password slots");
+	QObject::connect(m_OSPasswordSlots, SIGNAL(triggered(bool)),
+			 this, SLOT(OSPasswordSlotsUi()));
 
 	m_changePasswordAction = m_deviceMenu->addAction("Change master password");
 	QObject::connect(m_changePasswordAction, SIGNAL(triggered(bool)),
@@ -1956,6 +1964,23 @@ void MainWindow::importKeePassUI()
 {
 	DatabaseImporter *importer = new KeePassImporter(this);
 	startImport(importer);
+}
+
+#include "cleartextpasswordselector.h"
+
+void MainWindow::OSPasswordSlotsUi()
+{
+	::signetdev_read_cleartext_password_names(NULL, &m_signetdevCmdToken);
+}
+
+void MainWindow::signetdevReadCleartextPasswordNames(signetdevCmdRespInfo info, QStringList names)
+{
+	if (info.resp_code == OKAY) {
+		cleartextPasswordSelector *s = new cleartextPasswordSelector(names, this);
+		s->setWindowTitle("Password slots");
+		s->exec();
+		s->deleteLater();
+	}
 }
 
 #ifdef Q_OS_UNIX
