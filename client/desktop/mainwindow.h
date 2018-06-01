@@ -15,6 +15,8 @@
 #include "signetapplication.h"
 #include "localsettings.h"
 
+#include <QVector>
+
 struct signetdevCmdRespInfo;
 
 namespace Ui
@@ -135,7 +137,7 @@ private:
 	QAction *m_importCSVAction;
 	QAction *m_backupAction;
 	QAction *m_restoreAction;
-	QAction *m_OSPasswordSlots;
+	QAction *m_passwordSlots;
 	QAction *m_logoutAction;
 	QAction *m_wipeDeviceAction;
 	QAction *m_eraseDeviceAction;
@@ -182,7 +184,7 @@ public slots:
 	void signetdevStartupResp(signetdevCmdRespInfo info, signetdev_startup_resp_data resp);
 	void signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray block);
 	void signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
-	void signetdevReadCleartextPasswordNames(signetdevCmdRespInfo info, QStringList names);
+	void signetdevReadCleartextPasswordNames(signetdevCmdRespInfo info, QVector<int> formats, QStringList names);
 
 	void wipeDeviceDialogFinished(int code);
 	void connectionError();
@@ -206,7 +208,7 @@ public slots:
 	void background();
 	void openSettingsUi();
 	void importKeePassUI();
-	void OSPasswordSlotsUi();
+	void passwordSlotsUi();
 #ifdef Q_OS_UNIX
 	void importPassUI();
 #endif

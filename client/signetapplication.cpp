@@ -50,6 +50,7 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 	qRegisterMetaType<signetdev_startup_resp_data>();
 	qRegisterMetaType<signetdev_get_progress_resp_data>();
 	qRegisterMetaType<cleartext_pass>();
+	qRegisterMetaType<QVector<int> >("QVector<int>");
 }
 
 void SignetApplication::mainDestroyed()
@@ -186,13 +187,17 @@ void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int c
 	break;
 	case SIGNETDEV_CMD_READ_CLEARTEXT_PASSWORD_NAMES: {
 		QStringList l;
+		QVector<int> f;
 		if (resp_data && resp_code == OKAY) {
 			for (int i = 0; i < NUM_CLEARTEXT_PASS; i++) {
-				QString s = QString::fromUtf8(((const char *)resp_data + i * CLEARTEXT_PASS_NAME_SIZE));
+				const u8 *data = ((const u8 *)resp_data) + i * (CLEARTEXT_PASS_NAME_SIZE + 1);
+				u8 format = data[0];
+				f.append(format);
+				QString s = QString::fromUtf8(((const char *)data) + 1);
 				l.push_back(s);
 			}
 		}
-		this_->signetdevReadCleartextPasswordNames(info, l);
+		this_->signetdevReadCleartextPasswordNames(info, f, l);
 	}
 	break;
 	case SIGNETDEV_CMD_READ_CLEARTEXT_PASSWORD: {
@@ -248,6 +253,15 @@ void SignetApplication::init(bool startInTray, QString dbFilename)
 QMessageBox *SignetApplication::messageBoxError(QMessageBox::Icon icon, const QString &title, const QString &text, QWidget *parent)
 {
 	QMessageBox *box = new QMessageBox(icon, title, text, QMessageBox::Ok, parent);
+	connect(box, SIGNAL(finished(int)), box, SLOT(deleteLater()));
+	box->setWindowModality(Qt::WindowModal);
+	box->show();
+	return box;
+}
+
+QMessageBox *SignetApplication::messageBoxWarn(const QString &title, const QString &text, QWidget *parent)
+{
+	QMessageBox *box = new QMessageBox(QMessageBox::Warning, title, text, QMessageBox::Ok, parent);
 	connect(box, SIGNAL(finished(int)), box, SLOT(deleteLater()));
 	box->setWindowModality(Qt::WindowModal);
 	box->show();

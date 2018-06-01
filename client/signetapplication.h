@@ -14,6 +14,7 @@ class MainWindow;
 #include <QQmlApplicationEngine>
 class SignetDeviceManager;
 #endif
+#include <QVector>
 
 class QMessageBox;
 class QByteArray;
@@ -57,6 +58,7 @@ public:
 	~SignetApplication();
 	void init(bool startInTray, QString emulateFilename);
 	static QMessageBox *messageBoxError(QMessageBox::Icon icon, const QString &title, const QString &text, QWidget *parent);
+	static QMessageBox *messageBoxWarn(const QString &title, const QString &text, QWidget *parent);
 	static SignetApplication *get()
 	{
 		return g_singleton;
@@ -198,7 +200,7 @@ signals:
 	void signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
 	void signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray block);
 	void signetdevGetRandBits(signetdevCmdRespInfo info, QByteArray block);
-	void signetdevReadCleartextPasswordNames(signetdevCmdRespInfo info, QStringList l);
+	void signetdevReadCleartextPasswordNames(signetdevCmdRespInfo info, QVector<int> f, QStringList l);
 	void signetdevReadCleartextPassword(signetdevCmdRespInfo info, cleartext_pass pass);
 	void signetdevEvent(int event_type);
 	void signetdevTimerEvent(int seconds_remaining);

@@ -8,6 +8,7 @@
 
 #include <QRadioButton>
 #include <QPushButton>
+#include <QLabel>
 
 extern "C" {
 #include "signetdev/host/signetdev.h"
@@ -15,7 +16,7 @@ extern "C" {
 
 #include "signetapplication.h"
 
-cleartextPasswordSelector::cleartextPasswordSelector(QStringList names, QWidget *parent) :
+cleartextPasswordSelector::cleartextPasswordSelector(QVector<int> formats, QStringList names, QWidget *parent) :
 	QDialog(parent),
 	m_buttonWaitDialog(NULL)
 {
@@ -28,17 +29,23 @@ cleartextPasswordSelector::cleartextPasswordSelector(QStringList names, QWidget 
 	m_openButton = new QPushButton("Open");
 	QPushButton *cancel = new QPushButton("Cancel");
 
-	for (auto x : names) {
-		QString n;
-		if (x.isEmpty()) {
-			n = "<Unused>";
-		} else {
-			n = x;
+	if (formats.size() == names.size()) {
+		for (int i = 0; i < formats.size(); i++) {
+			QString n;
+			if (formats.at(i) != 1) {
+				n = "<Unused>";
+			} else {
+				n = names.at(i);
+			}
+			QHBoxLayout *slot = new QHBoxLayout();
+			QRadioButton *b = new QRadioButton(n);
+			connect(b, SIGNAL(pressed()), this, SLOT(selectionPressed()));
+			slot->addWidget(new QLabel("Slot #" + QString::number(i+1)));
+			slot->addWidget(b);
+
+			m_slotButtons.append(b);
+			l->addLayout(slot);
 		}
-		QRadioButton *b = new QRadioButton(n);
-		connect(b, SIGNAL(pressed()), this, SLOT(selectionPressed()));
-		m_slotButtons.append(b);
-		l->addWidget(b);
 	}
 	buttons->addWidget(m_openButton);
 	buttons->addWidget(cancel);
@@ -76,10 +83,17 @@ void cleartextPasswordSelector::signetdevReadCleartextPassword(signetdevCmdRespI
 	if (info.resp_code == OKAY) {
 		done(0);
 		cleartextPasswordEditor *e = new cleartextPasswordEditor(m_index, &pass, parentWidget());
+		e->setWindowTitle("Password slot " + QString::number(m_index + 1));
+		e->setMinimumWidth(300);
 		e->exec();
 		e->deleteLater();
 	} else {
-		//TODO
+		QMessageBox *box = SignetApplication::messageBoxError(QMessageBox::Critical,
+								QString("Read password slot"),
+								QString("Failed to read password slot ") +
+									QString::number(m_index),
+								this);
+		box->exec();
 	}
 }
 
@@ -89,7 +103,7 @@ void cleartextPasswordSelector::openPressed()
 	for (auto b : m_slotButtons) {
 		if (b->isChecked()) {
 			m_index = i;
-			m_buttonWaitDialog = new ButtonWaitDialog("Open password slot", "open password slot", this, true);
+			m_buttonWaitDialog = new ButtonWaitDialog("Open password slot", "open password slot", this, false);
 			connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(buttonWaitFinished(int)));
 			m_buttonWaitDialog->show();
 			::signetdev_read_cleartext_password(NULL, &m_signetdevCmdToken, m_index);

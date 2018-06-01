@@ -29,7 +29,7 @@ class cleartextPasswordSelector : public QDialog
 	int m_index;
 	ButtonWaitDialog *m_buttonWaitDialog;
 public:
-	cleartextPasswordSelector(QStringList names, QWidget *parent = NULL);
+	cleartextPasswordSelector(QVector<int> formats, QStringList names, QWidget *parent = NULL);
 private slots:
 	void openPressed();
 	void selectionPressed();

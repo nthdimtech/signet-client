@@ -135,8 +135,8 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 		this, SLOT(signetdevReadBlockResp(signetdevCmdRespInfo, QByteArray)));
 	connect(app, SIGNAL(signetdevReadAllUIdsResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)),
 		this, SLOT(signetdevReadAllUIdsResp(signetdevCmdRespInfo, int, QByteArray, QByteArray)));
-	connect(app, SIGNAL(signetdevReadCleartextPasswordNames(signetdevCmdRespInfo,QStringList)),
-		this, SLOT(signetdevReadCleartextPasswordNames(signetdevCmdRespInfo,QStringList)));
+	connect(app, SIGNAL(signetdevReadCleartextPasswordNames(signetdevCmdRespInfo, QVector<int>, QStringList)),
+		this, SLOT(signetdevReadCleartextPasswordNames(signetdevCmdRespInfo, QVector<int>, QStringList)));
 	connect(app, SIGNAL(connectionError()),
 		this, SLOT(connectionError()));
 
@@ -216,9 +216,9 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	QObject::connect(m_restoreAction, SIGNAL(triggered(bool)),
 			 this, SLOT(restoreDeviceUi()));
 
-	m_OSPasswordSlots = m_deviceMenu->addAction("OS password slots");
-	QObject::connect(m_OSPasswordSlots, SIGNAL(triggered(bool)),
-			 this, SLOT(OSPasswordSlotsUi()));
+	m_passwordSlots = m_deviceMenu->addAction("Password slots");
+	QObject::connect(m_passwordSlots, SIGNAL(triggered(bool)),
+			 this, SLOT(passwordSlotsUi()));
 
 	m_changePasswordAction = m_deviceMenu->addAction("Change master password");
 	QObject::connect(m_changePasswordAction, SIGNAL(triggered(bool)),
@@ -1594,7 +1594,6 @@ void MainWindow::enterDeviceState(int state)
 		m_restoreAction->setVisible(false);
 		m_wipeDeviceAction->setVisible(false);
 		m_eraseDeviceAction->setVisible(false);
-
 		m_loggedInStack->setCurrentIndex(0);
 	}
 	break;
@@ -1968,15 +1967,16 @@ void MainWindow::importKeePassUI()
 
 #include "cleartextpasswordselector.h"
 
-void MainWindow::OSPasswordSlotsUi()
+void MainWindow::passwordSlotsUi()
 {
 	::signetdev_read_cleartext_password_names(NULL, &m_signetdevCmdToken);
 }
 
-void MainWindow::signetdevReadCleartextPasswordNames(signetdevCmdRespInfo info, QStringList names)
+void MainWindow::signetdevReadCleartextPasswordNames(signetdevCmdRespInfo info, QVector<int> formats, QStringList names)
 {
 	if (info.resp_code == OKAY) {
-		cleartextPasswordSelector *s = new cleartextPasswordSelector(names, this);
+		cleartextPasswordSelector *s = new cleartextPasswordSelector(formats, names, this);
+		s->setMinimumWidth(300);
 		s->setWindowTitle("Password slots");
 		s->exec();
 		s->deleteLater();
