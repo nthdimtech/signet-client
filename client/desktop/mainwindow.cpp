@@ -250,6 +250,7 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	m_changePasswordAction->setVisible(false);
 	m_backupAction->setVisible(false);
 	m_restoreAction->setVisible(false);
+	m_passwordSlots->setVisible(false);
 	if (m_dbFilename.size()) {
 		enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
 		enterDeviceState(SignetApplication::STATE_CONNECTING);
@@ -828,7 +829,6 @@ void MainWindow::changePasswordUi()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-	int temp;
 	if (m_quitting) {
 		switch (m_deviceState) {
 		case SignetApplication::STATE_CONNECTING:
@@ -1570,6 +1570,7 @@ void MainWindow::enterDeviceState(int state)
 		m_wipeDeviceAction->setVisible(false);
 		m_changePasswordAction->setVisible(false);
 		m_updateFirmwareAction->setVisible(false);
+		m_passwordSlots->setVisible(false);
 
 		m_uninitPrompt = new QWidget();
 		QVBoxLayout *layout = new QVBoxLayout();
@@ -1605,7 +1606,7 @@ void MainWindow::enterDeviceState(int state)
 		m_changePasswordAction->setVisible(true);
 		m_eraseDeviceAction->setVisible(true);
 		m_eraseDeviceAction->setText("Reinitialize");
-
+		m_passwordSlots->setVisible(false);
 		m_backupAction->setVisible(false);
 		m_logoutAction->setVisible(false);
 		m_updateFirmwareAction->setVisible(false);
@@ -1625,6 +1626,7 @@ void MainWindow::enterDeviceState(int state)
 		m_backupAction->setVisible(true);
 		m_changePasswordAction->setVisible(true);
 		m_updateFirmwareAction->setVisible(true);
+		m_passwordSlots->setVisible(true);
 
 		m_restoreAction->setVisible(false);
 		m_wipeDeviceAction->setVisible(false);
@@ -1635,6 +1637,7 @@ void MainWindow::enterDeviceState(int state)
 	default:
 		break;
 	}
+
 
 	bool fileActionsEnabled = (m_deviceState == SignetApplication::STATE_LOGGED_IN);
 	m_exportMenu->menuAction()->setVisible(fileActionsEnabled);
