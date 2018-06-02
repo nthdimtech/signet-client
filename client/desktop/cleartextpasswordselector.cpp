@@ -139,12 +139,21 @@ void cleartextPasswordSelector::signetdevReadCleartextPassword(signetdevCmdRespI
 	if (m_buttonWaitDialog)
 		m_buttonWaitDialog->done(QMessageBox::Ok);
 	if (info.resp_code == OKAY) {
-		done(0);
 		cleartextPasswordEditor *e = new cleartextPasswordEditor(m_index, &pass, parentWidget());
 		e->setWindowTitle("Password slot " + QString::number(m_index + 1));
 		e->setMinimumWidth(300);
 		e->exec();
 		e->deleteLater();
+		m_formats.replace(m_index, pass.format);
+		m_slotButtons.at(m_index)->setText(QString::fromUtf8(pass.name_utf8));
+		if (pass.format != 1) {
+			m_slotButtons.at(m_index)->setText("<Unused>");
+		} else {
+			m_slotButtons.at(m_index)->setText(QString::fromUtf8(pass.name_utf8));
+		}
+		if (m_slotButtons.at(m_index)->isChecked()) {
+			m_deleteButton->setDisabled(pass.format != 1);
+		}
 	} else {
 		QMessageBox *box = SignetApplication::messageBoxError(QMessageBox::Critical,
 								QString("Read password slot"),

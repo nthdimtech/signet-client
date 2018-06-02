@@ -6,6 +6,7 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QLabel>
+#include <QCloseEvent>
 
 #include "passwordedit.h"
 
@@ -14,7 +15,8 @@ cleartextPasswordEditor::cleartextPasswordEditor(int index, struct cleartext_pas
 	m_index(index),
 	m_pass(p),
 	m_signetdevCmdToken(-1),
-	m_buttonWaitDialog(NULL)
+	m_buttonWaitDialog(NULL),
+	m_changesMade(false)
 {
 	SignetApplication *app = SignetApplication::get();
 	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
@@ -47,6 +49,7 @@ cleartextPasswordEditor::cleartextPasswordEditor(int index, struct cleartext_pas
 
 void cleartextPasswordEditor::edited()
 {
+	m_changesMade = true;
 	m_saveButton->setDisabled(false);
 }
 
@@ -57,8 +60,10 @@ void cleartextPasswordEditor::savePressed()
 	QByteArray nameUTF8 = name.toUtf8();
 	QByteArray passwordUTF8 = password.toUtf8();
 
-	m_pass->format = 1;
-	m_pass->scancode_entries = 0;
+	m_passNext = *m_pass;
+
+	m_passNext.format = 1;
+	m_passNext.scancode_entries = 0;
 
 	QMessageBox *warn;
 
@@ -78,12 +83,12 @@ void cleartextPasswordEditor::savePressed()
 		return;
 	}
 
-	strncpy(m_pass->name_utf8, nameUTF8.data(), CLEARTEXT_PASS_NAME_SIZE - 1);
-	strncpy(m_pass->password_utf8, passwordUTF8.data(), CLEARTEXT_PASS_PASS_SIZE - 1);
+	strncpy(m_passNext.name_utf8, nameUTF8.data(), CLEARTEXT_PASS_NAME_SIZE - 1);
+	strncpy(m_passNext.password_utf8, passwordUTF8.data(), CLEARTEXT_PASS_PASS_SIZE - 1);
 
 	int out_len = CLEARTEXT_PASS_SCANCODE_ENTRIES;
 
-	int rc = signetdev_to_scancodes_w((const u16 *)password.data(), password.length(), (u16 *)m_pass->scancodes, &out_len);
+	int rc = signetdev_to_scancodes_w((const u16 *)password.data(), password.length(), (u16 *)m_passNext.scancodes, &out_len);
 
 	switch (rc) {
 	case 1:
@@ -104,7 +109,7 @@ void cleartextPasswordEditor::savePressed()
 	m_buttonWaitDialog = new ButtonWaitDialog("Save password slot", "save password slot", this, false);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(buttonWaitFinished(int)));
 	m_buttonWaitDialog->show();
-	::signetdev_write_cleartext_password(NULL, &m_signetdevCmdToken, m_index, m_pass);
+	::signetdev_write_cleartext_password(NULL, &m_signetdevCmdToken, m_index, &m_passNext);
 }
 
 void cleartextPasswordEditor::signetdevCmdResp(signetdevCmdRespInfo info)
@@ -116,6 +121,8 @@ void cleartextPasswordEditor::signetdevCmdResp(signetdevCmdRespInfo info)
 		m_buttonWaitDialog->done(0);
 	}
 	if (info.resp_code == OKAY) {
+		*m_pass = m_passNext;
+		m_changesMade = false;
 		close();
 	} else {
 		QMessageBox *warn;
@@ -135,4 +142,23 @@ void cleartextPasswordEditor::buttonWaitFinished(int result)
 	if (m_buttonWaitDialog)
 		m_buttonWaitDialog->deleteLater();
 	m_buttonWaitDialog = NULL;
+}
+
+void cleartextPasswordEditor::closeEvent(QCloseEvent *event)
+{
+	if (m_changesMade) {
+		QMessageBox *box = new QMessageBox(QMessageBox::Question, windowTitle(),
+					       "You have made changes. Do you want to save them",
+					       QMessageBox::Yes |
+					       QMessageBox::No,
+					       this);
+		int rc = box->exec();
+		box->deleteLater();
+		if (rc == QMessageBox::Yes) {
+			event->ignore();
+			savePressed();
+			return;
+		}
+	}
+	event->accept();
 }
