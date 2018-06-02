@@ -25,11 +25,8 @@ cleartextPasswordEditor::cleartextPasswordEditor(int index, struct cleartext_pas
 	l->addWidget(heading);
 	m_nameEdit = new lineFieldEdit("Name", false);
 	m_passwordEdit = new PasswordEdit();
-	QHBoxLayout *passwordRow = new QHBoxLayout();
-	passwordRow->addWidget(new QLabel("Password"));
-	passwordRow->addWidget(m_passwordEdit);
 	l->addWidget(m_nameEdit->widget());
-	l->addLayout(passwordRow);
+	l->addWidget(m_passwordEdit);
 	m_deleteButton = new QPushButton("Delete");
 	m_saveButton = new QPushButton("Save");
 	QPushButton *closeButton = new QPushButton("Close");
@@ -43,7 +40,7 @@ cleartextPasswordEditor::cleartextPasswordEditor(int index, struct cleartext_pas
 
 	m_saveButton->setDisabled(true);
 	connect(m_nameEdit, SIGNAL(edited()), this, SLOT(edited()));
-	connect(m_passwordEdit, SIGNAL(textEdited()), this, SLOT(edited()));
+	connect(m_passwordEdit, SIGNAL(textEdited(QString)), this, SLOT(edited()));
 	connect(closeButton, SIGNAL(clicked(bool)), this, SLOT(close()));
 	connect(m_saveButton, SIGNAL(pressed()), this, SLOT(savePressed()));
 	connect(m_deleteButton, SIGNAL(pressed()), this, SLOT(deletePressed()));

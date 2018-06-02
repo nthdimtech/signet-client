@@ -222,7 +222,6 @@ void PasswordEdit::generatePasswordComplete(QByteArray rand)
 
 void PasswordEdit::passwordTextEdited(QString str)
 {
-	Q_UNUSED(str);
 	emit textEdited(str);
 	m_generateOptions->hide();
 }
