@@ -472,6 +472,10 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 	}
 
 	switch (info.cmd) {
+	case SIGNETDEV_CMD_GET_DEVICE_STATE:
+		enterDeviceState(SignetApplication::STATE_DISCONNECTED);
+		close();
+		break;
 	case SIGNETDEV_CMD_ERASE_PAGES:
 		if (code == OKAY) {
 			::signetdev_get_progress(NULL, &m_signetdevCmdToken, 0, ERASING_PAGES);
@@ -824,9 +828,23 @@ void MainWindow::changePasswordUi()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+	int temp;
 	if (m_quitting) {
+		switch (m_deviceState) {
+		case SignetApplication::STATE_CONNECTING:
+			enterDeviceState(SignetApplication::STATE_DISCONNECTED);
+			break;
+		case SignetApplication::STATE_DISCONNECTED:
+			break;
+		default:
+			::signetdev_disconnect(NULL, &temp);
+			::signetdev_get_device_state(NULL, &m_signetdevCmdToken);
+			event->ignore();
+			return;
+		}
 		m_settings.windowGeometry = saveGeometry();
 		saveSettings();
+		signetdev_close_connection();
 		event->accept();
 	} else {
 		emit hide();
@@ -1364,6 +1382,24 @@ void MainWindow::enterDeviceState(int state)
 	m_deviceState = (enum SignetApplication::device_state) state;
 
 	switch (m_deviceState) {
+	case SignetApplication::STATE_DISCONNECTING: {
+		m_loggedIn = false;
+		QWidget *disconnecting_widget = new QWidget();
+		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
+		layout->setAlignment(Qt::AlignTop);
+		disconnecting_widget->setLayout(layout);
+		QLabel *label = new QLabel("Disconnecting from device");
+		layout->addWidget(label);
+		disconnecting_widget->setLayout(layout);
+		setCentralWidget(disconnecting_widget);
+	}
+	break;
+	case SignetApplication::STATE_DISCONNECTED: {
+		m_loggedIn = false;
+		QWidget *disconnected_widget = new QWidget();
+		setCentralWidget(disconnected_widget);
+	}
+	break;
 	case SignetApplication::STATE_CONNECTING: {
 		m_loggedIn = false;
 		QWidget *connecting_widget = new QWidget();

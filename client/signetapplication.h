@@ -95,6 +95,8 @@ public:
 	enum device_state {
 		STATE_INVALID,
 		STATE_NEVER_SHOWN,
+		STATE_DISCONNECTING,
+		STATE_DISCONNECTED,
 		STATE_CONNECTING,
 		STATE_RESET,
 		STATE_UNINITIALIZED,
@@ -205,7 +207,6 @@ signals:
 	void signetdevEvent(int event_type);
 	void signetdevTimerEvent(int seconds_remaining);
 public slots:
-	void mainDestroyed();
 #ifndef Q_OS_ANDROID
 	void trayActivated(QSystemTrayIcon::ActivationReason reason);
 #endif

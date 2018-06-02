@@ -76,9 +76,7 @@ int main(int argc, char **argv)
 	a.init(startInTray, dbFile);
 	a.exec();
 
-	if (dbFile.size()) {
-		signetdev_emulate_end();
-		signetdev_emulate_deinit();
-	}
+	signetdev_deinitialize_api();
+
 	return 0;
 }

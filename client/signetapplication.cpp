@@ -53,11 +53,6 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 	qRegisterMetaType<QVector<int> >("QVector<int>");
 }
 
-void SignetApplication::mainDestroyed()
-{
-	::signetdev_deinitialize_api();
-}
-
 void SignetApplication::generateScryptKey(const QString &password, QByteArray &key, const QByteArray &salt, unsigned int N, unsigned int r, unsigned int s)
 {
 	QByteArray password_utf8 = password.toUtf8();
@@ -211,6 +206,7 @@ void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int c
 	break;
 	default:
 		this_->signetdevCmdResp(info);
+		break;
 	}
 }
 
@@ -229,7 +225,6 @@ void SignetApplication::init(bool startInTray, QString dbFilename)
 
 	connect(this, SIGNAL(connectionError()), m_main_window, SLOT(connectionError()));
 
-	QObject::connect(m_main_window, SIGNAL(destroyed(QObject*)), this, SLOT(mainDestroyed()));
 	QObject::connect(this, SIGNAL(messageReceived(QString)), m_main_window, SLOT(messageReceived(QString)));
 	QObject::connect(&m_systray, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
 			 this, SLOT(trayActivated(QSystemTrayIcon::ActivationReason)));
