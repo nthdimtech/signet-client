@@ -27,12 +27,10 @@ cleartextPasswordEditor::cleartextPasswordEditor(int index, struct cleartext_pas
 	m_passwordEdit = new PasswordEdit();
 	l->addWidget(m_nameEdit->widget());
 	l->addWidget(m_passwordEdit);
-	m_deleteButton = new QPushButton("Delete");
 	m_saveButton = new QPushButton("Save");
 	QPushButton *closeButton = new QPushButton("Close");
 	QHBoxLayout *buttons = new QHBoxLayout();
 	buttons->addWidget(m_saveButton);
-	buttons->addWidget(m_deleteButton);
 	buttons->addWidget(closeButton);
 
 	m_nameEdit->fromString(QString::fromUtf8(p->name_utf8));
@@ -43,7 +41,6 @@ cleartextPasswordEditor::cleartextPasswordEditor(int index, struct cleartext_pas
 	connect(m_passwordEdit, SIGNAL(textEdited(QString)), this, SLOT(edited()));
 	connect(closeButton, SIGNAL(clicked(bool)), this, SLOT(close()));
 	connect(m_saveButton, SIGNAL(pressed()), this, SLOT(savePressed()));
-	connect(m_deleteButton, SIGNAL(pressed()), this, SLOT(deletePressed()));
 	l->addLayout(buttons);
 	setLayout(l);
 }
@@ -51,19 +48,6 @@ cleartextPasswordEditor::cleartextPasswordEditor(int index, struct cleartext_pas
 void cleartextPasswordEditor::edited()
 {
 	m_saveButton->setDisabled(false);
-}
-
-void cleartextPasswordEditor::deletePressed()
-{
-	m_pass->format = 0xff;
-	m_pass->scancode_entries = 0;
-	memset(m_pass->name_utf8, 0, CLEARTEXT_PASS_NAME_SIZE);
-	memset(m_pass->password_utf8, 0, CLEARTEXT_PASS_PASS_SIZE);
-	memset(m_pass->scancodes, 0, CLEARTEXT_PASS_SCANCODE_ENTRIES*2);
-	::signetdev_write_cleartext_password(NULL, &m_signetdevCmdToken, m_index, m_pass);
-	m_buttonWaitDialog = new ButtonWaitDialog("Delete password slot", "delete password slot", this, false);
-	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(buttonWaitFinished(int)));
-	m_buttonWaitDialog->show();
 }
 
 void cleartextPasswordEditor::savePressed()
@@ -131,7 +115,16 @@ void cleartextPasswordEditor::signetdevCmdResp(signetdevCmdRespInfo info)
 	if (m_buttonWaitDialog) {
 		m_buttonWaitDialog->done(0);
 	}
-	close();
+	if (info.resp_code == OKAY) {
+		close();
+	} else {
+		QMessageBox *warn;
+		warn = SignetApplication::messageBoxError(QMessageBox::Critical,
+							 "Save password slot",
+							 "Failed to save password slot",
+							 this);
+		warn->exec();
+	}
 }
 
 void cleartextPasswordEditor::buttonWaitFinished(int result)

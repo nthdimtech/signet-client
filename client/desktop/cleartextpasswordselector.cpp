@@ -18,16 +18,20 @@ extern "C" {
 
 cleartextPasswordSelector::cleartextPasswordSelector(QVector<int> formats, QStringList names, QWidget *parent) :
 	QDialog(parent),
+	m_formats(formats),
 	m_buttonWaitDialog(NULL)
 {
 	SignetApplication *app = SignetApplication::get();
 	connect(app, SIGNAL(signetdevReadCleartextPassword(signetdevCmdRespInfo,cleartext_pass)),
 		this, SLOT(signetdevReadCleartextPassword(signetdevCmdRespInfo,cleartext_pass)));
+	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
+		this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 	setWindowModality(Qt::WindowModal);
 	QVBoxLayout *l = new QVBoxLayout();
 	QHBoxLayout *buttons = new QHBoxLayout();
 	m_openButton = new QPushButton("Open");
-	QPushButton *cancel = new QPushButton("Cancel");
+	QPushButton *cancelButton = new QPushButton("Cancel");
+	m_deleteButton = new QPushButton("Delete");
 
 	if (formats.size() == names.size()) {
 		for (int i = 0; i < formats.size(); i++) {
@@ -48,19 +52,49 @@ cleartextPasswordSelector::cleartextPasswordSelector(QVector<int> formats, QStri
 		}
 	}
 	buttons->addWidget(m_openButton);
-	buttons->addWidget(cancel);
+	buttons->addWidget(m_deleteButton);
+	buttons->addWidget(cancelButton);
 	l->addLayout(buttons);
 	setLayout(l);
 
 	m_openButton->setDisabled(true);
+	m_deleteButton->setDisabled(true);
 
-	connect(cancel, SIGNAL(pressed()), this, SLOT(close()));
+	connect(cancelButton, SIGNAL(pressed()), this, SLOT(close()));
+	connect(m_deleteButton, SIGNAL(pressed()), this, SLOT(deletePressed()));
 	connect(m_openButton, SIGNAL(pressed()), this, SLOT(openPressed()));
+}
+
+void cleartextPasswordSelector::deletePressed()
+{
+	int i = 0;
+	for (auto b : m_slotButtons) {
+		if (b->isChecked()) {
+			m_index = i;
+			m_buttonWaitDialog = new ButtonWaitDialog("Delete password slot", "delete password slot", this, false);
+			connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(buttonWaitFinished(int)));
+			m_buttonWaitDialog->show();
+			struct cleartext_pass p;
+			memset(&p, 0, sizeof(p));
+			p.format = 0xff;
+			m_formats.replace(m_index, 0xff);
+			::signetdev_write_cleartext_password(NULL, &m_signetdevCmdToken, m_index, &p);
+			break;
+		}
+		i++;
+	}
 }
 
 void cleartextPasswordSelector::selectionPressed()
 {
 	m_openButton->setDisabled(false);
+	int i = 0;
+	for (auto b : m_slotButtons) {
+		if (b == QObject::sender()) {
+			m_deleteButton->setDisabled(m_formats.at(i) != 1);
+		}
+		i++;
+	}
 }
 
 void cleartextPasswordSelector::buttonWaitFinished(int result)
@@ -70,6 +104,30 @@ void cleartextPasswordSelector::buttonWaitFinished(int result)
 		::signetdev_cancel_button_wait();
 	}
 	m_buttonWaitDialog = NULL;
+}
+
+
+void cleartextPasswordSelector::signetdevCmdResp(signetdevCmdRespInfo info)
+{
+	if (info.token != m_signetdevCmdToken) {
+		return;
+	}
+	if (m_buttonWaitDialog) {
+		m_buttonWaitDialog->done(0);
+	}
+	if (info.resp_code == OKAY) {
+		m_slotButtons.at(m_index)->setText("<Unused>");
+		if (m_slotButtons.at(m_index)->isChecked()) {
+			m_deleteButton->setDisabled(true);
+		}
+	} else {
+		QMessageBox *warn;
+		warn = SignetApplication::messageBoxError(QMessageBox::Critical,
+							 "Save password slot",
+							 "Failed to delete password slot",
+							 this);
+		warn->exec();
+	}
 }
 
 void cleartextPasswordSelector::signetdevReadCleartextPassword(signetdevCmdRespInfo info, cleartext_pass pass)
