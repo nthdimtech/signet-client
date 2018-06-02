@@ -472,9 +472,9 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 	}
 
 	switch (info.cmd) {
-	case SIGNETDEV_CMD_GET_DEVICE_STATE:
+	case SIGNETDEV_CMD_DISCONNECT:
 		enterDeviceState(SignetApplication::STATE_DISCONNECTED);
-		close();
+		emit close();
 		break;
 	case SIGNETDEV_CMD_ERASE_PAGES:
 		if (code == OKAY) {
@@ -837,9 +837,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
 		case SignetApplication::STATE_DISCONNECTED:
 			break;
 		default:
-			::signetdev_disconnect(NULL, &temp);
-			::signetdev_get_device_state(NULL, &m_signetdevCmdToken);
 			event->ignore();
+			::signetdev_disconnect(NULL, &m_signetdevCmdToken);
 			return;
 		}
 		m_settings.windowGeometry = saveGeometry();
