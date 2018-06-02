@@ -41,7 +41,7 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 #ifdef Q_OS_ANDROID
 	QApplication(argc, argv),
 #else
-	QtSingleApplication("qtsingle-app-signetdev-" + QString(USB_VENDOR_ID) + "-" + QString(USB_SIGNET_DESKTOP_PRODUCT_ID) ,argc, argv),
+	QtSingleApplication("signetdev-" + QString(USB_VENDOR_ID) + "-" + QString(USB_SIGNET_DESKTOP_PRODUCT_ID) ,argc, argv),
 #endif
 	m_signetAsyncListener(NULL)
 {

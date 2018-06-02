@@ -48,7 +48,11 @@
 #include <QLibrary>
 #include <qt_windows.h>
 typedef BOOL(WINAPI*PProcessIdToSessionId)(DWORD,DWORD*);
+
+//For Signet we don't want multiple instances even across sessions
+#if 0
 static PProcessIdToSessionId pProcessIdToSessionId = 0;
+#endif
 #endif
 #if defined(Q_OS_UNIX)
 #include <sys/types.h>
@@ -86,6 +90,8 @@ QtLocalPeer::QtLocalPeer(QObject* parent, const QString &appId)
     socketName = QLatin1String("qtsingleapp-") + prefix
                  + QLatin1Char('-') + QString::number(idNum, 16);
 
+//For Signet we don't want multiple instances even across sessions
+#if 0
 #if defined(Q_OS_WIN)
     if (!pProcessIdToSessionId) {
         QLibrary lib("kernel32");
@@ -98,6 +104,7 @@ QtLocalPeer::QtLocalPeer(QObject* parent, const QString &appId)
     }
 #else
     socketName += QLatin1Char('-') + QString::number(::getuid(), 16);
+#endif
 #endif
 
     server = new QLocalServer(this);
