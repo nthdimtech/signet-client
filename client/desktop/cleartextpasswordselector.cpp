@@ -139,7 +139,7 @@ void cleartextPasswordSelector::signetdevReadCleartextPassword(signetdevCmdRespI
 	if (m_buttonWaitDialog)
 		m_buttonWaitDialog->done(QMessageBox::Ok);
 	if (info.resp_code == OKAY) {
-		cleartextPasswordEditor *e = new cleartextPasswordEditor(m_index, &pass, parentWidget());
+		cleartextPasswordEditor *e = new cleartextPasswordEditor(m_index, &pass, this);
 		e->setWindowTitle("Password slot " + QString::number(m_index + 1));
 		e->setMinimumWidth(300);
 		e->exec();
