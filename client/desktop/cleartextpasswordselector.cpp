@@ -30,7 +30,7 @@ cleartextPasswordSelector::cleartextPasswordSelector(QVector<int> formats, QStri
 	QVBoxLayout *l = new QVBoxLayout();
 	QHBoxLayout *buttons = new QHBoxLayout();
 	m_openButton = new QPushButton("Open");
-	QPushButton *cancelButton = new QPushButton("Cancel");
+	QPushButton *closeButton = new QPushButton("Close");
 	m_deleteButton = new QPushButton("Delete");
 
 	if (formats.size() == names.size()) {
@@ -53,14 +53,14 @@ cleartextPasswordSelector::cleartextPasswordSelector(QVector<int> formats, QStri
 	}
 	buttons->addWidget(m_openButton);
 	buttons->addWidget(m_deleteButton);
-	buttons->addWidget(cancelButton);
+	buttons->addWidget(closeButton);
 	l->addLayout(buttons);
 	setLayout(l);
 
 	m_openButton->setDisabled(true);
 	m_deleteButton->setDisabled(true);
 
-	connect(cancelButton, SIGNAL(pressed()), this, SLOT(close()));
+	connect(closeButton, SIGNAL(pressed()), this, SLOT(close()));
 	connect(m_deleteButton, SIGNAL(pressed()), this, SLOT(deletePressed()));
 	connect(m_openButton, SIGNAL(pressed()), this, SLOT(openPressed()));
 }

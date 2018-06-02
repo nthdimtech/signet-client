@@ -105,7 +105,7 @@ void cleartextPasswordEditor::savePressed()
 		return;
 	}
 
-	m_pass->scancode_entries = out_len;
+	m_passNext.scancode_entries = out_len;
 	m_buttonWaitDialog = new ButtonWaitDialog("Save password slot", "save password slot", this, false);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(buttonWaitFinished(int)));
 	m_buttonWaitDialog->show();
