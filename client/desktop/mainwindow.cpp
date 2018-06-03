@@ -1619,6 +1619,7 @@ void MainWindow::enterDeviceState(int state)
 	}
 	break;
 	case SignetApplication::STATE_LOGGED_IN: {
+		SignetApplication *app = SignetApplication::get();
 		m_loggedIn = true;
 		m_deviceMenu->setDisabled(false);
 		m_fileMenu->setDisabled(false);
@@ -1626,8 +1627,13 @@ void MainWindow::enterDeviceState(int state)
 		m_backupAction->setVisible(true);
 		m_changePasswordAction->setVisible(true);
 		m_updateFirmwareAction->setVisible(true);
-		m_passwordSlots->setVisible(true);
-
+		int major;
+		int minor;
+		int step;
+		app->getConnectedFirmwareVersion(major, minor, step);
+		if (major == 1 && ((minor > 3) || (minor == 3 && step >= 2))) {
+			m_passwordSlots->setVisible(true);
+		}
 		m_restoreAction->setVisible(false);
 		m_wipeDeviceAction->setVisible(false);
 		m_eraseDeviceAction->setVisible(false);
