@@ -111,20 +111,20 @@ public:
 	};
 
 	static QDate getReleaseDate() {
-		return QDate(2018,3,6);
+		return QDate(2018,6,4);
 	}
 
 	void getClientVersion(int &major, int &minor, int &step, int &subStep) {
 		major = 0;
 		minor = 9;
-		step = 10;
+		step = 11;
 		subStep = 0;
 	}
 
 	void getFirmwareVersion(int &major, int &minor, int &step) {
 		major = 1;
-		minor = 2;
-		step = 4;
+		minor = 3;
+		step = 2;
 	}
 
 	void getConnectedFirmwareVersion(int &major, int &minor, int &step) {
