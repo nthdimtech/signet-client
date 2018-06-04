@@ -244,7 +244,8 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	QAction *about_action = helpMenu->addAction("&About");
 	connect(about_action, SIGNAL(triggered(bool)), this, SLOT(aboutUi()));
 
-	m_logoutAction->setVisible(false);
+	m_logoutAction->setVisible(true);
+	m_logoutAction->setDisabled(true);
 	m_eraseDeviceAction->setVisible(false);
 	m_wipeDeviceAction->setVisible(false);
 	m_changePasswordAction->setVisible(false);
@@ -1345,6 +1346,9 @@ void MainWindow::enterDeviceState(int state)
 		m_backupAction->setVisible(false);
 		m_restoreAction->setVisible(false);
 		m_updateFirmwareAction->setVisible(false);
+		m_eraseDeviceAction->setVisible(false);
+		m_wipeDeviceAction->setVisible(false);
+		m_passwordSlots->setVisible(false);
 		m_importMenu->setDisabled(true);
 		m_deviceMenu->setTitle("&Database");
 	} else {
@@ -1560,12 +1564,13 @@ void MainWindow::enterDeviceState(int state)
 		m_deviceMenu->setDisabled(false);
 		m_fileMenu->setDisabled(false);
 
-		m_restoreAction->setVisible(true);
-		m_eraseDeviceAction->setVisible(true);
-		m_eraseDeviceAction->setText("Initialize");
-		m_eraseDeviceAction->setText("Initialize");
+		if (!databaseFile) {
+			m_restoreAction->setVisible(true);
+			m_eraseDeviceAction->setVisible(true);
+			m_eraseDeviceAction->setText("Initialize");
+		}
 
-		m_logoutAction->setVisible(false);
+		m_logoutAction->setDisabled(true);
 		m_backupAction->setVisible(false);
 		m_wipeDeviceAction->setVisible(false);
 		m_changePasswordAction->setVisible(false);
@@ -1595,20 +1600,23 @@ void MainWindow::enterDeviceState(int state)
 		m_fileMenu->setDisabled(false);
 		int fwMaj, fwMin, fwStep;
 		SignetApplication::get()->getConnectedFirmwareVersion(fwMaj, fwMin, fwStep);
-		if (fwMaj == 1 && fwMin == 2 && fwStep == 1) {
-			//Version 1.2.1 has a glitch that causes a lockup when starting
-			// a restore from the logged out state
-			m_restoreAction->setVisible(false);
-		} else {
-			m_restoreAction->setVisible(true);
+
+		if (!databaseFile) {
+			if (fwMaj == 1 && fwMin == 2 && fwStep == 1) {
+				//Version 1.2.1 has a glitch that causes a lockup when starting
+				// a restore from the logged out state
+				m_restoreAction->setVisible(false);
+			} else {
+				m_restoreAction->setVisible(true);
+			}
+			m_wipeDeviceAction->setVisible(true);
+			m_changePasswordAction->setVisible(true);
+			m_eraseDeviceAction->setVisible(true);
+			m_eraseDeviceAction->setText("Reinitialize");
 		}
-		m_wipeDeviceAction->setVisible(true);
-		m_changePasswordAction->setVisible(true);
-		m_eraseDeviceAction->setVisible(true);
-		m_eraseDeviceAction->setText("Reinitialize");
 		m_passwordSlots->setVisible(false);
 		m_backupAction->setVisible(false);
-		m_logoutAction->setVisible(false);
+		m_logoutAction->setDisabled(true);
 		m_updateFirmwareAction->setVisible(false);
 
 		LoginWindow *login_window = new LoginWindow(this);
@@ -1619,20 +1627,23 @@ void MainWindow::enterDeviceState(int state)
 	}
 	break;
 	case SignetApplication::STATE_LOGGED_IN: {
-		SignetApplication *app = SignetApplication::get();
 		m_loggedIn = true;
+		m_logoutAction->setDisabled(false);
 		m_deviceMenu->setDisabled(false);
 		m_fileMenu->setDisabled(false);
-		m_logoutAction->setVisible(true);
-		m_backupAction->setVisible(true);
-		m_changePasswordAction->setVisible(true);
-		m_updateFirmwareAction->setVisible(true);
-		int major;
-		int minor;
-		int step;
-		app->getConnectedFirmwareVersion(major, minor, step);
-		if (major == 1 && ((minor > 3) || (minor == 3 && step >= 2))) {
-			m_passwordSlots->setVisible(true);
+
+		if (!databaseFile) {
+			m_backupAction->setVisible(true);
+			m_changePasswordAction->setVisible(true);
+			m_updateFirmwareAction->setVisible(true);
+			SignetApplication *app = SignetApplication::get();
+			int major;
+			int minor;
+			int step;
+			app->getConnectedFirmwareVersion(major, minor, step);
+			if (major == 1 && ((minor > 3) || (minor == 3 && step >= 2))) {
+				m_passwordSlots->setVisible(true);
+			}
 		}
 		m_restoreAction->setVisible(false);
 		m_wipeDeviceAction->setVisible(false);
