@@ -5,4 +5,5 @@ moc_*
 *.swp
 *.pm_backup
 build-*/
-qtclient/qtclient.pro.user
+client/client.pro.user
+client/gitversion.h
