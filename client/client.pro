@@ -46,8 +46,9 @@ macx {
 ICON = images/signet.icns
 LIBS += -framework CoreFoundation
 LIBS += /usr/local/lib/libgcrypt.a /usr/local/lib/libgpg-error.a -lz
-INCLUDEPATH+=/usr/local/include
+INCLUDEPATH += /usr/local/include
 QMAKE_LFLAGS += -L/usr/local/lib
+QMAKE_INFO_PLIST = macos/Info.plist
 }
 
 linux-g++ {
