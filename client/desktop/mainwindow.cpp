@@ -216,7 +216,7 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	QObject::connect(m_restoreAction, SIGNAL(triggered(bool)),
 			 this, SLOT(restoreDeviceUi()));
 
-	m_passwordSlots = m_deviceMenu->addAction("Password slots");
+	m_passwordSlots = m_deviceMenu->addAction("Direct access slots");
 	QObject::connect(m_passwordSlots, SIGNAL(triggered(bool)),
 			 this, SLOT(passwordSlotsUi()));
 
@@ -2032,7 +2032,7 @@ void MainWindow::signetdevReadCleartextPasswordNames(signetdevCmdRespInfo info, 
 	if (info.resp_code == OKAY) {
 		cleartextPasswordSelector *s = new cleartextPasswordSelector(formats, names, this);
 		s->setMinimumWidth(300);
-		s->setWindowTitle("Password slots");
+		s->setWindowTitle("Direct access slots");
 		s->exec();
 		s->deleteLater();
 	}
