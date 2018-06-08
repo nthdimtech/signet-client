@@ -66,7 +66,7 @@ NewAccount::NewAccount(int id, const QString &name, QWidget *parent) : QDialog(p
 	QPushButton *closeButton = new QPushButton("Close");
 	connect(closeButton, SIGNAL(pressed()), this, SLOT(close()));
 
-	m_password_edit = new PasswordEdit();
+	m_password_edit = new PasswordEdit("password");
 
 	QHBoxLayout *buttons = new QHBoxLayout();
 	buttons->addWidget(createButton);

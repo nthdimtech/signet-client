@@ -55,7 +55,7 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 	m_usernameField = new DatabaseField("username", 120, NULL);
 	m_groupField = new DatabaseField("group", 120, NULL);
 	m_emailField = new DatabaseField("email", 120, NULL);
-	m_passwordEdit = new PasswordEdit();
+	m_passwordEdit = new PasswordEdit("password");
 	m_browseUrlButton = new QPushButton(QIcon(":/images/browse.png"),"");
 	m_browseUrlButton->setToolTip("Browse");
 	connect(m_browseUrlButton, SIGNAL(pressed()), this, SLOT(browseUrl()));

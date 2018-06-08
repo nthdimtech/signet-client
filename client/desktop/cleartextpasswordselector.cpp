@@ -71,7 +71,7 @@ void cleartextPasswordSelector::deletePressed()
 	for (auto b : m_slotButtons) {
 		if (b->isChecked()) {
 			m_index = i;
-			m_buttonWaitDialog = new ButtonWaitDialog("Delete password slot", "delete password slot", this, false);
+			m_buttonWaitDialog = new ButtonWaitDialog("Delete direct mode slot", "delete direct mode slot", this, false);
 			connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(buttonWaitFinished(int)));
 			m_buttonWaitDialog->show();
 			struct cleartext_pass p;
@@ -123,8 +123,8 @@ void cleartextPasswordSelector::signetdevCmdResp(signetdevCmdRespInfo info)
 	} else {
 		QMessageBox *warn;
 		warn = SignetApplication::messageBoxError(QMessageBox::Critical,
-							 "Save password slot",
-							 "Failed to delete password slot",
+							 "Save direct mode slot",
+							 "Failed to delete direct mode slot",
 							 this);
 		warn->exec();
 	}
@@ -140,7 +140,7 @@ void cleartextPasswordSelector::signetdevReadCleartextPassword(signetdevCmdRespI
 		m_buttonWaitDialog->done(QMessageBox::Ok);
 	if (info.resp_code == OKAY) {
 		cleartextPasswordEditor *e = new cleartextPasswordEditor(m_index, &pass, this);
-		e->setWindowTitle("Password slot " + QString::number(m_index + 1));
+		e->setWindowTitle("Direct mode slot " + QString::number(m_index + 1));
 		e->setMinimumWidth(300);
 		e->exec();
 		e->deleteLater();
@@ -156,8 +156,8 @@ void cleartextPasswordSelector::signetdevReadCleartextPassword(signetdevCmdRespI
 		}
 	} else {
 		QMessageBox *box = SignetApplication::messageBoxError(QMessageBox::Critical,
-								QString("Read password slot"),
-								QString("Failed to read password slot ") +
+								QString("Read direct mode slot"),
+								QString("Failed to read direct mode slot ") +
 									QString::number(m_index),
 								this);
 		box->exec();
@@ -170,7 +170,7 @@ void cleartextPasswordSelector::openPressed()
 	for (auto b : m_slotButtons) {
 		if (b->isChecked()) {
 			m_index = i;
-			m_buttonWaitDialog = new ButtonWaitDialog("Open password slot", "open password slot", this, false);
+			m_buttonWaitDialog = new ButtonWaitDialog("Open direct mode slot", "open direct mode slot", this, false);
 			connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(buttonWaitFinished(int)));
 			m_buttonWaitDialog->show();
 			::signetdev_read_cleartext_password(NULL, &m_signetdevCmdToken, m_index);
