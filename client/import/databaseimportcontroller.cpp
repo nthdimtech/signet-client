@@ -166,7 +166,6 @@ void DatabaseImportController::importAccountFinished(int code)
 	}
 	m_buttonWaitDialog->deleteLater();
 	m_buttonWaitDialog = NULL;
-	importDone(false);
 }
 
 void DatabaseImportController::importDone(bool success)
