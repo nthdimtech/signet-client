@@ -109,7 +109,7 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	m_startedExport(false)
 {
 	SignetApplication *app = SignetApplication::get();
-	genericTypeDesc *g = new genericTypeDesc();
+	genericTypeDesc *g = new genericTypeDesc(-1);
 	g->name = "generic";
 	m_genericTypeModule = new esdbGenericModule(g);
 	m_accountTypeModule = new esdbAccountModule();

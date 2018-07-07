@@ -194,7 +194,7 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 
 	bool fromFile = mw->getDatabaseFileName().size();
 
-	genericTypeDesc *place = new genericTypeDesc();
+	genericTypeDesc *place = new genericTypeDesc(-1);
 	place->name = "";
 	m_genericDecoder = new esdbGenericModule(place, this);
 
@@ -211,7 +211,7 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	genericTypeDesc *genericTypeDesc_;
 
 	if (USE_PREDEFINED_TYPES) {
-		genericTypeDesc_ = new genericTypeDesc();
+		genericTypeDesc_ = new genericTypeDesc(-1);
 		genericTypeDesc_->name = "Credit card";
 		genericTypeDesc_->fields.push_back(fieldSpec("Card Number","text"));
 		genericTypeDesc_->fields.push_back(fieldSpec("Exp month","integer"));
@@ -221,7 +221,7 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 		d->actionBar = new GenericActionBar(d->module, genericTypeDesc_, this);
 		m_typeData.push_back(d);
 
-		genericTypeDesc_ = new genericTypeDesc();
+		genericTypeDesc_ = new genericTypeDesc(-1);
 		genericTypeDesc_->name = "Contact";
 		genericTypeDesc_->fields.push_back(fieldSpec("Phone","text"));
 		genericTypeDesc_->fields.push_back(fieldSpec("Email","text"));
@@ -234,7 +234,7 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	}
 
 	if (USE_MISC_TYPE) {
-		genericTypeDesc_ = new genericTypeDesc();
+		genericTypeDesc_ = new genericTypeDesc(-1);
 		genericTypeDesc_->name = "Misc";
 		typeData *d = new typeData(new esdbGenericModule(genericTypeDesc_, false, false));
 		d->actionBar = new GenericActionBar(d->module, genericTypeDesc_, this);
