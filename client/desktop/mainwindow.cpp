@@ -951,10 +951,10 @@ QString MainWindow::backupFileBaseName()
 		QString("%1").arg(QString::number(currentTime.date().day()), 2, '0');
 }
 
-void MainWindow::settingsChanged(bool checkForBackups)
+void MainWindow::autoBackupCheck()
 {
 	QDateTime currentTime = QDateTime::currentDateTime();
-	if (m_settings.localBackups && checkForBackups) {
+	if (m_settings.localBackups) {
 		QString backupFileName = m_settings.localBackupPath + "/" + backupFileBaseName() + ".sdb";
 		QDir backupPath(m_settings.localBackupPath);
 		if (!backupPath.exists()) {
@@ -996,7 +996,7 @@ void MainWindow::settingsChanged(bool checkForBackups)
 		}
 	}
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
-	if (m_settings.removableBackups && checkForBackups) {
+	if (m_settings.removableBackups) {
 		if (!m_settings.lastRemoveableBackup.isValid() ||
 			m_settings.lastRemoveableBackup.daysTo(currentTime) > m_settings.removableBackupInterval) {
 			QMessageBox *box = new QMessageBox(QMessageBox::Warning,
@@ -1073,6 +1073,10 @@ void MainWindow::settingsChanged(bool checkForBackups)
 		}
 	}
 #endif
+}
+
+void MainWindow::settingsChanged()
+{
 }
 
 void MainWindow::loadSettings()
@@ -1286,7 +1290,7 @@ void MainWindow::loadSettings()
 		saveSettings();
 	}
 
-	settingsChanged(true);
+	settingsChanged();
 	QLocale inputLocale = QApplication::inputMethod()->locale();
 	if ((inputLocale.language() != QLocale::English ||
 			inputLocale.country() != QLocale::UnitedStates)
@@ -1328,7 +1332,7 @@ void MainWindow::applyKeyboardLayoutChanges()
 	m_settings.activeKeyboardLayout = QString("current");
 	m_settings.keyboardLayouts.insert("current", keyboardLayout);
 	saveSettings();
-	settingsChanged(false);
+	settingsChanged();
 }
 
 void MainWindow::keyboardLayoutTesterClosing(bool applyChanges)
@@ -1634,6 +1638,7 @@ void MainWindow::enterDeviceState(int state)
 		m_fileMenu->setDisabled(false);
 
 		if (!databaseFile) {
+			autoBackupCheck();
 			m_backupAction->setVisible(true);
 			m_changePasswordAction->setVisible(true);
 			m_updateFirmwareAction->setVisible(true);
@@ -1720,7 +1725,7 @@ void MainWindow::openSettingsUi()
 	config->deleteLater();
 	if (!rc) {
 		saveSettings();
-		settingsChanged(false);
+		settingsChanged();
 	}
 }
 
