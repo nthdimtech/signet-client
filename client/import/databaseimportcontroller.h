@@ -28,8 +28,10 @@ class DatabaseImportController : public QObject
 	int m_signetdevCmdToken;
 	bool m_updatePending;
 	bool iteratorsAtEnd();
+	bool m_useUpdateUids;
+	bool m_firstEntry;
 public:
-	explicit DatabaseImportController(DatabaseImporter *importer, LoggedInWidget *parent);
+	explicit DatabaseImportController(DatabaseImporter *importer, LoggedInWidget *parent, bool useUpdateUids);
 	DatabaseImporter *importer() {
 		return m_importer;
 	}

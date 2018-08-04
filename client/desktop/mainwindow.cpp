@@ -2015,7 +2015,21 @@ void MainWindow::importDone(bool success)
 
 void MainWindow::startImport(DatabaseImporter *importer)
 {
-	m_dbImportController = new DatabaseImportController(importer, m_loggedInWidget);
+	SignetApplication *app = SignetApplication::get();
+	int majorVer;
+	int minorVer;
+	int stepVer;
+	app->getConnectedFirmwareVersion(majorVer, minorVer, stepVer);
+	bool useUpdateUids =
+			(majorVer == 1) &&
+			(
+				(minorVer > 3) ||
+				(
+					(minorVer == 3) &&
+					(stepVer >= 3)
+				)
+			);
+	m_dbImportController = new DatabaseImportController(importer, m_loggedInWidget, useUpdateUids);
 	connect(m_dbImportController, SIGNAL(done(bool)), this, SLOT(importDone(bool)));
 	m_dbImportController->start();
 }

@@ -9,13 +9,15 @@
 
 #include <QPushButton>
 
-DatabaseImportController::DatabaseImportController(DatabaseImporter *importer, LoggedInWidget *parent) :
+DatabaseImportController::DatabaseImportController(DatabaseImporter *importer, LoggedInWidget *parent, bool useUpdateUids) :
 	QObject(parent),
 	m_loggedInWidget(parent),
 	m_importer(importer),
 	m_overwriteAll(false),
 	m_skipAll(false),
-	m_updatePending(false)
+	m_updatePending(false),
+	m_useUpdateUids(useUpdateUids),
+	m_firstEntry(true)
 {
 	importer->setParent(this);
 	connect(m_importer, SIGNAL(done(bool)), this, SLOT(importDone(bool)));
@@ -141,20 +143,41 @@ bool DatabaseImportController::nextEntry()
 	if (fullTitle.at(0) == '/') {
 		fullTitle.remove(0, 1);
 	}
-	m_buttonWaitDialog = new ButtonWaitDialog(m_importer->databaseTypeName() + " Import",
-		"import \"" + fullTitle + "\" " +
-		progressString(), (QWidget *)parent());
-	m_buttonWaitDialog->show();
-	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(importAccountFinished(int)));
+
+	if (m_useUpdateUids) {
+		if (m_firstEntry) {
+			m_buttonWaitDialog = new ButtonWaitDialog(m_importer->databaseTypeName() + " Import",
+				"begin importing", (QWidget *)parent(), true);
+		}
+	} else {
+		m_buttonWaitDialog = new ButtonWaitDialog(m_importer->databaseTypeName() + " Import",
+			"import \"" + fullTitle + "\" " +
+			progressString(), (QWidget *)parent());
+	}
+
+	if (m_buttonWaitDialog) {
+		m_buttonWaitDialog->show();
+		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(importAccountFinished(int)));
+	}
+
+	m_firstEntry = false;
 
 	block blk;
 	m_entry = importEntry;
 	m_entry->toBlock(&blk);
-	::signetdev_update_uid(NULL, &m_signetdevCmdToken,
-				   m_entry->id,
-				   blk.data.size(),
-				   (const u8 *)blk.data.data(),
-				   (const u8 *)blk.mask.data());
+	if (m_useUpdateUids) {
+		::signetdev_update_uids(NULL, &m_signetdevCmdToken,
+					   m_entry->id,
+					   blk.data.size(),
+					   (const u8 *)blk.data.data(),
+					   (const u8 *)blk.mask.data(), 1);
+	} else {
+		::signetdev_update_uid(NULL, &m_signetdevCmdToken,
+					   m_entry->id,
+					   blk.data.size(),
+					   (const u8 *)blk.data.data(),
+					   (const u8 *)blk.mask.data());
+	}
 	m_updatePending = true;
 	return true;
 }
@@ -213,6 +236,7 @@ void DatabaseImportController::signetdevCmdResp(signetdevCmdRespInfo info)
 	switch (code) {
 	case OKAY: {
 		switch (info.cmd) {
+		case SIGNETDEV_CMD_UPDATE_UIDS:
 		case SIGNETDEV_CMD_UPDATE_UID:
 			if (m_entryNew) {
 				entryCreated(typeName, m_entry);
