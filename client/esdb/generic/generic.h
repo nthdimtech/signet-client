@@ -14,12 +14,24 @@ struct generic_1 : public esdbEntry {
 	genericFields_1 fields;
 
 	void fromBlock(block *blk);
-	generic_1(int id_) : esdbEntry(id_, ESDB_TYPE_GENERIC, 0, id_, 1)
-	{
-	}
+	generic_1(int id_) : esdbEntry(id_, ESDB_TYPE_GENERIC, 0, id_, 1) {}
 	~generic_1() {}
-	void setTitle(const QString &title) {
-		name = title;
+
+};
+
+struct generic_2 : public esdbEntry {
+	QString typeName;
+	QString name;
+	genericFields_2 fields;
+
+	void fromBlock(block *blk);
+	generic_2(int id_) : esdbEntry(id_, ESDB_TYPE_GENERIC, 1, id_, 1) {}
+	~generic_2() {}
+	void upgrade(const generic_1 &g)
+	{
+		typeName = g.typeName;
+		name = g.name;
+		fields.upgrade(g.fields);
 	}
 };
 
@@ -30,7 +42,7 @@ struct generic : public esdbEntry {
 
 	void fromBlock(block *blk);
 	void toBlock(block *blk) const;
-	generic(int id_) : esdbEntry(id_, ESDB_TYPE_GENERIC, 1, id_, 1)
+	generic(int id_) : esdbEntry(id_, ESDB_TYPE_GENERIC, 2, id_, 1)
 	{
 	}
 
@@ -48,7 +60,7 @@ struct generic : public esdbEntry {
 
 	int matchQuality(const QString &search) const;
 
-	void upgrade(const generic_1 &g)
+	void upgrade(const generic_2 &g)
 	{
 		typeName = g.typeName;
 		name = g.name;

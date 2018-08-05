@@ -36,6 +36,8 @@ struct block {
 	void writeU16(u16 v);
 	void readString(QString &str);
 	void writeString(const QString &str, bool masked);
+	void readLongString(QString &str);
+	void writeLongString(const QString &str, bool masked);
 	QByteArray data;
 	QByteArray mask;
 	block() {

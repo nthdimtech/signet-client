@@ -50,6 +50,14 @@ void block::readString(QString &str)
 	str = QString::fromUtf8(x);
 }
 
+void block::readLongString(QString &str)
+{
+	int sz = readU16();
+	QByteArray x = data.mid(index, sz);
+	index += sz;
+	str = QString::fromUtf8(x);
+}
+
 u8 block::readU8()
 {
 	return (u8)(data.data()[index++]);
@@ -80,6 +88,16 @@ void block::writeString(const QString &str, bool masked)
 {
 	QByteArray x = str.toUtf8();
 	writeU8(x.size());
+	output_bytes_needed(index + 1 + x.size());
+	memcpy(data.data() + index, x.data(), x.size());
+	setMask(index, x.size(), masked);
+	index += x.size();
+}
+
+void block::writeLongString(const QString &str, bool masked)
+{
+	QByteArray x = str.toUtf8();
+	writeU16(x.size());
 	output_bytes_needed(index + 1 + x.size());
 	memcpy(data.data() + index, x.data(), x.size());
 	setMask(index, x.size(), masked);

@@ -17,6 +17,7 @@ esdbEntry *esdbGenericModule::decodeEntry(int id, int revision, esdbEntry *prev,
 {
 	generic *g = NULL;
 	generic_1 rev_1(id);
+	generic_2 rev_2(id);
 
 	if (!prev) {
 		g = new generic(id);
@@ -29,14 +30,18 @@ esdbEntry *esdbGenericModule::decodeEntry(int id, int revision, esdbEntry *prev,
 		rev_1.fromBlock(blk);
 		break;
 	case 1:
-		g->fromBlock(blk);
+		rev_2.fromBlock(blk);
 		break;
+	case 2:
+		g->fromBlock(blk);
 	}
 
 	switch(revision) {
 	case 0:
-		g->upgrade(rev_1);
+		rev_2.upgrade(rev_1);
 	case 1:
+		g->upgrade(rev_2);
+	case 2:
 		break;
 	default:
 		delete g;
