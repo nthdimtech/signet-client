@@ -10,7 +10,7 @@
 #include <QLabel>
 #include <random>
 
-PasswordEdit::PasswordEdit(QString name, QWidget *parent) :
+PasswordEdit::PasswordEdit(QWidget *parent) :
 	QWidget(parent),
 	m_generatingDialog(NULL),
 	m_signetdevCmdToken(-1)
@@ -23,7 +23,7 @@ PasswordEdit::PasswordEdit(QString name, QWidget *parent) :
 	connect(m_hide, SIGNAL(toggled(bool)), this, SLOT(hideToggled(bool)));
 	extraWidgets.append(m_generatePassword);
 	extraWidgets.append(m_hide);
-	m_passwordField = new DatabaseField(name, 140, extraWidgets);
+	m_passwordField = new DatabaseField("password", 140, extraWidgets);
 	m_passwordField->getEditWidget()->setEchoMode(QLineEdit::Password);
 
 	m_numGenChars = new QSpinBox();

@@ -23,10 +23,10 @@ cleartextPasswordEditor::cleartextPasswordEditor(int index, struct cleartext_pas
 		this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 	setWindowModality(Qt::WindowModal);
 	QVBoxLayout *l = new QVBoxLayout();
-	QLabel *heading = new QLabel("Direct mode slot #" + QString::number(index + 1));
+	QLabel *heading = new QLabel("Password slot #" + QString::number(index + 1));
 	l->addWidget(heading);
 	m_nameEdit = new lineFieldEdit("Name", false);
-	m_passwordEdit = new PasswordEdit("secret");
+	m_passwordEdit = new PasswordEdit();
 	l->addWidget(m_nameEdit->widget());
 	l->addWidget(m_passwordEdit);
 	m_saveButton = new QPushButton("Save");

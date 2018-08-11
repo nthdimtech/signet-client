@@ -216,10 +216,9 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	QObject::connect(m_restoreAction, SIGNAL(triggered(bool)),
 			 this, SLOT(restoreDeviceUi()));
 
-	m_passwordSlots = m_deviceMenu->addAction("Direct mode settings");
+	m_passwordSlots = m_deviceMenu->addAction("Password slots");
 	QObject::connect(m_passwordSlots, SIGNAL(triggered(bool)),
 			 this, SLOT(passwordSlotsUi()));
-	m_passwordSlots->setToolTip("Direct mode data can be typed without a running client");
 
 	m_changePasswordAction = m_deviceMenu->addAction("Change master password");
 	QObject::connect(m_changePasswordAction, SIGNAL(triggered(bool)),
@@ -2052,7 +2051,7 @@ void MainWindow::signetdevReadCleartextPasswordNames(signetdevCmdRespInfo info, 
 	if (info.resp_code == OKAY) {
 		cleartextPasswordSelector *s = new cleartextPasswordSelector(formats, names, this);
 		s->setMinimumWidth(300);
-		s->setWindowTitle("Direct mode settings");
+		s->setWindowTitle("Password slots");
 		s->exec();
 		s->deleteLater();
 	}

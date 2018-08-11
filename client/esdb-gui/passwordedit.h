@@ -27,7 +27,7 @@ class PasswordEdit : public QWidget
 	void generatePasswordComplete(QByteArray block);
 	int m_signetdevCmdToken;
 public:
-	explicit PasswordEdit(QString name, QWidget *parent = 0);
+	explicit PasswordEdit(QWidget *parent = 0);
 	QString password() const;
 	void setPassword(const QString &pass);
 signals:
