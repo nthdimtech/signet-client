@@ -271,6 +271,7 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	m_actionBarStack = new QStackedWidget();
 	for (auto iter : m_typeData) {
 		connect(iter->actionBar, SIGNAL(background()), this, SIGNAL(background()));
+		connect(iter->actionBar, SIGNAL(abort()), this, SIGNAL(abort()));
 		m_actionBarStack->addWidget(iter->actionBar);
 	}
 
@@ -800,11 +801,6 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 	}
 	if (blk)
 		delete blk;
-}
-
-void LoggedInWidget::abortProxy()
-{
-	emit abort();
 }
 
 void LoggedInWidget::selected(QModelIndex idx)

@@ -51,20 +51,20 @@ struct iconAccount {
 	QString iconName;
 	QUrl urlObj;
 	iconAccount(const QString &_name,
-		    const QString &_url,
-		    const QString &_icon_name) :
-		name(_name),
-		url(_url),
-		iconName(_icon_name),
-		urlObj(_url)
+	            const QString &_url,
+	            const QString &_icon_name) :
+	        name(_name),
+	        url(_url),
+	        iconName(_icon_name),
+	        urlObj(_url)
 	{
 
 	}
 	iconAccount(const QString &_name) :
-		name(_name),
-		url(_name),
-		iconName(_name),
-		urlObj(_name)
+	        name(_name),
+	        url(_name),
+	        iconName(_name),
+	        urlObj(_name)
 	{
 		url.append(".com");
 		iconName.append(".png");
@@ -190,7 +190,6 @@ public slots:
 	void signetdevCmdResp(signetdevCmdRespInfo info);
 	void signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask);
 	void entryCreated(QString typeName, esdbEntry *entry);
-	void abortProxy();
 	void filterEditPressed();
 	void currentTypeIndexChanged(int idx);
 	void focusChanged(QWidget *prev, QWidget *next);

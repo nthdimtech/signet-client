@@ -48,6 +48,7 @@ public:
 	}
 signals:
 	void background();
+	void abort();
 };
 
 #endif // ESDBACTIONBAR_H
