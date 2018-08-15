@@ -575,6 +575,7 @@ void LoggedInWidget::selectEntry(esdbEntry *entry)
 		m_filterEdit->setText(m_searchListbox->filterText());
 		m_filterEdit->setFocus();
 		getActiveActionBar()->selectEntry(NULL);
+		m_searchListbox->setCurrentIndex(QModelIndex());
 	} else {
 		m_searchListbox->setFocus();
 		EsdbActionBar *bar = getActionBarByEntry(entry);
