@@ -496,7 +496,7 @@ void LoggedInWidget::entryChanged(int id)
 		break;
 	case ESDB_TYPE_BOOKMARK:
 		//TODO: bad magic number
-		populateEntryList(m_typeData.at(0), m_filterEdit->text());
+		populateEntryList(m_typeData.at(1), m_filterEdit->text());
 		break;
 	}
 }
