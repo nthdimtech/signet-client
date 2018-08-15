@@ -146,11 +146,6 @@ class LoggedInWidget : public QWidget
 	void clearSelection();
 	void showEvent(QShowEvent *event);
 
-	enum views {
-		ACCOUNTS,
-		BOOKMARKS
-	};
-
 	int m_id;
 	int m_taskIntent;
 	EsdbActionBar *m_taskActionBar;
