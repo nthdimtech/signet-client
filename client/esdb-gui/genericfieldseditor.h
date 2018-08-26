@@ -5,7 +5,7 @@
 #include <QWidget>
 #include <QMap>
 #include <QString>
-
+#include <QDialog>
 #include "genericfields.h"
 #include "generictypedesc.h"
 
@@ -13,17 +13,19 @@ class genericFieldEdit;
 class QPushButton;
 class QLineEdit;
 class QComboBox;
+class QFrame;
 
 class GenericFieldsEditor : public QWidget
 {
 	Q_OBJECT
 	genericFields &m_fields;
 	QList<fieldSpec> m_requiredFieldSpecs;
-	QList<genericFieldEdit *> m_requiredFields;
-	QList<genericFieldEdit *> m_extraFields;
+	QMap<QString, genericFieldEdit *> m_extraFields;
 	QWidget *m_requiredFieldsWidget;
 	QWidget *m_extraFieldsWidget;
-	QWidget *m_newField;
+	QDialog *m_newField;
+	QFrame *m_fieldFrame;
+	QFrame *m_newFieldFrame;
 	QPushButton *m_newFieldAddButton;
 	QLineEdit *m_newFieldNameEdit;
 	QComboBox *m_newFieldTypeCombo;

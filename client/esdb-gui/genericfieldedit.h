@@ -45,6 +45,10 @@ public:
 		return m_editWidget;
 	}
 
+	virtual void setFocus() {
+		m_editWidget->setFocus();
+	}
+
 	virtual ~genericFieldEdit() {
 	}
 

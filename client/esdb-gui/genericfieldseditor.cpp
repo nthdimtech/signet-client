@@ -23,21 +23,23 @@ GenericFieldsEditor::GenericFieldsEditor(genericFields &fields,
 	layout()->setContentsMargins(0,0,0,0);
 	m_requiredFieldsWidget = new QWidget();
 	m_extraFieldsWidget = new QWidget();
-	m_newField = new QWidget();
+	m_newField = new QDialog();
 	m_newFieldAddButton = new QPushButton(QIcon(":/images/plus.png"),"");
 	QLayout *newFieldDescLayout = new QHBoxLayout();
 	newFieldDescLayout->addWidget(new QLabel("Field Name"));
 	m_newFieldNameEdit = new QLineEdit();
 	newFieldDescLayout->addWidget(m_newFieldNameEdit);
 
+	connect(m_newFieldNameEdit, SIGNAL(returnPressed()), m_newFieldAddButton, SLOT(click()));
+
 	layout()->addWidget(m_requiredFieldsWidget);
-	QFrame *f = new QFrame();
-	f->setFrameShape(QFrame::HLine);
-	QFrame *f2 = new QFrame();
-	f2->setFrameShape(QFrame::HLine);
-	layout()->addWidget(f);
+	m_fieldFrame = new QFrame();
+	m_fieldFrame->setFrameShape(QFrame::HLine);
+	m_newFieldFrame = new QFrame();
+	m_newFieldFrame->setFrameShape(QFrame::HLine);
+	layout()->addWidget(m_fieldFrame);
 	layout()->addWidget(m_extraFieldsWidget);
-	layout()->addWidget(f2);
+	layout()->addWidget(m_newFieldFrame);
 	layout()->addWidget(m_newField);
 
 	m_newFieldTypeCombo = new QComboBox();
@@ -64,6 +66,8 @@ GenericFieldsEditor::GenericFieldsEditor(genericFields &fields,
 	connect(m_newFieldAddButton, SIGNAL(pressed()),  this, SLOT(addNewFieldUI()));
 	connect(m_newFieldNameEdit,  SIGNAL(textEdited(QString)), this, SLOT(newFieldNameEdited(QString)));
 
+	m_fieldFrame->hide();
+
 	for (auto requiredFieldSpec : m_requiredFieldSpecs) {
 		auto fieldEdit = createFieldEdit(requiredFieldSpec.name, requiredFieldSpec.type, false);
 		m_requiredFieldsWidget->layout()->addWidget(fieldEdit->widget());
@@ -74,8 +78,11 @@ void GenericFieldsEditor::removeField(QString name)
 {
 	genericFieldEdit *fieldEdit = *m_fieldEditMap.find(name);
 	m_fieldEditMap.remove(name);
-	m_extraFields.removeAll(fieldEdit);
+	m_extraFields.remove(name);
 	m_extraFieldsWidget->layout()->removeWidget(fieldEdit->widget());
+	if  (!m_extraFields.size()) {
+		m_fieldFrame->hide();
+	}
 	fieldEdit->widget()->deleteLater();
 	emit edited();
 }
@@ -92,7 +99,9 @@ genericFieldEdit *GenericFieldsEditor::addNewField(QString name, QString type)
 	}
 	auto fieldEdit = createFieldEdit(name, type, true);
 	QHBoxLayout *layout = ((QHBoxLayout *)(m_extraFieldsWidget->layout()));
-	layout->insertWidget(layout->count() - 1, fieldEdit->widget());
+	layout->insertWidget(layout->count(), fieldEdit->widget());
+	m_fieldFrame->show();
+	fieldEdit->setFocus();
 	return fieldEdit;
 }
 
@@ -101,6 +110,9 @@ genericFieldEdit *GenericFieldsEditor::createFieldEdit(QString name, QString typ
 	auto *fieldEditFactory = genericFieldEditFactory::get();
 	auto fieldEdit = fieldEditFactory->generate(name, type, canRemove);
 	m_fieldEditMap.insert(name, fieldEdit);
+	if (canRemove) {
+		m_extraFields.insert(name, fieldEdit);
+	}
 	connect(fieldEdit, SIGNAL(edited()), this, SIGNAL(edited()));
 	connect(fieldEdit, SIGNAL(remove(QString)), this, SLOT(removeField(QString)));
 	return fieldEdit;
