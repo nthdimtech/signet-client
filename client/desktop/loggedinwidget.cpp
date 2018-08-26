@@ -422,14 +422,16 @@ void LoggedInWidget::expandTreeItems()
 
 void LoggedInWidget::currentTypeIndexChanged(int idx)
 {
-	m_activeTypeIndex = idx;
-	m_activeType = m_typeData.at(m_activeTypeIndex);
-	m_searchListbox->setModel(m_activeType->model);
+	if (idx < m_typeData.size()) {
+		m_activeTypeIndex = idx;
+		m_activeType = m_typeData.at(m_activeTypeIndex);
+		m_searchListbox->setModel(m_activeType->model);
 
-	m_selectedEntry = NULL;
-	m_actionBarStack->setCurrentIndex(idx);
-	populateEntryList(m_activeType, m_filterEdit->text());
-	m_filterEdit->setFocus();
+		m_selectedEntry = NULL;
+		m_actionBarStack->setCurrentIndex(idx);
+		populateEntryList(m_activeType, m_filterEdit->text());
+		m_filterEdit->setFocus();
+	}
 }
 
 LoggedInWidget::~LoggedInWidget()
