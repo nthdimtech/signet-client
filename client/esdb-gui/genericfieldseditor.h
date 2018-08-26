@@ -21,12 +21,12 @@ class GenericFieldsEditor : public QWidget
 	QList<fieldSpec> m_requiredFieldSpecs;
 	QList<genericFieldEdit *> m_requiredFields;
 	QList<genericFieldEdit *> m_extraFields;
-	QWidget *requiredFieldsWidget;
-	QWidget *extraFieldsWidget;
-	QWidget *newFeild;
-	QPushButton *newFeildAddButton;
-	QLineEdit *newFeildNameEdit;
-	QComboBox *newFieldTypeCombo;
+	QWidget *m_requiredFieldsWidget;
+	QWidget *m_extraFieldsWidget;
+	QWidget *m_newField;
+	QPushButton *m_newFieldAddButton;
+	QLineEdit *m_newFieldNameEdit;
+	QComboBox *m_newFieldTypeCombo;
 
 	virtual genericFieldEdit *createFieldEdit(QString name, QString type, bool canRemove);
 	genericFieldEdit *addNewField(QString name, QString type);

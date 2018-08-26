@@ -21,42 +21,53 @@ GenericFieldsEditor::GenericFieldsEditor(genericFields &fields,
 	setLayout(new QVBoxLayout());
 	layout()->setAlignment(Qt::AlignTop);
 	layout()->setContentsMargins(0,0,0,0);
-	requiredFieldsWidget = new QWidget();
-	extraFieldsWidget = new QWidget();
-	newFeild = new QWidget();
-	newFeildAddButton = new QPushButton(QIcon(":/images/plus.png"),"");
-	newFeildNameEdit = new QLineEdit();
+	m_requiredFieldsWidget = new QWidget();
+	m_extraFieldsWidget = new QWidget();
+	m_newField = new QWidget();
+	m_newFieldAddButton = new QPushButton(QIcon(":/images/plus.png"),"");
+	QLayout *newFieldDescLayout = new QHBoxLayout();
+	newFieldDescLayout->addWidget(new QLabel("Field Name"));
+	m_newFieldNameEdit = new QLineEdit();
+	newFieldDescLayout->addWidget(m_newFieldNameEdit);
 
-	layout()->addWidget(requiredFieldsWidget);
+	layout()->addWidget(m_requiredFieldsWidget);
 	QFrame *f = new QFrame();
 	f->setFrameShape(QFrame::HLine);
+	QFrame *f2 = new QFrame();
+	f2->setFrameShape(QFrame::HLine);
 	layout()->addWidget(f);
-	layout()->addWidget(extraFieldsWidget);
+	layout()->addWidget(m_extraFieldsWidget);
+	layout()->addWidget(f2);
+	layout()->addWidget(m_newField);
 
-	newFieldTypeCombo = new QComboBox();
-	newFieldTypeCombo->addItem("Text");
-	newFieldTypeCombo->addItem("Text block");
-	newFieldTypeCombo->addItem("Integer");
+	m_newFieldTypeCombo = new QComboBox();
+	m_newFieldTypeCombo->addItem("Text");
+	m_newFieldTypeCombo->addItem("Text block");
+	m_newFieldTypeCombo->addItem("Integer");
 
-	requiredFieldsWidget->setLayout(new QVBoxLayout());
-	requiredFieldsWidget->layout()->setAlignment(Qt::AlignTop);
-	requiredFieldsWidget->layout()->setContentsMargins(0,0,0,0);
-	extraFieldsWidget->setLayout(new QVBoxLayout());
-	extraFieldsWidget->layout()->setAlignment(Qt::AlignTop);
-	extraFieldsWidget->layout()->setContentsMargins(0,0,0,0);
-	newFeild->setLayout(new QHBoxLayout());
-	newFeild->layout()->setContentsMargins(0,0,0,0);
-	newFeild->layout()->addWidget(newFeildNameEdit);
-	newFeild->layout()->addWidget(newFieldTypeCombo);
-	newFeild->layout()->addWidget(newFeildAddButton);
-	connect(newFeildAddButton, SIGNAL(pressed()),  this, SLOT(addNewFieldUI()));
-	connect(newFeildNameEdit,  SIGNAL(textEdited(QString)), this, SLOT(newFieldNameEdited(QString)));
+	m_requiredFieldsWidget->setLayout(new QVBoxLayout());
+	m_requiredFieldsWidget->layout()->setAlignment(Qt::AlignTop);
+	m_requiredFieldsWidget->layout()->setContentsMargins(0,0,0,0);
+	m_extraFieldsWidget->setLayout(new QVBoxLayout());
+	m_extraFieldsWidget->layout()->setAlignment(Qt::AlignTop);
+	m_extraFieldsWidget->layout()->setContentsMargins(0,0,0,0);
+
+	newFieldDescLayout->addWidget(m_newFieldTypeCombo);
+	newFieldDescLayout->addWidget(m_newFieldAddButton);
+	QLabel *newFieldLabel = new QLabel("New Field");
+	newFieldLabel->setStyleSheet("font-weight: bold");
+	QVBoxLayout *newFieldLayout = new QVBoxLayout();
+	m_newField->setLayout(newFieldLayout);
+	newFieldLayout->setContentsMargins(0,0,0,0);
+	newFieldLayout->addWidget(newFieldLabel);
+	newFieldLayout->addLayout(newFieldDescLayout);
+	connect(m_newFieldAddButton, SIGNAL(pressed()),  this, SLOT(addNewFieldUI()));
+	connect(m_newFieldNameEdit,  SIGNAL(textEdited(QString)), this, SLOT(newFieldNameEdited(QString)));
 
 	for (auto requiredFieldSpec : m_requiredFieldSpecs) {
 		auto fieldEdit = createFieldEdit(requiredFieldSpec.name, requiredFieldSpec.type, false);
-		requiredFieldsWidget->layout()->addWidget(fieldEdit->widget());
+		m_requiredFieldsWidget->layout()->addWidget(fieldEdit->widget());
 	}
-	extraFieldsWidget->layout()->addWidget(newFeild);
 }
 
 void GenericFieldsEditor::removeField(QString name)
@@ -64,7 +75,7 @@ void GenericFieldsEditor::removeField(QString name)
 	genericFieldEdit *fieldEdit = *m_fieldEditMap.find(name);
 	m_fieldEditMap.remove(name);
 	m_extraFields.removeAll(fieldEdit);
-	extraFieldsWidget->layout()->removeWidget(fieldEdit->widget());
+	m_extraFieldsWidget->layout()->removeWidget(fieldEdit->widget());
 	fieldEdit->widget()->deleteLater();
 	emit edited();
 }
@@ -80,7 +91,7 @@ genericFieldEdit *GenericFieldsEditor::addNewField(QString name, QString type)
 		type = QString("text");
 	}
 	auto fieldEdit = createFieldEdit(name, type, true);
-	QHBoxLayout *layout = ((QHBoxLayout *)(extraFieldsWidget->layout()));
+	QHBoxLayout *layout = ((QHBoxLayout *)(m_extraFieldsWidget->layout()));
 	layout->insertWidget(layout->count() - 1, fieldEdit->widget());
 	return fieldEdit;
 }
@@ -97,10 +108,10 @@ genericFieldEdit *GenericFieldsEditor::createFieldEdit(QString name, QString typ
 
 void GenericFieldsEditor::addNewFieldUI()
 {
-	QString fieldName = newFeildNameEdit->text();
+	QString fieldName = m_newFieldNameEdit->text();
 	if (fieldName.size()) {
-		newFeildNameEdit->clear();
-		addNewField(fieldName, newFieldTypeCombo->currentText());
+		m_newFieldNameEdit->clear();
+		addNewField(fieldName, m_newFieldTypeCombo->currentText());
 		emit edited();
 	}
 }
