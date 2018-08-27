@@ -1485,7 +1485,8 @@ void MainWindow::enterDeviceState(int state)
 		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
 		layout->setAlignment(Qt::AlignTop);
 		m_backupProgress = new QProgressBar();
-		layout->addWidget(new QLabel("Backing up device..."));
+		QFileInfo fi(m_backupFile->fileName());
+		layout->addWidget(new QLabel("Backing up device to " + fi.fileName() + "..."));
 		layout->addWidget(m_backupProgress);
 		m_backupWidget->setLayout(layout);
 		m_deviceMenu->setDisabled(true);
@@ -1915,7 +1916,8 @@ void MainWindow::backupDevice(QString fileName)
 		SignetApplication::messageBoxError(QMessageBox::Warning, "Backup device", "Failed to create destination file", this);
 		return;
 	}
-	m_buttonWaitDialog = new ButtonWaitDialog("Backup device to file", "start backing up device", this, true);
+	QFileInfo fi(m_backupFile->fileName());
+	m_buttonWaitDialog = new ButtonWaitDialog("Backup device to file", "start backing up device to " + fi.fileName(), this, true);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 	m_buttonWaitDialog->show();
 	::signetdev_begin_device_backup(NULL, &m_signetdevCmdToken);
