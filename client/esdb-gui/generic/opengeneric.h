@@ -36,6 +36,10 @@ class OpenGeneric : public QDialog
 	bool m_settingFields;
 	bool m_changesMade;
 	bool m_closeOnSave;
+	bool m_isOversized;
+	QLabel *m_dataOversized;
+	void oversizedDialog();
+	bool toBlock(block &blk);
 	void closeEvent(QCloseEvent *);
 public:
 	OpenGeneric(generic *generic, genericTypeDesc *typeDesc, QWidget *parent = 0);

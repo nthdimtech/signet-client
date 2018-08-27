@@ -34,12 +34,16 @@ class EditAccount : public QDialog
 	QPushButton *m_saveButton;
 	QPushButton *m_browseUrlButton;
 	QPushButton *m_undoChangesButton;
+	QLabel *m_dataOversized;
 	void setAccountValues();
 	GenericFieldsEditor *m_genericFieldsEditor;
 	bool m_settingFields;
 	void closeEvent(QCloseEvent *);
 	bool m_changesMade;
 	bool m_closeOnSave;
+	bool toBlock(block &blk);
+	bool m_isOversized;
+	void oversizedDialog();
 public:
 	EditAccount(account *acct, QWidget *parent = 0);
 	virtual ~EditAccount();

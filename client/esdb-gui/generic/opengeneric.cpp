@@ -77,15 +77,41 @@ OpenGeneric::OpenGeneric(generic *generic, genericTypeDesc *typeDesc, QWidget *p
 	buttons->addWidget(m_undoChangesButton);
 	buttons->addWidget(closeButton);
 
+	m_dataOversized = new QLabel("Warning: this entry is too large. You must delete something to save it");
+	m_dataOversized->setStyleSheet("QLabel { color : red; }");
+	m_dataOversized->hide();
+
 	QBoxLayout *mainLayout = new QBoxLayout(QBoxLayout::TopToBottom);
 	mainLayout->setAlignment(Qt::AlignTop);
 	mainLayout->addLayout(nameLayout);
 	mainLayout->addWidget(m_genericFieldsEditor);
+	mainLayout->addWidget(m_dataOversized);
 	mainLayout->addLayout(buttons);
 	setLayout(mainLayout);
 
 	connect(m_saveButton, SIGNAL(pressed(void)), this, SLOT(savePressed(void)));
 	connect(closeButton, SIGNAL(pressed(void)), this, SLOT(close(void)));
+}
+
+void OpenGeneric::oversizedDialog()
+{
+	m_isOversized = true;
+	m_saveButton->setDisabled(true);
+	m_dataOversized->show();
+	auto mb = SignetApplication::messageBoxWarn("Entry too large", "This entry is too large. You must delete something to save it", this);
+	mb->exec();
+	mb->deleteLater();
+}
+
+bool OpenGeneric::toBlock(block &blk)
+{
+	m_genericFieldsEditor->saveFields();
+	generic g(m_generic->id);
+	g.name = m_genericNameEdit->text();
+	g.typeName = m_typeDesc->name;
+	g.fields = m_fields;
+	g.toBlock(&blk);
+	return blk.data.size() <= MAX_ENT_DATA_SIZE;
 }
 
 void OpenGeneric::closeEvent(QCloseEvent *event)
@@ -138,6 +164,9 @@ void OpenGeneric::signetdevCmdResp(signetdevCmdRespInfo info)
 		}
 	}
 	break;
+	case NOT_ENOUGH_SPACE:
+		oversizedDialog();
+		break;
 	case BUTTON_PRESS_TIMEOUT:
 	case BUTTON_PRESS_CANCELED:
 		m_saveButton->setDisabled(false);
@@ -175,29 +204,37 @@ void OpenGeneric::edited()
 		m_saveButton->setDisabled(false);
 		m_undoChangesButton->setDisabled(false);
 		m_changesMade = true;
+		block blk;
+		if (!toBlock(blk)) {
+			m_isOversized = true;
+			m_saveButton->setDisabled(true);
+			m_dataOversized->show();
+		} else {
+			m_isOversized = false;
+			m_saveButton->setDisabled(false);
+			m_dataOversized->hide();
+		}
 	}
 }
 
 void OpenGeneric::savePressed()
 {
-	m_buttonWaitDialog = new ButtonWaitDialog( "Open " + m_typeDesc->name,
-		QString("save changes to " + m_typeDesc->name.toLower() + " \"") + m_genericNameEdit->text() + QString("\""),
-		this);
-	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(saveGenericFinished(int)));
-	m_buttonWaitDialog->show();
-
 	m_genericFieldsEditor->saveFields();
 	block blk;
-	generic g(m_generic->id);
-	g.name = m_genericNameEdit->text();
-	g.typeName = m_typeDesc->name;
-	g.fields = m_fields;
-	g.toBlock(&blk);
-	::signetdev_update_uid(NULL, &m_signetdevCmdToken,
-				   m_generic->id,
-				   blk.data.size(),
-				   (const u8 *)blk.data.data(),
-				   (const u8 *)blk.mask.data());
+	if (toBlock(blk)) {
+		m_buttonWaitDialog = new ButtonWaitDialog( "Open " + m_typeDesc->name,
+			QString("save changes to " + m_typeDesc->name.toLower() + " \"") + m_genericNameEdit->text() + QString("\""),
+			this);
+		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(saveGenericFinished(int)));
+		m_buttonWaitDialog->show();
+		::signetdev_update_uid(NULL, &m_signetdevCmdToken,
+					   m_generic->id,
+					   blk.data.size(),
+					   (const u8 *)blk.data.data(),
+					   (const u8 *)blk.mask.data());
+	} else {
+		oversizedDialog();
+	}
 }
 
 void OpenGeneric::saveGenericFinished(int code)

@@ -97,6 +97,9 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 	buttons->addWidget(m_saveButton);
 	buttons->addWidget(m_undoChangesButton);
 	buttons->addWidget(close_button);
+	m_dataOversized = new QLabel("Warning: this entry is too large. You must delete something to save it");
+	m_dataOversized->setStyleSheet("QLabel { color : red; }");
+	m_dataOversized->hide();
 
 	QBoxLayout *main_layout = new QBoxLayout(QBoxLayout::TopToBottom);
 	main_layout->setAlignment(Qt::AlignTop);
@@ -108,6 +111,7 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 	main_layout->addWidget(m_passwordEdit);
 	main_layout->addWidget(m_urlField);
 	main_layout->addWidget(m_genericFieldsEditor);
+	main_layout->addWidget(m_dataOversized);
 	main_layout->addLayout(buttons);
 	setLayout(main_layout);
 
@@ -150,6 +154,9 @@ void EditAccount::signetdevCmdResp(signetdevCmdRespInfo info)
 		}
 	}
 	break;
+	case NOT_ENOUGH_SPACE:
+		oversizedDialog();
+		break;
 	case BUTTON_PRESS_TIMEOUT:
 	case BUTTON_PRESS_CANCELED:
 		m_saveButton->setDisabled(false);
@@ -208,6 +215,16 @@ void EditAccount::textEdited()
 		m_saveButton->setDisabled(false);
 		m_undoChangesButton->setDisabled(false);
 		m_changesMade = true;
+		block blk;
+		if (!toBlock(blk)) {
+			m_isOversized = true;
+			m_saveButton->setDisabled(true);
+			m_dataOversized->show();
+		} else {
+			m_isOversized = false;
+			m_saveButton->setDisabled(false);
+			m_dataOversized->hide();
+		}
 	}
 }
 
@@ -231,19 +248,8 @@ void EditAccount::closeEvent(QCloseEvent *event)
 	event->accept();
 }
 
-void EditAccount::savePressed()
+bool EditAccount::toBlock(block &blk)
 {
-	if (m_accountNameEdit->text().size() == 0) {
-		m_accountNameWarning->setText("The account name cannot be empty");
-		m_accountNameWarning->show();
-		return;
-	}
-	m_buttonDialog = new ButtonWaitDialog( "Save account",
-					       QString("save changes to account \"") + m_accountNameEdit->text() + QString("\""),
-					       this);
-	connect(m_buttonDialog, SIGNAL(finished(int)), this, SLOT(editAccountFinished(int)));
-	m_buttonDialog->show();
-
 	account acct(m_acct->id);
 	acct.acctName = m_accountNameEdit->text();
 	acct.userName = m_usernameField->text();
@@ -253,13 +259,43 @@ void EditAccount::savePressed()
 	acct.path = m_groupField->text();
 	m_genericFieldsEditor->saveFields();
 	acct.fields = m_acct->fields;
-	block blk;
 	acct.toBlock(&blk);
-	::signetdev_update_uid(NULL, &m_signetdevCmdToken,
-				   m_acct->id,
-				   blk.data.size(),
-				   (const u8 *)blk.data.data(),
-				   (const u8 *)blk.mask.data());
+	return blk.data.size() <= MAX_ENT_DATA_SIZE;
+}
+
+void EditAccount::oversizedDialog()
+{
+	m_isOversized = true;
+	m_saveButton->setDisabled(true);
+	m_dataOversized->show();
+	auto mb = SignetApplication::messageBoxWarn("Entry too large", "This entry is too large. You must delete something to save it", this);
+	mb->exec();
+	mb->deleteLater();
+}
+
+void EditAccount::savePressed()
+{
+	if (m_accountNameEdit->text().size() == 0) {
+		m_accountNameWarning->setText("The account name cannot be empty");
+		m_accountNameWarning->show();
+		return;
+	}
+
+	block blk;
+	if (toBlock(blk)) {
+		m_buttonDialog = new ButtonWaitDialog( "Save account",
+						       QString("save changes to account \"") + m_accountNameEdit->text() + QString("\""),
+						       this);
+		connect(m_buttonDialog, SIGNAL(finished(int)), this, SLOT(editAccountFinished(int)));
+		m_buttonDialog->show();
+		::signetdev_update_uid(NULL, &m_signetdevCmdToken,
+					   m_acct->id,
+					   blk.data.size(),
+					   (const u8 *)blk.data.data(),
+					   (const u8 *)blk.mask.data());
+	} else {
+		oversizedDialog();
+	}
 }
 
 void EditAccount::editAccountFinished(int code)
