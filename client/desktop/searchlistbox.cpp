@@ -42,6 +42,11 @@ void SearchListbox::entered(QModelIndex idx)
 	}
 }
 
+void SearchListbox::currentChanged(const QModelIndex &current, const QModelIndex &previous)
+{
+	emit selected(current);
+}
+
 void SearchListbox::keyPressEvent(QKeyEvent *event)
 {
 	QModelIndex idx;
@@ -56,7 +61,6 @@ void SearchListbox::keyPressEvent(QKeyEvent *event)
 	case Qt::Key_Up:
 	case Qt::Key_Down:
 		QTreeView::keyPressEvent(event);
-		emit selected(currentIndex());
 		break;
 	case Qt::Key_Return:
 	case Qt::Key_Enter: {

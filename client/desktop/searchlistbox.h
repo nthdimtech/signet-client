@@ -17,6 +17,7 @@ class SearchListbox : public QTreeView
 	void keyPressEvent(QKeyEvent *event);
 	friend class SearchFilterEdit;
 	QString m_filterText;
+	void currentChanged(const QModelIndex &current, const QModelIndex &previous);
 public:
 	explicit SearchListbox(QLineEdit *query_edit, QAbstractItemModel *model, QWidget *parent = 0);
 	void enableHover();

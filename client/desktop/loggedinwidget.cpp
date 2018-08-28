@@ -569,15 +569,21 @@ void LoggedInWidget::getSelectedAccountRect(QRect &r)
 	r.setBottomRight(m_searchListbox->mapToGlobal(s.bottomRight()));
 }
 
+void LoggedInWidget::deselectEntry()
+{
+	m_filterEdit->setText(m_searchListbox->filterText());
+	getActiveActionBar()->selectEntry(NULL);
+	m_filterEdit->setFocus();
+	m_searchListbox->setCurrentIndex(QModelIndex());
+}
+
 void LoggedInWidget::selectEntry(esdbEntry *entry)
 {
 	//TODO: make sure the entry type matches
 	m_selectedEntry = entry;
 	if (!entry) {
 		m_filterEdit->setText(m_searchListbox->filterText());
-		m_filterEdit->setFocus();
 		getActiveActionBar()->selectEntry(NULL);
-		m_searchListbox->setCurrentIndex(QModelIndex());
 	} else {
 		m_searchListbox->setFocus();
 		EsdbActionBar *bar = getActionBarByEntry(entry);
@@ -602,7 +608,7 @@ void LoggedInWidget::selectEntry(esdbEntry *entry)
 
 void LoggedInWidget::customContextMenuRequested(QPoint pt)
 {
-	Q_UNUSED(pt);
+	selected(m_searchListbox->indexAt(pt));
 	esdbEntry *entry = m_selectedEntry;
 	if (m_selectedEntry) {
 		EsdbActionBar *bar = getActionBarByEntry(entry);
@@ -813,9 +819,11 @@ void LoggedInWidget::selected(QModelIndex idx)
 		if (item && item->isLeafItem()) {
 			EsdbModelLeafItem *ent = (EsdbModelLeafItem *)idx.internalPointer();
 			selectEntry(ent->leafNode());
-		} else if (item) {
+		} else {
 			selectEntry(NULL);
 		}
+	} else {
+		selectEntry(NULL);
 	}
 }
 
@@ -916,8 +924,7 @@ void LoggedInWidget::finishTask(bool deselect)
 	m_searchListbox->setFilterText(QString());
 	filterTextChanged(m_searchListbox->filterText());
 	if (deselect) {
-		selectEntry(NULL);
-		m_filterEdit->setFocus();
+		deselectEntry();
 	}
 }
 
@@ -985,8 +992,8 @@ bool LoggedInWidget::selectFirstVisible()
 {
 	QModelIndex parent;
 	if (!selectFirstVisible(parent)) {
+		deselectEntry();
 		QModelIndex x = m_activeType->model->index(0);
-		selectEntry(NULL);
 		m_searchListbox->setCurrentIndex(x);
 		return false;
 	}
@@ -1037,8 +1044,7 @@ void LoggedInWidget::populateEntryList(typeData *t, QString filter)
 			if (filteredList->size() && m_selectedEntry) {
 				selectFirstVisible();
 			} else if (selectedEntry()) {
-				m_searchListbox->setCurrentIndex(QModelIndex());
-				selectEntry(NULL);
+				deselectEntry();
 			}
 		} else {
 			m_searchListbox->setCurrentIndex(index);
