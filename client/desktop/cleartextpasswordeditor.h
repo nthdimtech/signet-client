@@ -29,7 +29,6 @@ class cleartextPasswordEditor : public QDialog
 	bool m_changesMade;
 
 	void closeEvent(QCloseEvent *event);
-
 public:
 	cleartextPasswordEditor(int index, struct cleartext_pass *p, QWidget *parent = NULL);
 private slots:

@@ -39,6 +39,7 @@ class QLabel;
 class AspectRatioPixmapLabel;
 class NewAccount;
 class esdbGenericModule;
+class esdbGenericTypeModule;
 #include "signetapplication.h"
 #include "esdbtypemodule.h"
 #include "esdbaccountmodule.h"
@@ -112,8 +113,6 @@ class LoggedInWidget : public QWidget
 	typeData *m_activeType;
 	int m_activeTypeIndex;
 
-	esdbGenericModule *m_genericDecoder;
-
 	esdbEntry *m_selectedEntry;
 
 	void entryIconCheck(esdbEntry *acct);
@@ -133,6 +132,8 @@ class LoggedInWidget : public QWidget
 
 	esdbAccountModule *m_accounts;
 	esdbBookmarkModule *m_bookmarks;
+	esdbGenericTypeModule *m_genericTypeModule;
+	esdbGenericModule *m_genericDecoder;
 
 	SearchFilterEdit *m_filterEdit;
 	NewAccount *m_newAccountDlg;
@@ -150,7 +151,6 @@ class LoggedInWidget : public QWidget
 	int m_taskIntent;
 	EsdbActionBar *m_taskActionBar;
 	void getEntryDone(int id, int code, block *, bool task);
-	int esdbTypeToIndex(int type);
 	int esdbEntryToIndex(esdbEntry *entry);
 	EsdbActionBar *getActionBarByEntry(esdbEntry *entry);
 	EsdbActionBar *getActiveActionBar();

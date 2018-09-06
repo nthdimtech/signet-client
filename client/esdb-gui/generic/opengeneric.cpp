@@ -222,7 +222,7 @@ void OpenGeneric::savePressed()
 	m_genericFieldsEditor->saveFields();
 	block blk;
 	if (toBlock(blk)) {
-		m_buttonWaitDialog = new ButtonWaitDialog( "Open " + m_typeDesc->name,
+		m_buttonWaitDialog = new ButtonWaitDialog( "Save " + m_typeDesc->name,
 			QString("save changes to " + m_typeDesc->name.toLower() + " \"") + m_genericNameEdit->text() + QString("\""),
 			this);
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(saveGenericFinished(int)));

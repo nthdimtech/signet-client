@@ -18,10 +18,8 @@ extern "C" {
 class AccountActionBar : public EsdbActionBar
 {
 	Q_OBJECT
-	bool m_writeEnabled;
-	bool m_typeEnabled;
 	NewAccount *m_newAccountDlg;
-	void selectEntry(esdbEntry *entry);
+	void entrySelected(esdbEntry *entry);
 	void defaultAction(esdbEntry *entry);
 	QPushButton *m_DeleteButton;
 	QPushButton *m_openButton;
@@ -29,8 +27,8 @@ class AccountActionBar : public EsdbActionBar
 	QPushButton *m_browseUrlButton;
 	QPushButton *m_typeUsernameButton;
 	QPushButton *m_typePasswordButton;
-	ButtonWaitDialog *m_buttonWaitDialog;
-	LoggedInWidget *m_parent;
+
+	int esdbType();
 
 	bool m_accessUsername;
 	bool m_accessPassword;
@@ -42,12 +40,6 @@ class AccountActionBar : public EsdbActionBar
 	void copyAccountData(account *acct, bool username, bool password);
 	void openAccount(account *acct);
 
-	enum intent {
-		COPY_DATA,
-		TYPE_DATA,
-		OPEN_ACCOUNT,
-		NONE
-	};
 	int m_id;
 	int m_signetdevCmdToken;
 	enum quickTypeState {
@@ -59,13 +51,12 @@ class AccountActionBar : public EsdbActionBar
 	} m_quickTypeState;
 
 	bool m_quickTypeMode;
+	void accessEntryComplete(esdbEntry *entry, int intent);
 signals:
 	void background();
 	void abort();
 public:
 	AccountActionBar(LoggedInWidget *parent, bool writeEnabled = true, bool typeEnabled = true);
-	void getEntryDone(esdbEntry *entry, int intent);
-	void idTaskComplete(int id, int task, int intent);
 public slots:
 	void retryTypeData();
 	void newAccountFinished(int);
@@ -77,9 +68,6 @@ public slots:
 	void typeAccountPassUI();
 	void accessAccountUI(bool username, bool password);
 	void browseUrlUI();
-	void accessAccountFinished(int);
-	void openAccountFinished(int);
-	void deleteAccountFinished(int);
 	void copyUsername();
 	void copyPassword();
 };

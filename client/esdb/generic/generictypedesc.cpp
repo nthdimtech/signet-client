@@ -16,7 +16,7 @@ void genericTypeDesc::fromBlock(block *blk)
 	}
 }
 
-void genericTypeDesc::toBlock(block *blk)
+void genericTypeDesc::toBlock(block *blk) const
 {
 	esdbEntry::toBlock(blk);
 	blk->writeString(this->group, false);

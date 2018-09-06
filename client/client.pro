@@ -74,7 +74,11 @@ LIBS += -lhid -lsetupapi -lz -lgcrypt -lgpg-error
 SOURCES += ../signet-base/signetdev/host/signetdev.c \
     ../signet-base/signetdev/host/signetdev_emulate.c \
     desktop/cleartextpasswordeditor.cpp \
-    desktop/cleartextpasswordselector.cpp
+    desktop/cleartextpasswordselector.cpp \
+    esdb/generictype/esdbgenerictypemodule.cpp \
+    esdb-gui/generictype/generictypeactionbar.cpp \
+    esdb-gui/generictype/newgenerictype.cpp \
+    esdb-gui/editentrydialog.cpp
 
 macx|linux-g++ {
 HEADERS += import/passimporter.h \
@@ -130,7 +134,11 @@ HEADERS += esdb/esdb.h \
     esdb/generic/generictypedesc.h \
     esdb/generic/esdbgenericmodule.h \
     desktop/cleartextpasswordeditor.h \
-    desktop/cleartextpasswordselector.h
+    desktop/cleartextpasswordselector.h \
+    esdb/generictype/esdbgenerictypemodule.h \
+    esdb-gui/generictype/generictypeactionbar.h \
+    esdb-gui/generictype/newgenerictype.h \
+    esdb-gui/editentrydialog.h
 #
 # ESDB GUI sources
 #

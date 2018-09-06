@@ -33,6 +33,8 @@
 #include "esdbactionbar.h"
 #include "generictypedesc.h"
 #include "esdbgenericmodule.h"
+#include "generictype/esdbgenerictypemodule.h"
+#include "generictype/generictypeactionbar.h"
 #include "genericactionbar.h"
 #include "bookmarkactionbar.h"
 #include "accountactionbar.h"
@@ -198,48 +200,33 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	place->name = "";
 	m_genericDecoder = new esdbGenericModule(place, this);
 
+	bool writeEnabled = !fromFile;
+	bool typeEnabled = !fromFile;
+
 	m_accounts = new esdbAccountModule();
 	typeData *accountsTypeData = new typeData(m_accounts);
-	accountsTypeData->actionBar = new AccountActionBar(this, !fromFile, !fromFile);
+	accountsTypeData->actionBar = new AccountActionBar(this, writeEnabled, typeEnabled);
 	m_typeData.push_back(accountsTypeData);
 
 	m_bookmarks = new esdbBookmarkModule();
 	typeData *bookmarksTypeData = new typeData(m_bookmarks);
-	bookmarksTypeData->actionBar = new BookmarkActionBar(m_bookmarks, this, !fromFile, !fromFile);
+	bookmarksTypeData->actionBar = new BookmarkActionBar(m_bookmarks, this, writeEnabled, typeEnabled);
 	m_typeData.push_back(bookmarksTypeData);
 
 	genericTypeDesc *genericTypeDesc_;
-
-	if (USE_PREDEFINED_TYPES) {
-		genericTypeDesc_ = new genericTypeDesc(-1);
-		genericTypeDesc_->name = "Credit card";
-		genericTypeDesc_->fields.push_back(fieldSpec("Card Number","text"));
-		genericTypeDesc_->fields.push_back(fieldSpec("Exp month","integer"));
-		genericTypeDesc_->fields.push_back(fieldSpec("Exp year","integer"));
-		genericTypeDesc_->fields.push_back(fieldSpec("CCV","text"));
-		typeData *d = new typeData(new esdbGenericModule(genericTypeDesc_, false, false));
-		d->actionBar = new GenericActionBar(d->module, genericTypeDesc_, this);
-		m_typeData.push_back(d);
-
-		genericTypeDesc_ = new genericTypeDesc(-1);
-		genericTypeDesc_->name = "Contact";
-		genericTypeDesc_->fields.push_back(fieldSpec("Phone","text"));
-		genericTypeDesc_->fields.push_back(fieldSpec("Email","text"));
-		genericTypeDesc_->fields.push_back(fieldSpec("Address 1","text"));
-		genericTypeDesc_->fields.push_back(fieldSpec("Address 2","text"));
-		genericTypeDesc_->fields.push_back(fieldSpec("City","text"));
-		d = new typeData(new esdbGenericModule(genericTypeDesc_, false, false));
-		d->actionBar = new GenericActionBar(d->module, genericTypeDesc_, this);
-		m_typeData.push_back(d);
-	}
 
 	if (USE_MISC_TYPE) {
 		genericTypeDesc_ = new genericTypeDesc(-1);
 		genericTypeDesc_->name = "Misc";
 		typeData *d = new typeData(new esdbGenericModule(genericTypeDesc_, false, false));
-		d->actionBar = new GenericActionBar(d->module, genericTypeDesc_, this);
+		d->actionBar = new GenericActionBar(this, d->module, genericTypeDesc_, writeEnabled, typeEnabled);
 		m_typeData.push_back(d);
 	}
+
+	m_genericTypeModule = new esdbGenericTypeModule();
+	typeData *genericTypeData = new typeData(m_genericTypeModule);
+	genericTypeData->actionBar = new GenericTypeActionBar(this, genericTypeData->module, writeEnabled, typeEnabled);
+	m_typeData.push_back(genericTypeData);
 
 	m_activeType = m_typeData.at(m_activeTypeIndex);
 
@@ -300,6 +287,7 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	m_newAcctButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
 	m_viewSelector = new QComboBox();
+	m_viewSelector->setEditable(false);
 	for (auto iter : m_typeData) {
 		m_viewSelector->addItem(iter->module->m_name);
 	}
@@ -530,7 +518,7 @@ void LoggedInWidget::signetdevCmdResp(signetdevCmdRespInfo info)
 	case SIGNETDEV_CMD_UPDATE_UID: {
 		if (m_idTask == ID_TASK_DELETE) {
 			EsdbActionBar *bar = getActiveActionBar();
-			bar->idTaskComplete(m_id, m_idTask, m_taskIntent);
+			bar->idTaskComplete(false, m_id, NULL, m_idTask, m_taskIntent);
 			if (code == OKAY) {
 				m_entries.erase(m_entries.find(m_id));
 				m_activeType->entries->erase(m_activeType->entries->find(m_id));
@@ -643,20 +631,6 @@ EsdbActionBar *LoggedInWidget::getActiveActionBar()
 	return (EsdbActionBar *)m_actionBarStack->widget(m_activeTypeIndex);
 }
 
-int LoggedInWidget::esdbTypeToIndex(int type)
-{
-	int ret = -1;
-	switch (type) {
-	case ESDB_TYPE_ACCOUNT:
-		return 0;
-		break;
-	case ESDB_TYPE_BOOKMARK:
-		return 1;
-		break;
-	}
-	return ret;
-}
-
 int LoggedInWidget::esdbEntryToIndex(esdbEntry *entry)
 {
 	int ret = -1;
@@ -680,6 +654,15 @@ int LoggedInWidget::esdbEntryToIndex(esdbEntry *entry)
 		}
 	}
 	break;
+	case ESDB_TYPE_GENERIC_TYPE_DESC: {
+		for (int i = 0; i < m_actionBarStack->count(); i++) {
+			EsdbActionBar *bar = (EsdbActionBar *)m_actionBarStack->widget(i);
+			if (bar->esdbType() == ESDB_TYPE_GENERIC_TYPE_DESC) {
+				return i;
+			}
+		}
+	}
+	break;
 	}
 	return ret;
 }
@@ -697,13 +680,21 @@ EsdbActionBar *LoggedInWidget::getActionBarByEntry(esdbEntry *entry)
 esdbTypeModule *LoggedInWidget::getTypeModule(int type)
 {
 	esdbTypeModule *module = NULL;
-	if (type == ESDB_TYPE_GENERIC) {
-		return m_genericDecoder;
-	} else {
-		int index = esdbTypeToIndex(type);
-		if (index >= 0) {
-			module = m_typeData.at(index)->module;
-		}
+	switch (type) {
+	case ESDB_TYPE_GENERIC:
+		module = m_genericDecoder;
+		break;
+	case ESDB_TYPE_GENERIC_TYPE_DESC:
+		module = m_genericTypeModule;
+		break;
+	case ESDB_TYPE_ACCOUNT:
+		module = m_accounts;
+		break;
+	case ESDB_TYPE_BOOKMARK:
+		module = m_bookmarks;
+		break;
+	default:
+		break;
 	}
 	return module;
 }
@@ -772,7 +763,7 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 			emit abort();
 		}
 		if (bar)
-			bar->idTaskComplete(id, m_idTask, m_taskIntent);
+			bar->idTaskComplete(true, id, NULL, m_idTask, m_taskIntent);
 		return;
 	}
 
@@ -784,14 +775,15 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 			entry = module->decodeEntry(id, tmp.revision, entry, blk);
 			if (entry) {
 				if (bar) {
-					bar->idTaskComplete(id, m_idTask, m_taskIntent);
-					bar->getEntryDone(entry, m_taskIntent);
+					bar->idTaskComplete(false, id, entry, m_idTask, m_taskIntent);
 				} else {
 					//TODO
 				}
 			} else if (m_populating) {
 				m_populatingCantRead++;
 			}
+		} else {
+
 		}
 	}
 

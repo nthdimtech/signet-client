@@ -20,14 +20,14 @@ struct genericTypeDesc : public esdbEntry {
 	QString group;
 	QList<fieldSpec> fields;
 	void fromBlock(block *blk);
-	void toBlock(block *blk);
-	QString getTitle() {
+	void toBlock(block *blk) const;
+	QString getTitle() const {
 		return name;
 	}
-	QString getPath() {
+	QString getPath() const {
 		return group;
 	}
-	genericTypeDesc(int id) : esdbEntry(id) {
+	genericTypeDesc(int id) : esdbEntry(id, ESDB_TYPE_GENERIC_TYPE_DESC, 1, id, 1) {
 
 	}
 	void getFields(QVector<genericField> &fields_) const;
