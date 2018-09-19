@@ -47,7 +47,6 @@
 #include "loggedinwidget.h"
 #include "account.h"
 #include "esdbmodel.h"
-#include "newaccount.h"
 #include "resetdevice.h"
 #include "editaccount.h"
 #include "buttonwaitdialog.h"

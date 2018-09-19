@@ -62,7 +62,7 @@ void EsdbActionBar::openEntry(esdbEntry *entry)
 		int id = entry->id;
 		m_buttonWaitDialog = new ButtonWaitDialog(
 		    "Open " + m_typeName.toLower(),
-		    "Open " + m_typeName.toLower() +  " \"" + entry->getTitle() + "\"",
+		    "open " + m_typeName.toLower() +  " \"" + entry->getTitle() + "\"",
 		    m_parent);
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(openEntryFinished(int)));
 		m_buttonWaitDialog->show();

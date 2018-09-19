@@ -10,15 +10,19 @@ class esdbEntry;
 #include "signetapplication.h"
 #include "editentrydialog.h"
 
-class NewGenericType : public EditEntryDialog
+struct genericTypeDesc;
+
+class EditGenericType : public EditEntryDialog
 {
 	Q_OBJECT
 	QLineEdit *m_typeNameEdit;
 	QString entryName();
 	void applyChanges(esdbEntry *);
 	esdbEntry *createEntry(int id);
+	void undoChanges();
+	genericTypeDesc *m_genericTypeDesc;
 public:
-	NewGenericType(int id, const QString &name, QWidget *parent);
+	EditGenericType(int id, const QString &name, QWidget *parent);
 };
 
 #endif // NEWGENERICTYPE_H

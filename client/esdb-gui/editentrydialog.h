@@ -27,9 +27,9 @@ class EditEntryDialog : public QDialog
 	bool m_isNew;
 	bool m_changesMade;
 	bool m_closeOnSave;
-	bool m_settingFields;
 	QBoxLayout *m_buttons;
 	void setupBase();
+	void closeEvent(QCloseEvent *event);
 signals:
 	void abort();
 	void accountChanged(int id);
@@ -39,18 +39,22 @@ public:
 	EditEntryDialog(QString typeName, esdbEntry *ent, QWidget *parent);
 protected:
 	int m_id;
+	bool m_settingFields;
 	esdbEntry *m_entry;
 	void setup(QLayout *layout);
 	void setup(QWidget *widget);
 	virtual QString entryName() = 0;
 	virtual void applyChanges(esdbEntry *) = 0;
 	virtual esdbEntry *createEntry(int id) = 0;
+	virtual void undoChanges() = 0;
 private slots:
 	void submitButtonPressed();
+	void undoButtonPressed();
 	void submitEntryFinished(int code);
-public slots:
 	void signetdevCmdResp(signetdevCmdRespInfo info);
+public slots:
 	void edited();
+	void entryNameEdited();
 };
 
 #endif // EDITENTRYDIALOG_H

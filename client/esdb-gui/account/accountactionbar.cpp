@@ -61,15 +61,10 @@ void AccountActionBar::newAccountFinished(int)
 	m_parent->finishTask(false);
 }
 
-void AccountActionBar::accountCreated(account *acct)
-{
-	m_parent->entryCreated("Accounts", acct);
-}
-
 void AccountActionBar::newInstanceUI(int id, const QString &name)
 {
-	m_newAccountDlg = new NewAccount(id, name, this);
-	QObject::connect(m_newAccountDlg, SIGNAL(accountCreated(account*)), this, SLOT(accountCreated(account *)));
+	m_newAccountDlg = new EditAccount(id, name, this);
+	QObject::connect(m_newAccountDlg, SIGNAL(entryCreated(esdbEntry *)), this, SLOT(entryCreated(esdbEntry *)));
 	QObject::connect(m_newAccountDlg, SIGNAL(finished(int)), this, SLOT(newAccountFinished(int)));
 	m_newAccountDlg->show();
 }
@@ -203,20 +198,19 @@ void AccountActionBar::deleteAccountUI()
 void AccountActionBar::copyUsername()
 {
 	esdbEntry *entry = selectedEntry();
-	QString message("Copy username \"" + entry->getTitle() + "\"");
+	QString message("copy username \"" + entry->getTitle() + "\"");
 	accessEntry(selectedEntry(), INTENT_COPY_ENTRY, message, true, false);
 }
 
 void AccountActionBar::copyPassword()
 {
 	esdbEntry *entry = selectedEntry();
-	QString message("Copy password \"" + entry->getTitle() + "\"");
+	QString message("copy password \"" + entry->getTitle() + "\"");
 	accessEntry(selectedEntry(), INTENT_COPY_ENTRY, message, true, false);}
 
 
 void AccountActionBar::accessAccount(account *acct, bool username, bool password)
 {
-	int id = acct->id;
 	m_accessUsername = username;
 	m_accessPassword = password;
 	QString message;
@@ -339,6 +333,11 @@ void AccountActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 		copyAccountData(acct, m_accessUsername, m_accessPassword);
 	} break;
 	}
+}
+
+void AccountActionBar::entryCreated(esdbEntry *entry)
+{
+	m_parent->entryCreated("Account", entry);
 }
 
 void AccountActionBar::retryTypeData()

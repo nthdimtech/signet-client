@@ -7,7 +7,7 @@ class LoggedInWidget;
 class QPushButton;
 class ButtonWaitDialog;
 struct account;
-class NewAccount;
+class EditAccount;
 
 #include <QVector>
 
@@ -18,7 +18,7 @@ extern "C" {
 class AccountActionBar : public EsdbActionBar
 {
 	Q_OBJECT
-	NewAccount *m_newAccountDlg;
+	EditAccount *m_newAccountDlg;
 	void entrySelected(esdbEntry *entry);
 	void defaultAction(esdbEntry *entry);
 	QPushButton *m_DeleteButton;
@@ -52,6 +52,8 @@ class AccountActionBar : public EsdbActionBar
 
 	bool m_quickTypeMode;
 	void accessEntryComplete(esdbEntry *entry, int intent);
+private slots:
+	void entryCreated(esdbEntry *entry);
 signals:
 	void background();
 	void abort();
@@ -60,7 +62,6 @@ public:
 public slots:
 	void retryTypeData();
 	void newAccountFinished(int);
-	void accountCreated(account *acct);
 	void openAccountUI();
 	void deleteAccountUI();
 	void typeAccountUserUI();

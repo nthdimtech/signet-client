@@ -1,7 +1,7 @@
 #include "bookmarkactionbar.h"
 #include "esdb.h"
 #include "bookmark.h"
-#include "newbookmark.h"
+#include "editbookmark.h"
 
 #include <QDesktopServices>
 #include <QUrl>
@@ -54,7 +54,7 @@ void BookmarkActionBar::browseUrlUI()
 
 void BookmarkActionBar::newInstanceUI(int id, const QString &name)
 {
-	m_newEntryDlg = new NewBookmark(id, name, this);
+	m_newEntryDlg = new EditBookmark(id, name, this);
 	QObject::connect(m_newEntryDlg, SIGNAL(entryCreated(esdbEntry *)), this, SLOT(entryCreated(esdbEntry *)));
 	QObject::connect(m_newEntryDlg, SIGNAL(finished(int)), this, SLOT(newEntryFinished(int)));
 	m_newEntryDlg->show();
@@ -67,7 +67,21 @@ int BookmarkActionBar::esdbType()
 
 void BookmarkActionBar::openEntryUI()
 {
-	//TODO
+	openEntry(selectedEntry());
+}
+
+void BookmarkActionBar::accessEntryComplete(esdbEntry *entry, int intent)
+{
+	bookmark *b = static_cast<bookmark *>(entry);
+	switch (intent) {
+	case INTENT_OPEN_ENTRY: {
+		EditBookmark *eb = new EditBookmark(b, m_parent);
+		connect(eb, SIGNAL(abort()), this, SIGNAL(abort()));
+		connect(eb, SIGNAL(accountChanged(int)), m_parent, SLOT(entryChanged(int)));
+		connect(eb, SIGNAL(finished(int)), eb, SLOT(deleteLater()));
+		eb->show();
+	} break;
+	}
 }
 
 void BookmarkActionBar::deleteEntryUI()

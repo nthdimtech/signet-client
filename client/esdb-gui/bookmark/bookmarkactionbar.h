@@ -14,12 +14,12 @@ struct esdbTypeModule;
 class LoggedInWidget;
 struct esdbEntry;
 struct block;
-class NewBookmark;
+class EditBookmark;
 
 class BookmarkActionBar : public EsdbActionBar
 {
 	Q_OBJECT
-	NewBookmark *m_newEntryDlg;
+	EditBookmark *m_newEntryDlg;
 	esdbTypeModule *m_module;
 
 	//Overrides
@@ -32,6 +32,7 @@ class BookmarkActionBar : public EsdbActionBar
 
 	int esdbType();
 
+	void accessEntryComplete(esdbEntry *entry, int intent);
 public:
 	BookmarkActionBar(esdbTypeModule *module, LoggedInWidget *parent, bool writeEnabled = true, bool typeEnabled = true);
 public slots:

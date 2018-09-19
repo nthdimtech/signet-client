@@ -11,11 +11,9 @@
 #include <QFrame>
 #include <QComboBox>
 
-GenericFieldsEditor::GenericFieldsEditor(genericFields &fields,
-					 QList<fieldSpec> requiredFieldSpecs,
+GenericFieldsEditor::GenericFieldsEditor(QList<fieldSpec> requiredFieldSpecs,
 					 QWidget *parent) :
 	QWidget(parent),
-	m_fields(fields),
 	m_requiredFieldSpecs(requiredFieldSpecs)
 {
 	setLayout(new QVBoxLayout());
@@ -128,10 +126,10 @@ void GenericFieldsEditor::addNewFieldUI()
 	}
 }
 
-void GenericFieldsEditor::loadFields()
+void GenericFieldsEditor::loadFields(genericFields &fields)
 {
-	for (int i = 0; i < m_fields.fieldCount(); i++) {
-		auto genericField = m_fields.getField(i);
+	for (int i = 0; i < fields.fieldCount(); i++) {
+		auto genericField = fields.getField(i);
 		if (m_fieldEditMap.count(genericField.name)) {
 			auto genericFieldEdit = *m_fieldEditMap.find(genericField.name);
 			genericFieldEdit->fromString(genericField.value);
@@ -142,38 +140,38 @@ void GenericFieldsEditor::loadFields()
 	}
 }
 
-void GenericFieldsEditor::saveFields()
+void GenericFieldsEditor::saveFields(genericFields &fields)
 {
 	int i = 0;
 	//Update and delete fields
-	while (i < m_fields.fieldCount()) {
-		auto field = m_fields.getField(i);
+	while (i < fields.fieldCount()) {
+		auto field = fields.getField(i);
 		if (m_fieldEditMap.count(field.name)) {
 			auto fieldEdit = *(m_fieldEditMap.find(field.name));
 			field.value = fieldEdit->toString();
 			field.type = fieldEdit->type();
-			m_fields.replaceField(i, field);
+			fields.replaceField(i, field);
 			i++;
 		} else {
-			m_fields.removeField(i);
+			fields.removeField(i);
 		}
 	}
 
 	//Add new fields
 	for (auto fieldEdit : m_fieldEditMap) {
 		int i;
-		for (i = 0; i < m_fields.fieldCount(); i++) {
-			auto field = m_fields.getField(i);
+		for (i = 0; i < fields.fieldCount(); i++) {
+			auto field = fields.getField(i);
 			if (fieldEdit->name() == field.name) {
 				break;
 			}
 		}
-		if (i == m_fields.fieldCount()) {
+		if (i == fields.fieldCount()) {
 			genericField feild;
 			feild.name = fieldEdit->name();
 			feild.type = fieldEdit->type();
 			feild.value = fieldEdit->toString();
-			m_fields.addField(feild);
+			fields.addField(feild);
 		}
 	}
 }

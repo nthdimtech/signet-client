@@ -9,7 +9,7 @@
 TypeDescEditor::TypeDescEditor(genericFields &fields,
 				QList<fieldSpec> requiredFieldSpecs,
 				QWidget *parent) :
-			GenericFieldsEditor(fields, requiredFieldSpecs, parent)
+			GenericFieldsEditor(requiredFieldSpecs, parent)
 {
 
 }

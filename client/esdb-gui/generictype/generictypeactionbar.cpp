@@ -5,7 +5,7 @@
 #include <QDialog>
 #include <QPushButton>
 
-#include "newgenerictype.h"
+#include "editgenerictype.h"
 #include "loggedinwidget.h"
 
 void GenericTypeActionBar::selectedEntry(esdbEntry *entry)
@@ -20,8 +20,10 @@ void GenericTypeActionBar::defaultAction(esdbEntry *entry)
 
 void GenericTypeActionBar::newInstanceUI(int id, const QString &name)
 {
-	NewGenericType *t = new NewGenericType(id, name, this);
+	EditGenericType *t = new EditGenericType(id, name, this);
+	QObject::connect(t, SIGNAL(entryCreated(esdbEntry *)), this, SLOT(entryCreated(esdbEntry *)));
 	t->exec();
+	m_parent->finishTask(false);
 	t->deleteLater();
 }
 
@@ -36,4 +38,9 @@ GenericTypeActionBar::GenericTypeActionBar(LoggedInWidget *parent, esdbTypeModul
 void GenericTypeActionBar::deletePressed()
 {
 	deleteEntry();
+}
+
+void GenericTypeActionBar::entryCreated(esdbEntry *entry)
+{
+	m_parent->entryCreated(m_module->name(), entry);
 }

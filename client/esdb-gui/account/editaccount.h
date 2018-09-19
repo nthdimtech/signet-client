@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include "signetapplication.h"
+#include "editentrydialog.h"
 
 class QLineEdit;
 class QPushButton;
@@ -18,11 +19,10 @@ struct block;
 struct signetdevCmdRespInfo;
 class GenericFieldsEditor;
 
-class EditAccount : public QDialog
+class EditAccount : public EditEntryDialog
 {
 	Q_OBJECT
 	account *m_acct;
-	ButtonWaitDialog *m_buttonDialog;
 	QLineEdit *m_accountNameEdit;
 	QLabel *m_accountNameWarning;
 	DatabaseField *m_usernameField;
@@ -30,34 +30,22 @@ class EditAccount : public QDialog
 	PasswordEdit *m_passwordEdit;
 	DatabaseField *m_urlField;
 	DatabaseField *m_emailField;
-	int m_signetdevCmdToken;
-	QPushButton *m_saveButton;
 	QPushButton *m_browseUrlButton;
-	QPushButton *m_undoChangesButton;
-	QLabel *m_dataOversized;
-	void setAccountValues();
 	GenericFieldsEditor *m_genericFieldsEditor;
-	bool m_settingFields;
-	void closeEvent(QCloseEvent *);
-	bool m_changesMade;
-	bool m_closeOnSave;
+	void setAccountValues();
 	bool toBlock(block &blk);
-	bool m_isOversized;
-	void oversizedDialog();
+	void setup(QString name);
+	virtual QString entryName();
+	virtual void applyChanges(esdbEntry *);
+	virtual esdbEntry *createEntry(int id);
+	virtual void undoChanges();
 public:
-	EditAccount(account *acct, QWidget *parent = 0);
+	EditAccount(int id, QString entryName, QWidget *parent = 0);
+	EditAccount(account *generic, QWidget *parent = 0);
 	virtual ~EditAccount();
-signals:
-	void abort();
-	void accountChanged(int id);
 public slots:
-	void signetdevCmdResp(signetdevCmdRespInfo info);
-	void editAccountFinished(int);
-	void accountNameEdited();
 	void browseUrl();
-	void textEdited();
-	void savePressed();
-	void undoChangesUi();
+	void accountNameEdited();
 };
 
 #endif // EDITACCOUNT_H

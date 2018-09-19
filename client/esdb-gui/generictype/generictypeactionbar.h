@@ -24,6 +24,8 @@ signals:
 
 public slots:
 	void deletePressed();
+private slots:
+	void entryCreated(esdbEntry *entry);
 };
 
 #endif // GENERICTYPEACTIONBAR_H

@@ -44,6 +44,7 @@ void SearchListbox::entered(QModelIndex idx)
 
 void SearchListbox::currentChanged(const QModelIndex &current, const QModelIndex &previous)
 {
+	Q_UNUSED(previous);
 	emit selected(current);
 }
 

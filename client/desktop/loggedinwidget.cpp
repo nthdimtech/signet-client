@@ -25,7 +25,6 @@
 #include "esdbmodel.h"
 #include "aspectratiopixmaplabel.h"
 #include "editaccount.h"
-#include "newaccount.h"
 #include "searchlistbox.h"
 #include "searchfilteredit.h"
 #include "buttonwaitdialog.h"
@@ -562,6 +561,7 @@ void LoggedInWidget::deselectEntry()
 	m_filterEdit->setText(m_searchListbox->filterText());
 	getActiveActionBar()->selectEntry(NULL);
 	m_filterEdit->setFocus();
+	m_selectedEntry = NULL;
 	m_searchListbox->setCurrentIndex(QModelIndex());
 }
 

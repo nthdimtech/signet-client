@@ -10,8 +10,7 @@
 #include "loggedinwidget.h"
 #include "buttonwaitdialog.h"
 #include "genericactionbar.h"
-#include "newgeneric.h"
-#include "opengeneric.h"
+#include "editgeneric.h"
 #include "generic.h"
 #include "generictypedesc.h"
 
@@ -54,7 +53,7 @@ void GenericActionBar::browseUrlUI()
 
 void GenericActionBar::newInstanceUI(int id, const QString &name)
 {
-	m_newEntryDlg = new NewGeneric(id, m_typeDesc, name, this);
+	m_newEntryDlg = new EditGeneric(m_typeDesc, id, name, this);
 	QObject::connect(m_newEntryDlg, SIGNAL(entryCreated(esdbEntry *)), this, SLOT(entryCreated(esdbEntry *)));
 	QObject::connect(m_newEntryDlg, SIGNAL(finished(int)), this, SLOT(newEntryFinished(int)));
 	m_newEntryDlg->show();
@@ -70,17 +69,21 @@ void GenericActionBar::deleteEntryUI()
 	deleteEntry();
 }
 
-void GenericActionBar::openEntryComplete(esdbEntry *entry)
+void GenericActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 {
-	generic *g = static_cast<generic *>(entry);
-	if (m_buttonWaitDialog) {
-		m_buttonWaitDialog->done(QMessageBox::Ok);
+	switch (intent) {
+	case INTENT_OPEN_ENTRY: {
+		generic *g = static_cast<generic *>(entry);
+		if (m_buttonWaitDialog) {
+			m_buttonWaitDialog->done(QMessageBox::Ok);
+		}
+		EditGeneric *og = new EditGeneric(g, m_typeDesc, m_parent);
+		connect(og, SIGNAL(abort()), this, SIGNAL(abort()));
+		connect(og, SIGNAL(accountChanged(int)), m_parent, SLOT(entryChanged(int)));
+		connect(og, SIGNAL(finished(int)), og, SLOT(deleteLater()));
+		og->show();
+	} break;
 	}
-	OpenGeneric *og = new OpenGeneric(g, m_typeDesc, m_parent);
-	connect(og, SIGNAL(abort()), this, SIGNAL(abort()));
-	connect(og, SIGNAL(accountChanged(int)), m_parent, SLOT(entryChanged(int)));
-	connect(og, SIGNAL(finished(int)), og, SLOT(deleteLater()));
-	og->show();
 }
 
 int GenericActionBar::esdbType()

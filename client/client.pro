@@ -77,8 +77,10 @@ SOURCES += ../signet-base/signetdev/host/signetdev.c \
     desktop/cleartextpasswordselector.cpp \
     esdb/generictype/esdbgenerictypemodule.cpp \
     esdb-gui/generictype/generictypeactionbar.cpp \
-    esdb-gui/generictype/newgenerictype.cpp \
-    esdb-gui/editentrydialog.cpp
+    esdb-gui/editentrydialog.cpp \
+    esdb-gui/generic/editgeneric.cpp \
+    esdb-gui/bookmark/editbookmark.cpp \
+    esdb-gui/generictype/editgenerictype.cpp
 
 macx|linux-g++ {
 HEADERS += import/passimporter.h \
@@ -137,8 +139,11 @@ HEADERS += esdb/esdb.h \
     desktop/cleartextpasswordselector.h \
     esdb/generictype/esdbgenerictypemodule.h \
     esdb-gui/generictype/generictypeactionbar.h \
-    esdb-gui/generictype/newgenerictype.h \
-    esdb-gui/editentrydialog.h
+    esdb-gui/editentrydialog.h \
+    esdb-gui/generic/editgeneric.h \
+    esdb-gui/generic/editgeneric.h \
+    esdb-gui/bookmark/editbookmark.h \
+    esdb-gui/generictype/editgenerictype.h
 #
 # ESDB GUI sources
 #
@@ -154,14 +159,10 @@ SOURCES += esdb-gui/esdbmodel.cpp \
     esdb-gui/genericfieldseditor.cpp \
     esdb-gui/typedescedit.cpp \
     esdb-gui/typedesceditor.cpp \
-    esdb-gui/account/newaccount.cpp \
     esdb-gui/account/editaccount.cpp \
     esdb-gui/account/accountactionbar.cpp \
     esdb-gui/bookmark/bookmarkactionbar.cpp \
-    esdb-gui/bookmark/newbookmark.cpp \
-    esdb-gui/generic/genericactionbar.cpp \
-    esdb-gui/generic/newgeneric.cpp \
-    esdb-gui/generic/opengeneric.cpp
+    esdb-gui/generic/genericactionbar.cpp
 
 HEADERS +=  esdb-gui/esdbmodel.h \
     esdb-gui/databasefield.h \
@@ -175,14 +176,10 @@ HEADERS +=  esdb-gui/esdbmodel.h \
     esdb-gui/genericfieldseditor.h \
     esdb-gui/typedescedit.h \
     esdb-gui/typedesceditor.h \
-    esdb-gui/account/newaccount.h \
     esdb-gui/account/editaccount.h \
     esdb-gui/account/accountactionbar.h \
     esdb-gui/bookmark/bookmarkactionbar.h \
-    esdb-gui/bookmark/newbookmark.h \
-    esdb-gui/generic/genericactionbar.h \
-    esdb-gui/generic/newgeneric.h \
-    esdb-gui/generic/opengeneric.h
+    esdb-gui/generic/genericactionbar.h
 
 #
 # Common Misc

@@ -21,32 +21,34 @@ extern "C" {
 #include "signetdev/host/signetdev.h"
 };
 
-EditAccount::EditAccount(account *acct, QWidget *parent) :
-	QDialog(parent),
-	m_acct(acct),
-	m_buttonDialog(NULL),
-	m_signetdevCmdToken(-1),
-	m_saveButton(NULL),
-	m_undoChangesButton(NULL),
-	m_settingFields(false),
-	m_changesMade(false),
-	m_closeOnSave(false)
+EditAccount::EditAccount(int id, QString entryName, QWidget *parent) :
+	EditEntryDialog("Account", id, parent),
+	m_acct(NULL)
 {
-	setWindowModality(Qt::WindowModal);
-	SignetApplication *app = SignetApplication::get();
-	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
-		this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
+	setup(entryName);
+}
 
-	this->setWindowTitle(acct->acctName);
-	m_accountNameEdit = new QLineEdit();
+EditAccount::EditAccount(account *acct, QWidget *parent) :
+	EditEntryDialog("Account", acct, parent),
+	m_acct(acct)
+{
+	setup(acct->acctName);
+	m_settingFields = true;
+	setAccountValues();
+	m_settingFields = false;
+}
 
-	m_genericFieldsEditor = new GenericFieldsEditor(m_acct->fields,
-					QList<fieldSpec>());
+void EditAccount::setup(QString name)
+{
+	m_accountNameEdit = new QLineEdit(name);
+
+	m_genericFieldsEditor = new GenericFieldsEditor(QList<fieldSpec>());
 
 	QBoxLayout *account_name_layout = new QBoxLayout(QBoxLayout::LeftToRight);
 	account_name_layout->addWidget(new QLabel("Account name"));
 	account_name_layout->addWidget(m_accountNameEdit);
 	connect(m_accountNameEdit, SIGNAL(textEdited(QString)), this, SLOT(accountNameEdited()));
+	connect(m_accountNameEdit, SIGNAL(textEdited(QString)), this, SLOT(entryNameEdited()));
 
 	m_accountNameWarning = new QLabel();
 	m_accountNameWarning->setStyleSheet("QLabel { color : red; }");
@@ -63,114 +65,40 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 	m_urlField = new DatabaseField("URL", 140, m_browseUrlButton);
 
 	connect(m_accountNameEdit, SIGNAL(textEdited(QString)),
-		this, SLOT(textEdited()));
+		this, SLOT(edited()));
 	connect(m_passwordEdit, SIGNAL(textEdited(QString)),
-		this, SLOT(textEdited()));
+		this, SLOT(edited()));
 	connect(m_usernameField, SIGNAL(textEdited(QString)),
-		this, SLOT(textEdited()));
+		this, SLOT(edited()));
 	connect(m_emailField, SIGNAL(textEdited(QString)),
-		this, SLOT(textEdited()));
+		this, SLOT(edited()));
 	connect(m_urlField, SIGNAL(textEdited(QString)),
 		this, SLOT(textEdited()));
 	connect(m_genericFieldsEditor, SIGNAL(edited()),
-		this, SLOT(textEdited()));
+		this, SLOT(edited()));
 	connect(m_groupField, SIGNAL(textEdited(QString)),
-		this, SLOT(textEdited()));
+		this, SLOT(edited()));
 
-	m_settingFields = true;
-	setAccountValues();
-	m_genericFieldsEditor->loadFields();
-	m_settingFields = false;
+	QBoxLayout *mainLayout = new QBoxLayout(QBoxLayout::TopToBottom);
+	mainLayout->setAlignment(Qt::AlignTop);
+	mainLayout->addLayout(account_name_layout);
+	mainLayout->addWidget(m_accountNameWarning);
+	mainLayout->addWidget(m_groupField);
+	mainLayout->addWidget(m_usernameField);
+	mainLayout->addWidget(m_emailField);
+	mainLayout->addWidget(m_passwordEdit);
+	mainLayout->addWidget(m_urlField);
+	mainLayout->addWidget(m_genericFieldsEditor);
+	EditEntryDialog::setup(mainLayout);
+}
 
-	m_undoChangesButton = new QPushButton("Undo");
-
-	m_saveButton = new QPushButton("&Save");
-	m_saveButton->setDisabled(true);
-	m_saveButton->setDefault(true);
-
-	QPushButton *close_button = new QPushButton("Close");
-	m_undoChangesButton->setDisabled(true);
-	connect(m_undoChangesButton, SIGNAL(pressed()), this, SLOT(undoChangesUi()));
-
-	QHBoxLayout *buttons = new QHBoxLayout();
-
-	buttons->addWidget(m_saveButton);
-	buttons->addWidget(m_undoChangesButton);
-	buttons->addWidget(close_button);
-	m_dataOversized = new QLabel("Warning: this entry is too large. You must delete something to save it");
-	m_dataOversized->setStyleSheet("QLabel { color : red; }");
-	m_dataOversized->hide();
-
-	QBoxLayout *main_layout = new QBoxLayout(QBoxLayout::TopToBottom);
-	main_layout->setAlignment(Qt::AlignTop);
-	main_layout->addLayout(account_name_layout);
-	main_layout->addWidget(m_accountNameWarning);
-	main_layout->addWidget(m_groupField);
-	main_layout->addWidget(m_usernameField);
-	main_layout->addWidget(m_emailField);
-	main_layout->addWidget(m_passwordEdit);
-	main_layout->addWidget(m_urlField);
-	main_layout->addWidget(m_genericFieldsEditor);
-	main_layout->addWidget(m_dataOversized);
-	main_layout->addLayout(buttons);
-	setLayout(main_layout);
-
-	connect(m_saveButton, SIGNAL(pressed(void)), this, SLOT(savePressed(void)));
-	connect(close_button, SIGNAL(pressed(void)), this, SLOT(close(void)));
+EditAccount::~EditAccount()
+{
 }
 
 void EditAccount::accountNameEdited()
 {
 	m_accountNameWarning->hide();
-}
-
-void EditAccount::signetdevCmdResp(signetdevCmdRespInfo info)
-{
-	int code = info.resp_code;
-
-	if (m_signetdevCmdToken != info.token) {
-		return;
-	}
-	m_signetdevCmdToken = -1;
-
-	if (m_buttonDialog) {
-		m_buttonDialog->done(QMessageBox::Ok);
-	}
-
-	switch (code) {
-	case OKAY: {
-		switch (info.cmd) {
-		case SIGNETDEV_CMD_UPDATE_UID:
-			m_acct->acctName = m_accountNameEdit->text();
-			m_acct->userName = m_usernameField->text();
-			m_acct->password = m_passwordEdit->password();
-			m_acct->url = m_urlField->text();
-			m_acct->email = m_emailField->text();
-			m_acct->path = m_groupField->text();
-			emit accountChanged(m_acct->id);
-			m_saveButton->setDisabled(true);
-			m_undoChangesButton->setDisabled(true);
-			break;
-		}
-	}
-	break;
-	case NOT_ENOUGH_SPACE:
-		oversizedDialog();
-		break;
-	case BUTTON_PRESS_TIMEOUT:
-	case BUTTON_PRESS_CANCELED:
-		m_saveButton->setDisabled(false);
-		m_undoChangesButton->setDisabled(false);
-		break;
-	case SIGNET_ERROR_DISCONNECT:
-	case SIGNET_ERROR_QUIT:
-		close();
-		break;
-	default: {
-		emit abort();
-	}
-	break;
-	}
 }
 
 void EditAccount::browseUrl()
@@ -183,10 +111,6 @@ void EditAccount::browseUrl()
 	QDesktopServices::openUrl(url);
 }
 
-EditAccount::~EditAccount()
-{
-}
-
 void EditAccount::setAccountValues()
 {
 	m_usernameField->setText(m_acct->userName);
@@ -195,118 +119,36 @@ void EditAccount::setAccountValues()
 	m_passwordEdit->setPassword(m_acct->password);
 	m_urlField->setText(m_acct->url);
 	m_groupField->setText(m_acct->path);
+	m_genericFieldsEditor->loadFields(m_acct->fields);
 }
 
-void EditAccount::undoChangesUi()
+QString EditAccount::entryName()
 {
-	m_settingFields = true;
-	setAccountValues();
-	m_genericFieldsEditor->loadFields();
-	m_settingFields = false;
-	m_saveButton->setDisabled(true);
-	m_undoChangesButton->setDisabled(true);
-	m_accountNameWarning->hide();
-	m_changesMade = false;
+	return m_accountNameEdit->text();
 }
 
-void EditAccount::textEdited()
+void EditAccount::applyChanges(esdbEntry *ent)
 {
-	if (!m_settingFields) {
-		m_saveButton->setDisabled(false);
-		m_undoChangesButton->setDisabled(false);
-		m_changesMade = true;
-		block blk;
-		if (!toBlock(blk)) {
-			m_isOversized = true;
-			m_saveButton->setDisabled(true);
-			m_dataOversized->show();
-		} else {
-			m_isOversized = false;
-			m_saveButton->setDisabled(false);
-			m_dataOversized->hide();
-		}
-	}
+	account *acct = static_cast<account *>(ent);
+	acct->acctName = m_accountNameEdit->text();
+	acct->userName = m_usernameField->text();
+	acct->password = m_passwordEdit->password();
+	acct->url = m_urlField->text();
+	acct->email = m_emailField->text();
+	acct->path = m_groupField->text();
+	acct->fields = acct->fields;
+	m_genericFieldsEditor->saveFields(acct->fields);
 }
 
-void EditAccount::closeEvent(QCloseEvent *event)
+esdbEntry *EditAccount::createEntry(int id)
 {
-	if (m_changesMade) {
-		QMessageBox *box = new QMessageBox(QMessageBox::Question, windowTitle(),
-					       "You have made changes. Do you want to save them",
-					       QMessageBox::Yes |
-					       QMessageBox::No,
-					       this);
-		int rc = box->exec();
-		box->deleteLater();
-		if (rc == QMessageBox::Yes) {
-			m_closeOnSave = true;
-			event->ignore();
-			savePressed();
-			return;
-		}
-	}
-	event->accept();
+	account *acct = new account(id);
+	return acct;
 }
 
-bool EditAccount::toBlock(block &blk)
+void EditAccount::undoChanges()
 {
-	account acct(m_acct->id);
-	acct.acctName = m_accountNameEdit->text();
-	acct.userName = m_usernameField->text();
-	acct.password = m_passwordEdit->password();
-	acct.url = m_urlField->text();
-	acct.email = m_emailField->text();
-	acct.path = m_groupField->text();
-	m_genericFieldsEditor->saveFields();
-	acct.fields = m_acct->fields;
-	acct.toBlock(&blk);
-	return blk.data.size() <= MAX_ENT_DATA_SIZE;
-}
-
-void EditAccount::oversizedDialog()
-{
-	m_isOversized = true;
-	m_saveButton->setDisabled(true);
-	m_dataOversized->show();
-	auto mb = SignetApplication::messageBoxWarn("Entry too large", "This entry is too large. You must delete something to save it", this);
-	mb->exec();
-	mb->deleteLater();
-}
-
-void EditAccount::savePressed()
-{
-	if (m_accountNameEdit->text().size() == 0) {
-		m_accountNameWarning->setText("The account name cannot be empty");
-		m_accountNameWarning->show();
-		return;
-	}
-
-	block blk;
-	if (toBlock(blk)) {
-		m_buttonDialog = new ButtonWaitDialog( "Save account",
-						       QString("save changes to account \"") + m_accountNameEdit->text() + QString("\""),
-						       this);
-		connect(m_buttonDialog, SIGNAL(finished(int)), this, SLOT(editAccountFinished(int)));
-		m_buttonDialog->show();
-		::signetdev_update_uid(NULL, &m_signetdevCmdToken,
-					   m_acct->id,
-					   blk.data.size(),
-					   (const u8 *)blk.data.data(),
-					   (const u8 *)blk.mask.data());
-	} else {
-		oversizedDialog();
-	}
-}
-
-void EditAccount::editAccountFinished(int code)
-{
-	if (code != QMessageBox::Ok) {
-		::signetdev_cancel_button_wait();
-	}
-	m_buttonDialog->deleteLater();
-	m_buttonDialog = NULL;
-	m_changesMade = false;
-	if (m_closeOnSave) {
-		close();
+	if (m_acct) {
+		setAccountValues();
 	}
 }

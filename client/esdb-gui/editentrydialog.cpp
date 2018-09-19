@@ -11,6 +11,7 @@ extern "C" {
 #include <QBoxLayout>
 #include <QPushButton>
 #include <QLabel>
+#include <QCloseEvent>
 
 EditEntryDialog::EditEntryDialog(QString typeName, int id, QWidget *parent) :
 	QDialog(parent),
@@ -27,6 +28,8 @@ EditEntryDialog::EditEntryDialog(QString typeName, int id, QWidget *parent) :
 	m_settingFields(false)
 {
 	m_isNew = true;
+	setWindowModality(Qt::WindowModal);
+	setWindowTitle("New " + typeName);
 }
 
 
@@ -44,6 +47,8 @@ EditEntryDialog::EditEntryDialog(QString typeName, esdbEntry *ent, QWidget *pare
 	m_closeOnSave(false),
 	m_settingFields(false)
 {
+	setWindowModality(Qt::WindowModal);
+	setWindowTitle("Edit " + ent->getTitle());
 	m_isNew = false;
 }
 
@@ -57,9 +62,12 @@ void EditEntryDialog::setupBase()
 	m_submitButton = new QPushButton(m_isNew ? "&Create" : "&Save");
 	connect(m_submitButton, SIGNAL(pressed()), this, SLOT(submitButtonPressed()));
 	m_submitButton->setDefault(true);
+	m_submitButton->setDisabled(true);
 
 	if (!m_isNew) {
 		m_undoChangesButton = new QPushButton("Undo");
+		m_undoChangesButton->setDisabled(true);
+		connect(m_undoChangesButton, SIGNAL(pressed()), SLOT(undoButtonPressed()));
 	}
 
 	QPushButton *closeButton = new QPushButton("Close");
@@ -131,6 +139,7 @@ void EditEntryDialog::submitButtonPressed()
 			m_entry = NULL;
 		}
 		oversizedDialog();
+		return;
 	}
 
 	m_buttonWaitDialog = new ButtonWaitDialog(title, action, this);
@@ -141,7 +150,18 @@ void EditEntryDialog::submitButtonPressed()
 				   m_id,
 				   blk.data.size(),
 				   (const u8 *)blk.data.data(),
-				   (const u8 *)blk.mask.data());
+			       (const u8 *)blk.mask.data());
+}
+
+void EditEntryDialog::undoButtonPressed()
+{
+	m_settingFields = true;
+	undoChanges();
+	m_settingFields = false;
+	entryNameEdited();
+	m_changesMade = false;
+	m_undoChangesButton->setDisabled(true);
+	m_submitButton->setDisabled(true);
 }
 
 void EditEntryDialog::submitEntryFinished(int code)
@@ -232,4 +252,31 @@ void EditEntryDialog::edited()
 			m_dataOversized->hide();
 		}
 	}
+}
+
+void EditEntryDialog::entryNameEdited()
+{
+	if (!m_isNew) {
+		setWindowTitle("Edit " + entryName());
+	}
+}
+
+void EditEntryDialog::closeEvent(QCloseEvent *event)
+{
+	if (m_changesMade && !m_isNew) {
+		QMessageBox *box = new QMessageBox(QMessageBox::Question, windowTitle(),
+					       "You have made changes. Do you want to save them",
+					       QMessageBox::Yes |
+					       QMessageBox::No,
+					       this);
+		int rc = box->exec();
+		box->deleteLater();
+		if (rc == QMessageBox::Yes) {
+			m_closeOnSave = true;
+			event->ignore();
+			submitButtonPressed();
+			return;
+		}
+	}
+	event->accept();
 }

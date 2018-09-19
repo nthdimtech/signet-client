@@ -18,7 +18,6 @@ class QFrame;
 class GenericFieldsEditor : public QWidget
 {
 	Q_OBJECT
-	genericFields &m_fields;
 	QList<fieldSpec> m_requiredFieldSpecs;
 	QMap<QString, genericFieldEdit *> m_extraFields;
 	QWidget *m_requiredFieldsWidget;
@@ -35,11 +34,10 @@ class GenericFieldsEditor : public QWidget
 protected:
 	QMap<QString, genericFieldEdit *> m_fieldEditMap;
 public:
-	GenericFieldsEditor(genericFields &fields,
-				     QList<fieldSpec> requiredFieldSpecs,
+	GenericFieldsEditor(QList<fieldSpec> requiredFieldSpecs,
 				     QWidget *parent = 0);
-	void loadFields();
-	void saveFields();
+	void loadFields(genericFields &fields);
+	void saveFields(genericFields &fields);
 signals:
 	void edited();
 public slots:
