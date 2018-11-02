@@ -25,6 +25,7 @@ QPushButton *EsdbActionBar::addButton(const QString &tooltip, const QString &ima
 {
 	QIcon icn = QIcon(imagePath);
 	QPushButton *button = new QPushButton(icn, "");
+	button->setDisabled((writeOp && !m_writeEnabled) || (typeOp && !m_typeEnabled));
 	button->setToolTip(tooltip);
 	button->setAutoDefault(true);
 	layout()->addWidget(button);

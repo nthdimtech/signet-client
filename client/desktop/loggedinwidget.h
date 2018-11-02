@@ -85,6 +85,7 @@ struct esdbTypeData {
 };
 
 class EsdbActionBar;
+class DataTypeListModel;
 struct genericTypeDesc;
 
 class LoggedInWidget : public QWidget
@@ -107,6 +108,8 @@ class LoggedInWidget : public QWidget
 		typeData(esdbTypeModule *_module);
 		~typeData();
 	};
+
+	DataTypeListModel *m_dataTypesModel;
 
 	QList<typeData *> m_typeData;
 
@@ -150,6 +153,10 @@ class LoggedInWidget : public QWidget
 	int m_id;
 	int m_taskIntent;
 	EsdbActionBar *m_taskActionBar;
+
+	bool m_writeEnabled;
+	bool m_typeEnabled;
+
 	void getEntryDone(int id, int code, block *, bool task);
 	int esdbEntryToIndex(esdbEntry *entry);
 	EsdbActionBar *getActionBarByEntry(esdbEntry *entry);
@@ -160,6 +167,7 @@ class LoggedInWidget : public QWidget
 	bool selectFirstVisible(QModelIndex &parent);
 	void expandTreeItems(QModelIndex parent);
 	void deselectEntry();
+	void addGenericType(genericTypeDesc *genericTypeDesc_);
 public:
 	enum ID_TASK {
 		ID_TASK_NONE,

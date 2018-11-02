@@ -1,7 +1,6 @@
 #include "accountactionbar.h"
 #include "loggedinwidget.h"
 #include "esdb.h"
-#include "newaccount.h"
 #include "editaccount.h"
 #include "buttonwaitdialog.h"
 

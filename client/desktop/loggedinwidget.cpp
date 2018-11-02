@@ -47,6 +47,7 @@ extern "C" {
 
 #include "bookmark.h"
 #include "generic.h"
+#include "datatypelistmodel.h"
 
 #define USE_MISC_TYPE 1
 #define USE_PREDEFINED_TYPES 0
@@ -89,7 +90,11 @@ int iconAccount::matchQuality(esdbEntry *entry)
 
 LoggedInWidget::typeData::typeData(esdbTypeModule *_module) :
 	module(_module),
-	expanded(false)
+	expanded(false),
+	entries(NULL),
+	filteredList(NULL),
+	model(NULL),
+	actionBar(NULL)
 {
 	entries = new QMap<int, esdbEntry *>();
 	filteredList = new QList<esdbEntry *>();
@@ -102,6 +107,7 @@ LoggedInWidget::typeData::~typeData()
 	delete filteredList;
 	delete model;
 	delete module;
+	actionBar->deleteLater();
 }
 
 LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, QWidget *parent) : QWidget(parent),
@@ -192,6 +198,7 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 
 	m_activeTypeIndex = 0;
 
+	m_dataTypesModel = new DataTypeListModel();
 
 	bool fromFile = mw->getDatabaseFileName().size();
 
@@ -199,18 +206,20 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	place->name = "";
 	m_genericDecoder = new esdbGenericModule(place, this);
 
-	bool writeEnabled = !fromFile;
-	bool typeEnabled = !fromFile;
+	m_writeEnabled = !fromFile;
+	m_typeEnabled = !fromFile;
 
 	m_accounts = new esdbAccountModule();
 	typeData *accountsTypeData = new typeData(m_accounts);
-	accountsTypeData->actionBar = new AccountActionBar(this, writeEnabled, typeEnabled);
+	accountsTypeData->actionBar = new AccountActionBar(this, m_writeEnabled, m_typeEnabled);
 	m_typeData.push_back(accountsTypeData);
+	m_dataTypesModel->addModule(m_accounts, true);
 
 	m_bookmarks = new esdbBookmarkModule();
 	typeData *bookmarksTypeData = new typeData(m_bookmarks);
-	bookmarksTypeData->actionBar = new BookmarkActionBar(m_bookmarks, this, writeEnabled, typeEnabled);
+	bookmarksTypeData->actionBar = new BookmarkActionBar(m_bookmarks, this, m_writeEnabled, m_typeEnabled);
 	m_typeData.push_back(bookmarksTypeData);
+	m_dataTypesModel->addModule(m_bookmarks, true);
 
 	genericTypeDesc *genericTypeDesc_;
 
@@ -218,14 +227,16 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 		genericTypeDesc_ = new genericTypeDesc(-1);
 		genericTypeDesc_->name = "Misc";
 		typeData *d = new typeData(new esdbGenericModule(genericTypeDesc_, false, false));
-		d->actionBar = new GenericActionBar(this, d->module, genericTypeDesc_, writeEnabled, typeEnabled);
+		d->actionBar = new GenericActionBar(this, d->module, genericTypeDesc_, m_writeEnabled, m_typeEnabled);
 		m_typeData.push_back(d);
+		m_dataTypesModel->addModule(d->module, true);
 	}
 
 	m_genericTypeModule = new esdbGenericTypeModule();
 	typeData *genericTypeData = new typeData(m_genericTypeModule);
-	genericTypeData->actionBar = new GenericTypeActionBar(this, genericTypeData->module, writeEnabled, typeEnabled);
+	genericTypeData->actionBar = new GenericTypeActionBar(this, genericTypeData->module, m_writeEnabled, m_typeEnabled);
 	m_typeData.push_back(genericTypeData);
+	m_dataTypesModel->addModule(m_genericTypeModule, true);
 
 	m_activeType = m_typeData.at(m_activeTypeIndex);
 
@@ -286,10 +297,7 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	m_newAcctButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
 	m_viewSelector = new QComboBox();
-	m_viewSelector->setEditable(false);
-	for (auto iter : m_typeData) {
-		m_viewSelector->addItem(iter->module->m_name);
-	}
+	m_viewSelector->setModel(m_dataTypesModel);
 	m_viewSelector->setCurrentIndex(m_activeTypeIndex);
 	connect(m_viewSelector, SIGNAL(currentIndexChanged(int)), this, SLOT(currentTypeIndexChanged(int)));
 
@@ -519,7 +527,20 @@ void LoggedInWidget::signetdevCmdResp(signetdevCmdRespInfo info)
 			EsdbActionBar *bar = getActiveActionBar();
 			bar->idTaskComplete(false, m_id, NULL, m_idTask, m_taskIntent);
 			if (code == OKAY) {
-				m_entries.erase(m_entries.find(m_id));
+				auto iter = m_entries.find(m_id);
+				if (m_activeType->module == m_genericTypeModule) {
+					genericTypeDesc *e = (genericTypeDesc *)(*iter);
+					for (auto typeIter = m_typeData.begin(); typeIter != m_typeData.end(); typeIter++) {
+						struct typeData *d = (*typeIter);
+						if (d->module->name() == e->name) {
+							m_dataTypesModel->removeModule(d->module);
+							delete d;
+							m_typeData.erase(typeIter);
+							break;
+						}
+					}
+				}
+				m_entries.erase(iter);
 				m_activeType->entries->erase(m_activeType->entries->find(m_id));
 				populateEntryList(m_activeType, m_filterEdit->text());
 			}
@@ -777,7 +798,10 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 				if (bar) {
 					bar->idTaskComplete(false, id, entry, m_idTask, m_taskIntent);
 				} else {
-					//TODO
+					if (entry->type == ESDB_TYPE_GENERIC_TYPE_DESC) {
+						genericTypeDesc *genericTypeDesc_ = static_cast<genericTypeDesc *>(entry);
+						addGenericType(genericTypeDesc_);
+					}
 				}
 			} else if (m_populating) {
 				m_populatingCantRead++;
@@ -940,6 +964,18 @@ void LoggedInWidget::entryIconCheck(esdbEntry *entry)
 	} else {
 		entry->setIcon(m_genericIcon);
 	}
+	if (entry->type == ESDB_TYPE_GENERIC_TYPE_DESC) {
+
+	}
+}
+
+void LoggedInWidget::addGenericType(genericTypeDesc *genericTypeDesc_)
+{
+	typeData *d = new typeData(new esdbGenericModule(genericTypeDesc_, false, false));
+	d->actionBar = new GenericActionBar(this, d->module, genericTypeDesc_, m_writeEnabled, m_typeEnabled);
+	m_typeData.push_back(d);
+	m_actionBarStack->addWidget(d->actionBar);
+	m_dataTypesModel->addModule(d->module, false);
 }
 
 void LoggedInWidget::entryCreated(QString typeName, esdbEntry *entry)
@@ -953,6 +989,10 @@ void LoggedInWidget::entryCreated(QString typeName, esdbEntry *entry)
 				t->entries->insert(entry->id, entry);
 				populateEntryList(t, m_filterEdit->text());
 			}
+		}
+		if (entry->type == ESDB_TYPE_GENERIC_TYPE_DESC) {
+			genericTypeDesc *genericTypeDesc_ = static_cast<genericTypeDesc *>(entry);
+			addGenericType(genericTypeDesc_);
 		}
 	}
 }

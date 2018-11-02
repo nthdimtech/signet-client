@@ -45,11 +45,6 @@ public:
 	{
 		return true;
 	}
-
-	QString getGroup(esdbEntry *)
-	{
-		return QString();
-	}
 };
 
 #endif // ESDBTYPEDATA_H
