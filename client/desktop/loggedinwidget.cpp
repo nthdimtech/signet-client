@@ -495,6 +495,15 @@ void LoggedInWidget::entryChanged(int id)
 		//TODO: bad magic number
 		populateEntryList(m_typeData.at(1), m_filterEdit->text());
 		break;
+	case ESDB_TYPE_GENERIC: {
+			generic *g = static_cast<generic *>(entry);
+			for (int i = 2; i < m_typeData.size(); i++) {
+				if (m_typeData.at(i)->module->name() == g->typeName) {
+					populateEntryList(m_typeData.at(i), m_filterEdit->text());
+					break;
+				}
+			}
+		} break;
 	}
 }
 
