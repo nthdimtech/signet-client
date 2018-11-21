@@ -10,12 +10,12 @@
 
 void GenericTypeActionBar::selectedEntry(esdbEntry *entry)
 {
-
+	Q_UNUSED(entry);
 }
 
 void GenericTypeActionBar::defaultAction(esdbEntry *entry)
 {
-
+	Q_UNUSED(entry);
 }
 
 void GenericTypeActionBar::newInstanceUI(int id, const QString &name)
