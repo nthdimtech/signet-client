@@ -7,6 +7,8 @@
 
 #include "editgenerictype.h"
 #include "loggedinwidget.h"
+#include "generictypedesc.h"
+#include "buttonwaitdialog.h"
 
 void GenericTypeActionBar::selectedEntry(esdbEntry *entry)
 {
@@ -27,12 +29,16 @@ void GenericTypeActionBar::newInstanceUI(int id, const QString &name)
 	t->deleteLater();
 }
 
-GenericTypeActionBar::GenericTypeActionBar(LoggedInWidget *parent, esdbTypeModule *module, bool writeEnabled, bool typeEnabled) : m_module(static_cast<esdbGenericModule *>(module)),
-      EsdbActionBar(parent, "Data type", writeEnabled, typeEnabled)
+GenericTypeActionBar::GenericTypeActionBar(LoggedInWidget *parent, esdbTypeModule *module, bool writeEnabled, bool typeEnabled) :
+	EsdbActionBar(parent, "Data type", writeEnabled, typeEnabled),
+	m_module(static_cast<esdbGenericModule *>(module))
 {
 	QPushButton *button;
 	button = addDeleteButton();
 	connect(button, SIGNAL(pressed()), SLOT(deletePressed()));
+
+	button = addOpenButton();
+	connect(button, SIGNAL(pressed()), this, SLOT(openEntryUI()));
 }
 
 void GenericTypeActionBar::deletePressed()
@@ -43,4 +49,26 @@ void GenericTypeActionBar::deletePressed()
 void GenericTypeActionBar::entryCreated(esdbEntry *entry)
 {
 	m_parent->entryCreated(m_module->name(), entry);
+}
+
+void GenericTypeActionBar::openEntryUI()
+{
+	openEntry(EsdbActionBar::selectedEntry());
+}
+
+void GenericTypeActionBar::accessEntryComplete(esdbEntry *entry, int intent)
+{
+	switch (intent) {
+	case INTENT_OPEN_ENTRY: {
+		genericTypeDesc *g = static_cast<genericTypeDesc *>(entry);
+		if (m_buttonWaitDialog) {
+			m_buttonWaitDialog->done(QMessageBox::Ok);
+		}
+		EditGenericType *ogt = new EditGenericType(g, m_parent);
+		connect(ogt, SIGNAL(abort()), this, SIGNAL(abort()));
+		connect(ogt, SIGNAL(accountChanged(int)), m_parent, SLOT(entryChanged(int)));
+		connect(ogt, SIGNAL(finished(int)), ogt, SLOT(deleteLater()));
+		ogt->show();
+	} break;
+	}
 }

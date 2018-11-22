@@ -3,6 +3,7 @@
 
 QVariant DataTypeListModel::data(const QModelIndex &index, int role) const
 {
+	Q_UNUSED(role);
 	if (!index.isValid()) {
 		return QVariant();
 	}
@@ -18,6 +19,7 @@ QVariant DataTypeListModel::data(const QModelIndex &index, int role) const
 
 int DataTypeListModel::rowCount(const QModelIndex &parent) const
 {
+	Q_UNUSED(parent);
 	return m_dynamicTypes.size() + m_builtInTypes.size();
 }
 

@@ -8,8 +8,8 @@ esdbGenericTypeModule::esdbGenericTypeModule() : esdbTypeModule("Data types")
 
 esdbEntry *esdbGenericTypeModule::decodeEntry(int id, int revision, esdbEntry *prev, block *blk) const
 {
-	esdbEntry *entry = NULL;
-	genericTypeDesc *desc = NULL;
+	esdbEntry *entry = nullptr;
+	genericTypeDesc *desc = nullptr;
 	if (!prev) {
 		desc = new genericTypeDesc(id);
 	} else {
@@ -23,7 +23,7 @@ esdbEntry *esdbGenericTypeModule::decodeEntry(int id, int revision, esdbEntry *p
 		break;
 	default:
 		delete desc;
-		desc = NULL;
+		desc = nullptr;
 		break;
 	}
 	entry = desc;
@@ -32,6 +32,8 @@ esdbEntry *esdbGenericTypeModule::decodeEntry(int id, int revision, esdbEntry *p
 
 esdbEntry *esdbGenericTypeModule::decodeEntry(const QVector<genericField> &fields, bool aliasMatch) const
 {
+	Q_UNUSED(fields);
+	Q_UNUSED(aliasMatch);
 	genericTypeDesc *desc = new genericTypeDesc(-1);
 	//TODO
 	return desc;

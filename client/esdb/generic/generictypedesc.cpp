@@ -6,6 +6,7 @@ void genericTypeDesc::fromBlock(block *blk)
 	blk->readString(this->group);
 	blk->readString(this->name);
 	int count = blk->readU8();
+	fields.clear();
 	for (int i = 0; i < count; i++) {
 		QString fieldName;
 		QString fieldType;

@@ -9,11 +9,11 @@
 #include <QDesktopServices>
 
 EsdbActionBar::EsdbActionBar(LoggedInWidget *parent, QString typeName, bool writeEnabled, bool typeEnabled) : QWidget(parent),
-	m_selectedEntry(NULL),
+	m_parent(parent),
 	m_writeEnabled(writeEnabled),
 	m_typeEnabled(typeEnabled),
 	m_typeName(typeName),
-	m_parent(parent)
+	m_selectedEntry(nullptr)
 {
 	QHBoxLayout *l = new QHBoxLayout();
 	l->setAlignment(Qt::AlignLeft);
@@ -46,7 +46,7 @@ void EsdbActionBar::deleteEntry()
 {
 	esdbEntry *entry = selectedEntry();
 	if (entry) {
-		m_parent->selectEntry(NULL);
+		m_parent->selectEntry(nullptr);
 		int id = entry->id;
 		m_buttonWaitDialog = new ButtonWaitDialog("Delete " + m_typeName,
 			QString("delete " + m_typeName + " \"") + entry->getTitle() + QString("\""),
@@ -74,7 +74,7 @@ void EsdbActionBar::openEntry(esdbEntry *entry)
 void EsdbActionBar::accessEntry(esdbEntry *entry, int intent, QString message, bool waitDialog, bool deselect)
 {
 	if (!waitDialog) {
-		m_buttonWaitDialog = NULL;
+		m_buttonWaitDialog = nullptr;
 		background();
 	} else {
 		QString title = entry->getTitle();
@@ -90,7 +90,7 @@ void EsdbActionBar::accessAccountFinished(int code)
 {
 	if (m_buttonWaitDialog) {
 		m_buttonWaitDialog->deleteLater();
-		m_buttonWaitDialog = NULL;
+		m_buttonWaitDialog = nullptr;
 	}
 	if (code != QMessageBox::Ok) {
 		::signetdev_cancel_button_wait();
@@ -101,7 +101,7 @@ void EsdbActionBar::accessAccountFinished(int code)
 void EsdbActionBar::openEntryFinished(int code)
 {
 	m_buttonWaitDialog->deleteLater();
-	m_buttonWaitDialog = NULL;
+	m_buttonWaitDialog = nullptr;
 	if (code != QMessageBox::Ok) {
 		::signetdev_cancel_button_wait();
 	}
@@ -110,6 +110,7 @@ void EsdbActionBar::openEntryFinished(int code)
 
 void EsdbActionBar::idTaskComplete(bool error, int id, esdbEntry *entry, int task, int intent)
 {
+	Q_UNUSED(id);
 	if (error) {
 		if (m_buttonWaitDialog)
 			m_buttonWaitDialog->done(QMessageBox::Ok);
@@ -150,6 +151,6 @@ void EsdbActionBar::deleteEntryFinished(int code)
 		::signetdev_cancel_button_wait();
 	}
 	m_buttonWaitDialog->deleteLater();
-	m_buttonWaitDialog = NULL;
+	m_buttonWaitDialog = nullptr;
 	m_parent->finishTask();
 }

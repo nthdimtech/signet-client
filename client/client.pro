@@ -81,7 +81,8 @@ SOURCES += ../signet-base/signetdev/host/signetdev.c \
     esdb-gui/generic/editgeneric.cpp \
     esdb-gui/bookmark/editbookmark.cpp \
     esdb-gui/generictype/editgenerictype.cpp \
-    desktop/datatypelistmodel.cpp
+    desktop/datatypelistmodel.cpp \
+    esdb-gui/fielddescfieldedit.cpp
 
 macx|linux-g++ {
 HEADERS += import/passimporter.h \
@@ -142,10 +143,10 @@ HEADERS += esdb/esdb.h \
     esdb-gui/generictype/generictypeactionbar.h \
     esdb-gui/editentrydialog.h \
     esdb-gui/generic/editgeneric.h \
-    esdb-gui/generic/editgeneric.h \
     esdb-gui/bookmark/editbookmark.h \
     esdb-gui/generictype/editgenerictype.h \
-    desktop/datatypelistmodel.h
+    desktop/datatypelistmodel.h \
+    esdb-gui/fielddescfieldedit.h
 #
 # ESDB GUI sources
 #
@@ -160,7 +161,6 @@ SOURCES += esdb-gui/esdbmodel.cpp \
     esdb-gui/genericfieldeditfactory.cpp \
     esdb-gui/genericfieldseditor.cpp \
     esdb-gui/typedescedit.cpp \
-    esdb-gui/typedesceditor.cpp \
     esdb-gui/account/editaccount.cpp \
     esdb-gui/account/accountactionbar.cpp \
     esdb-gui/bookmark/bookmarkactionbar.cpp \
@@ -177,7 +177,6 @@ HEADERS +=  esdb-gui/esdbmodel.h \
     esdb-gui/genericfieldeditfactory.h \
     esdb-gui/genericfieldseditor.h \
     esdb-gui/typedescedit.h \
-    esdb-gui/typedesceditor.h \
     esdb-gui/account/editaccount.h \
     esdb-gui/account/accountactionbar.h \
     esdb-gui/bookmark/bookmarkactionbar.h \

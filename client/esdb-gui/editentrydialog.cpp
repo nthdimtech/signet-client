@@ -18,14 +18,14 @@ EditEntryDialog::EditEntryDialog(QString typeName, int id, QWidget *parent) :
 	m_typeName(typeName),
 	m_signetdevCmdToken(-1),
 	m_isOversized(false),
-	m_dataOversized(NULL),
-	m_buttonWaitDialog(NULL),
-	m_undoChangesButton(NULL),
-	m_entry(NULL),
-	m_id(id),
+	m_dataOversized(nullptr),
+	m_buttonWaitDialog(nullptr),
+	m_undoChangesButton(nullptr),
 	m_changesMade(false),
 	m_closeOnSave(false),
-	m_settingFields(false)
+	m_id(id),
+	m_settingFields(false),
+	m_entry(nullptr)
 {
 	m_isNew = true;
 	setWindowModality(Qt::WindowModal);
@@ -38,14 +38,15 @@ EditEntryDialog::EditEntryDialog(QString typeName, esdbEntry *ent, QWidget *pare
 	m_typeName(typeName),
 	m_signetdevCmdToken(-1),
 	m_isOversized(false),
-	m_dataOversized(NULL),
-	m_buttonWaitDialog(NULL),
-	m_undoChangesButton(NULL),
-	m_entry(ent),
-	m_id(ent->id),
+	m_dataOversized(nullptr),
+	m_buttonWaitDialog(nullptr),
+	m_undoChangesButton(nullptr),
+	m_submitButton(nullptr),
 	m_changesMade(false),
 	m_closeOnSave(false),
-	m_settingFields(false)
+	m_id(ent->id),
+	m_settingFields(false),
+	m_entry(ent)
 {
 	setWindowModality(Qt::WindowModal);
 	setWindowTitle("Edit " + ent->getTitle());
@@ -136,7 +137,7 @@ void EditEntryDialog::submitButtonPressed()
 	if (blk.data.size() > MAX_ENT_DATA_SIZE) {
 		if (m_isNew) {
 			delete m_entry;
-			m_entry = NULL;
+			m_entry = nullptr;
 		}
 		oversizedDialog();
 		return;
@@ -146,7 +147,7 @@ void EditEntryDialog::submitButtonPressed()
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(submitEntryFinished(int)));
 	m_buttonWaitDialog->show();
 
-	::signetdev_update_uid(NULL, &m_signetdevCmdToken,
+	::signetdev_update_uid(nullptr, &m_signetdevCmdToken,
 				   m_id,
 				   blk.data.size(),
 				   (const u8 *)blk.data.data(),
@@ -170,7 +171,7 @@ void EditEntryDialog::submitEntryFinished(int code)
 		::signetdev_cancel_button_wait();
 	}
 	m_buttonWaitDialog->deleteLater();
-	m_buttonWaitDialog = NULL;
+	m_buttonWaitDialog = nullptr;
 }
 
 

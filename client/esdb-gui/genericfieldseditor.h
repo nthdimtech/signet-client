@@ -28,6 +28,7 @@ class GenericFieldsEditor : public QWidget
 	QPushButton *m_newFieldAddButton;
 	QLineEdit *m_newFieldNameEdit;
 	QComboBox *m_newFieldTypeCombo;
+	bool m_descEdit;
 
 	virtual genericFieldEdit *createFieldEdit(QString name, QString type, bool canRemove);
 	genericFieldEdit *addNewField(QString name, QString type);
@@ -35,7 +36,7 @@ protected:
 	QMap<QString, genericFieldEdit *> m_fieldEditMap;
 public:
 	GenericFieldsEditor(QList<fieldSpec> requiredFieldSpecs,
-				     QWidget *parent = 0);
+				     QWidget *parent = 0, bool descEdit = false);
 	void loadFields(genericFields &fields);
 	void saveFields(genericFields &fields);
 signals:

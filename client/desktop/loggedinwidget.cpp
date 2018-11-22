@@ -67,7 +67,7 @@ int iconAccount::matchQuality(esdbEntry *entry)
 	QUrl acctNameUrl(acct_name);
 	QUrl acctUrl(acct_url);
 
-	QUrl *compUrl = NULL;
+	QUrl *compUrl = nullptr;
 	if (acctUrl.isValid()) {
 		compUrl = &acctUrl;
 	}
@@ -90,11 +90,11 @@ int iconAccount::matchQuality(esdbEntry *entry)
 
 LoggedInWidget::typeData::typeData(esdbTypeModule *_module) :
 	module(_module),
-	expanded(false),
-	entries(NULL),
-	filteredList(NULL),
-	model(NULL),
-	actionBar(NULL)
+	entries(nullptr),
+	actionBar(nullptr),
+	filteredList(nullptr),
+	model(nullptr),
+	expanded(false)
 {
 	entries = new QMap<int, esdbEntry *>();
 	filteredList = new QList<esdbEntry *>();
@@ -111,16 +111,16 @@ LoggedInWidget::typeData::~typeData()
 }
 
 LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, QWidget *parent) : QWidget(parent),
-	m_activeType(0),
-	m_selectedEntry(NULL),
-	m_filterLabel(NULL),
-	m_newAcctButton(NULL),
+	m_activeType(nullptr),
+	m_selectedEntry(nullptr),
+	m_filterLabel(nullptr),
+	m_newAcctButton(nullptr),
 	m_populating(true),
 	m_populatingCantRead(0),
-	m_searchListbox(NULL),
+	m_searchListbox(nullptr),
 	m_loadingProgress(loading_progress),
-	m_filterEdit(NULL),
-	m_accountGroup(NULL),
+	m_filterEdit(nullptr),
+	m_accountGroup(nullptr),
 	m_signetdevCmdToken(-1),
 	m_id(-1),
 	m_idTask(ID_TASK_NONE)
@@ -204,7 +204,7 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 
 	genericTypeDesc *place = new genericTypeDesc(-1);
 	place->name = "";
-	m_genericDecoder = new esdbGenericModule(place, this);
+	m_genericDecoder = new esdbGenericModule(place);
 
 	m_writeEnabled = !fromFile;
 	m_typeEnabled = !fromFile;
@@ -321,7 +321,7 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 
 	setLayout(top_layout);
 
-	selectEntry(NULL);
+	selectEntry(nullptr);
 
 	connect(m_searchListbox, SIGNAL(expanded(QModelIndex)),
 		this, SLOT(expanded(QModelIndex)));
@@ -337,7 +337,7 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	m_loadingProgress->setMinimum(0);
 	m_loadingProgress->setMaximum(1);
 
-	::signetdev_read_all_uids(NULL, &m_signetdevCmdToken, 1);
+	::signetdev_read_all_uids(nullptr, &m_signetdevCmdToken, 1);
 }
 
 void LoggedInWidget::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int uid, QByteArray data, QByteArray mask)
@@ -402,7 +402,7 @@ void LoggedInWidget::expandTreeItems(QModelIndex parent)
 {
 	for (int i = 0; i < m_activeType->model->rowCount(parent); i++) {
 		QModelIndex child = m_activeType->model->index(i, 0, parent);
-		if (!((EsdbModelItem *)child.internalPointer())->isLeafItem()) {
+		if (!(static_cast<EsdbModelItem *>(child.internalPointer())->isLeafItem())) {
 			m_searchListbox->setExpanded(child, true);
 			expandTreeItems(child);
 		}
@@ -422,7 +422,7 @@ void LoggedInWidget::currentTypeIndexChanged(int idx)
 		m_activeType = m_typeData.at(m_activeTypeIndex);
 		m_searchListbox->setModel(m_activeType->model);
 
-		m_selectedEntry = NULL;
+		m_selectedEntry = nullptr;
 		m_actionBarStack->setCurrentIndex(idx);
 		populateEntryList(m_activeType, m_filterEdit->text());
 		m_filterEdit->setFocus();
@@ -472,10 +472,10 @@ void LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent, EsdbActi
 	m_taskActionBar = bar;
 	switch (m_idTask) {
 	case ID_TASK_DELETE:
-		::signetdev_update_uid(NULL, &m_signetdevCmdToken, m_id, 0, NULL, NULL);
+		::signetdev_update_uid(nullptr, &m_signetdevCmdToken, m_id, 0, nullptr, nullptr);
 		break;
 	case ID_TASK_READ:
-		::signetdev_read_uid(NULL, &m_signetdevCmdToken, m_id, 0);
+		::signetdev_read_uid(nullptr, &m_signetdevCmdToken, m_id, 0);
 		break;
 	default:
 		break;
@@ -494,6 +494,10 @@ void LoggedInWidget::entryChanged(int id)
 	case ESDB_TYPE_BOOKMARK:
 		//TODO: bad magic number
 		populateEntryList(m_typeData.at(1), m_filterEdit->text());
+		break;
+	case ESDB_TYPE_GENERIC_TYPE_DESC:
+		//TODO: bad magic number
+		populateEntryList(m_typeData.at(3), m_filterEdit->text());
 		break;
 	case ESDB_TYPE_GENERIC: {
 			generic *g = static_cast<generic *>(entry);
@@ -534,11 +538,11 @@ void LoggedInWidget::signetdevCmdResp(signetdevCmdRespInfo info)
 	case SIGNETDEV_CMD_UPDATE_UID: {
 		if (m_idTask == ID_TASK_DELETE) {
 			EsdbActionBar *bar = getActiveActionBar();
-			bar->idTaskComplete(false, m_id, NULL, m_idTask, m_taskIntent);
+			bar->idTaskComplete(false, m_id, nullptr, m_idTask, m_taskIntent);
 			if (code == OKAY) {
 				auto iter = m_entries.find(m_id);
 				if (m_activeType->module == m_genericTypeModule) {
-					genericTypeDesc *e = (genericTypeDesc *)(*iter);
+					genericTypeDesc *e = static_cast<genericTypeDesc *>(*iter);
 					for (auto typeIter = m_typeData.begin(); typeIter != m_typeData.end(); typeIter++) {
 						struct typeData *d = (*typeIter);
 						if (d->module->name() == e->name) {
@@ -589,9 +593,9 @@ void LoggedInWidget::getSelectedAccountRect(QRect &r)
 void LoggedInWidget::deselectEntry()
 {
 	m_filterEdit->setText(m_searchListbox->filterText());
-	getActiveActionBar()->selectEntry(NULL);
+	getActiveActionBar()->selectEntry(nullptr);
 	m_filterEdit->setFocus();
-	m_selectedEntry = NULL;
+	m_selectedEntry = nullptr;
 	m_searchListbox->setCurrentIndex(QModelIndex());
 }
 
@@ -601,7 +605,7 @@ void LoggedInWidget::selectEntry(esdbEntry *entry)
 	m_selectedEntry = entry;
 	if (!entry) {
 		m_filterEdit->setText(m_searchListbox->filterText());
-		getActiveActionBar()->selectEntry(NULL);
+		getActiveActionBar()->selectEntry(nullptr);
 	} else {
 		m_searchListbox->setFocus();
 		EsdbActionBar *bar = getActionBarByEntry(entry);
@@ -649,7 +653,7 @@ void LoggedInWidget::filterTextEdited(QString text)
 void LoggedInWidget::focusChanged(QWidget *prev, QWidget *next)
 {
 	if ((prev == m_searchListbox || prev == m_filterEdit) &&
-	    (next != m_searchListbox && next != m_filterEdit && next != NULL)) {
+	    (next != m_searchListbox && next != m_filterEdit && next != nullptr)) {
 	}
 	if (next == m_filterEdit) {
 		m_filterEdit->setText(m_searchListbox->filterText());
@@ -658,7 +662,7 @@ void LoggedInWidget::focusChanged(QWidget *prev, QWidget *next)
 
 EsdbActionBar *LoggedInWidget::getActiveActionBar()
 {
-	return (EsdbActionBar *)m_actionBarStack->widget(m_activeTypeIndex);
+	return static_cast<EsdbActionBar *>(m_actionBarStack->widget(m_activeTypeIndex));
 }
 
 int LoggedInWidget::esdbEntryToIndex(esdbEntry *entry)
@@ -667,16 +671,14 @@ int LoggedInWidget::esdbEntryToIndex(esdbEntry *entry)
 	switch (entry->type) {
 	case ESDB_TYPE_ACCOUNT:
 		return 0;
-		break;
 	case ESDB_TYPE_BOOKMARK:
 		return 1;
-		break;
 	case ESDB_TYPE_GENERIC: {
-		generic *g = (generic *)entry;
+		generic *g = static_cast<generic *>(entry);
 		for (int i = 0; i < m_actionBarStack->count(); i++) {
-			EsdbActionBar *bar = (EsdbActionBar *)m_actionBarStack->widget(i);
+			EsdbActionBar *bar = static_cast<EsdbActionBar *>(m_actionBarStack->widget(i));
 			if (bar->esdbType() == ESDB_TYPE_GENERIC) {
-				GenericActionBar *genericBar = (GenericActionBar *)bar;
+				GenericActionBar *genericBar = static_cast<GenericActionBar *>(bar);
 				if (genericBar->typeDesc()->name == g->typeName) {
 					return i;
 				}
@@ -686,7 +688,7 @@ int LoggedInWidget::esdbEntryToIndex(esdbEntry *entry)
 	break;
 	case ESDB_TYPE_GENERIC_TYPE_DESC: {
 		for (int i = 0; i < m_actionBarStack->count(); i++) {
-			EsdbActionBar *bar = (EsdbActionBar *)m_actionBarStack->widget(i);
+			EsdbActionBar *bar = static_cast<EsdbActionBar *>(m_actionBarStack->widget(i));
 			if (bar->esdbType() == ESDB_TYPE_GENERIC_TYPE_DESC) {
 				return i;
 			}
@@ -699,17 +701,17 @@ int LoggedInWidget::esdbEntryToIndex(esdbEntry *entry)
 
 EsdbActionBar *LoggedInWidget::getActionBarByEntry(esdbEntry *entry)
 {
-	EsdbActionBar *bar = NULL;
+	EsdbActionBar *bar = nullptr;
 	int index = esdbEntryToIndex(entry);
 	if (index >= 0) {
-		bar = (EsdbActionBar *)m_actionBarStack->widget(index);
+		bar = static_cast<EsdbActionBar *>(m_actionBarStack->widget(index));
 	}
 	return bar;
 }
 
 esdbTypeModule *LoggedInWidget::getTypeModule(int type)
 {
-	esdbTypeModule *module = NULL;
+	esdbTypeModule *module = nullptr;
 	switch (type) {
 	case ESDB_TYPE_GENERIC:
 		module = m_genericDecoder;
@@ -735,7 +737,7 @@ void LoggedInWidget::filterTextChanged(QString text)
 	QList<esdbEntry *> *filteredList = m_activeType->filteredList;
 	if (!selectedEntry() && filteredList->size()) {
 		if (text.size() == 0) {
-			selectEntry(NULL);
+			selectEntry(nullptr);
 			m_searchListbox->setCurrentIndex(QModelIndex());
 		} else {
 			selectFirstVisible();
@@ -763,7 +765,7 @@ const esdbEntry *LoggedInWidget::findEntry(QString type, QString name) const
 			}
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 QList<esdbTypeModule *> LoggedInWidget::getTypeModules()
@@ -777,11 +779,11 @@ QList<esdbTypeModule *> LoggedInWidget::getTypeModules()
 
 void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 {
-	esdbEntry *entry = NULL;
+	esdbEntry *entry = nullptr;
 
 	int exists = m_entries.count(id);
 
-	EsdbActionBar *bar = NULL;
+	EsdbActionBar *bar = nullptr;
 
 	if (exists && task) {
 		entry = m_entries[id];
@@ -793,7 +795,7 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 			emit abort();
 		}
 		if (bar)
-			bar->idTaskComplete(true, id, NULL, m_idTask, m_taskIntent);
+			bar->idTaskComplete(true, id, nullptr, m_idTask, m_taskIntent);
 		return;
 	}
 
@@ -840,24 +842,24 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 void LoggedInWidget::selected(QModelIndex idx)
 {
 	if (idx.isValid()) {
-		EsdbModelItem *item = (EsdbModelItem *)idx.internalPointer();
+		EsdbModelItem *item = static_cast<EsdbModelItem *>(idx.internalPointer());
 		if (item && item->isLeafItem()) {
-			EsdbModelLeafItem *ent = (EsdbModelLeafItem *)idx.internalPointer();
+			EsdbModelLeafItem *ent = static_cast<EsdbModelLeafItem *>(idx.internalPointer());
 			selectEntry(ent->leafNode());
 		} else {
-			selectEntry(NULL);
+			selectEntry(nullptr);
 		}
 	} else {
-		selectEntry(NULL);
+		selectEntry(nullptr);
 	}
 }
 
 void LoggedInWidget::activated(QModelIndex idx)
 {
 	if (idx.isValid()) {
-		EsdbModelItem *item = (EsdbModelItem *)idx.internalPointer();
+		EsdbModelItem *item = static_cast<EsdbModelItem *>(idx.internalPointer());
 		if (item && item->isLeafItem()) {
-			EsdbModelLeafItem *ent = (EsdbModelLeafItem *)idx.internalPointer();
+			EsdbModelLeafItem *ent = static_cast<EsdbModelLeafItem *>(idx.internalPointer());
 			esdbEntry *entry = ent->leafNode();
 			getActiveActionBar()->defaultAction(entry);
 		}
@@ -867,9 +869,9 @@ void LoggedInWidget::activated(QModelIndex idx)
 void LoggedInWidget::pressed(QModelIndex idx)
 {
 	if (idx.isValid()) {
-		EsdbModelItem *item = (EsdbModelItem *)idx.internalPointer();
+		EsdbModelItem *item = static_cast<EsdbModelItem *>(idx.internalPointer());
 		if (item && item->isLeafItem()) {
-			EsdbModelLeafItem *ent = (EsdbModelLeafItem *)idx.internalPointer();
+			EsdbModelLeafItem *ent = static_cast<EsdbModelLeafItem *>(idx.internalPointer());
 			esdbEntry *entry = ent->leafNode();
 			selectEntry(entry);
 		} else {
@@ -956,7 +958,7 @@ void LoggedInWidget::finishTask(bool deselect)
 void LoggedInWidget::entryIconCheck(esdbEntry *entry)
 {
 	QList<iconAccount>::iterator iter = m_icon_accounts.begin();
-	iconAccount *bestMatch = NULL;
+	iconAccount *bestMatch = nullptr;
 	int bestMatchQuality = 0;
 	for (; iter != m_icon_accounts.end(); iter++) {
 		iconAccount &i_account = *iter;
@@ -1008,7 +1010,7 @@ void LoggedInWidget::entryCreated(QString typeName, esdbEntry *entry)
 
 bool LoggedInWidget::selectFirstVisible(QModelIndex &parent)
 {
-	EsdbModelItem *item = (EsdbModelItem *)parent.internalPointer();
+	EsdbModelItem *item = static_cast<EsdbModelItem *>(parent.internalPointer());
 	if (item && item->isLeafItem()) {
 		m_searchListbox->setCurrentIndex(parent);
 		selectEntry(item->leafNode());

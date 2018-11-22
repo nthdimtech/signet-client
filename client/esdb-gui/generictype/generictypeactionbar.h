@@ -17,6 +17,7 @@ class GenericTypeActionBar : public EsdbActionBar
 	void selectedEntry(esdbEntry *entry);
 	void defaultAction(esdbEntry *entry);
 	void newInstanceUI(int id, const QString &name);
+	void accessEntryComplete(esdbEntry *entry, int intent);
 public:
 	explicit GenericTypeActionBar(LoggedInWidget *parent, esdbTypeModule *module, bool writeEnabled, bool typeEnabled);
 
@@ -26,6 +27,7 @@ public slots:
 	void deletePressed();
 private slots:
 	void entryCreated(esdbEntry *entry);
+	void openEntryUI();
 };
 
 #endif // GENERICTYPEACTIONBAR_H

@@ -2,6 +2,7 @@
 #include "linefieldedit.h"
 #include "integerfieldedit.h"
 #include "textblockfieldedit.h"
+#include "fielddescfieldedit.h"
 #include "typedescedit.h"
 
 genericFieldEditFactory *genericFieldEditFactory::s_singleton = NULL;
@@ -22,6 +23,8 @@ genericFieldEdit *genericFieldEditFactory::generate(const QString &fieldName, co
 		return new integerFieldEdit(fieldName, canRemove);
 	} else if (!typeName.compare("text block", Qt::CaseInsensitive)) {
 		return new textBlockFieldEdit(fieldName, canRemove);
+	} else if (!typeName.compare("field desc", Qt::CaseInsensitive)) {
+		return new fieldDescFieldEdit(fieldName);
 	} else {
 		return new lineFieldEdit(fieldName, canRemove);
 	}

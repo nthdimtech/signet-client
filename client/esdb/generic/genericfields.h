@@ -35,6 +35,9 @@ public:
 	genericFields() {}
 	QList<genericField> m_fields;
 	void fromBlock(block *blk);
+	void clear() {
+		m_fields.clear();
+	}
 	void toBlock(block *blk) const;
 	int fieldCount() const {
 		return m_fields.count();

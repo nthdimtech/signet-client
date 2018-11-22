@@ -12,9 +12,10 @@
 #include <QComboBox>
 
 GenericFieldsEditor::GenericFieldsEditor(QList<fieldSpec> requiredFieldSpecs,
-					 QWidget *parent) :
+					 QWidget *parent, bool descEdit) :
 	QWidget(parent),
-	m_requiredFieldSpecs(requiredFieldSpecs)
+	m_requiredFieldSpecs(requiredFieldSpecs),
+	m_descEdit(descEdit)
 {
 	setLayout(new QVBoxLayout());
 	layout()->setAlignment(Qt::AlignTop);
@@ -106,7 +107,12 @@ genericFieldEdit *GenericFieldsEditor::addNewField(QString name, QString type)
 genericFieldEdit *GenericFieldsEditor::createFieldEdit(QString name, QString type, bool canRemove)
 {
 	auto *fieldEditFactory = genericFieldEditFactory::get();
-	auto fieldEdit = fieldEditFactory->generate(name, type, canRemove);
+	genericFieldEdit *fieldEdit = NULL;
+	if (m_descEdit) {
+		fieldEdit = fieldEditFactory->generate(name, QString("type desc"), canRemove);
+	} else {
+		fieldEdit = fieldEditFactory->generate(name, type, canRemove);
+	}
 	m_fieldEditMap.insert(name, fieldEdit);
 	if (canRemove) {
 		m_extraFields.insert(name, fieldEdit);

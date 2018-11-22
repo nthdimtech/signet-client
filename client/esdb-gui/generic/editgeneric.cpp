@@ -16,7 +16,6 @@
 #include "generic.h"
 #include "generictypedesc.h"
 #include "genericfieldseditor.h"
-#include "typedesceditor.h"
 
 extern "C" {
 #include "signetdev/host/signetdev.h"
@@ -38,7 +37,7 @@ EditGeneric::EditGeneric(generic *generic, genericTypeDesc *typeDesc, QWidget *p
 
 EditGeneric::EditGeneric(genericTypeDesc *typeDesc, int id, QString entryName, QWidget *parent) :
 	EditEntryDialog(typeDesc->name, id, parent),
-	m_generic(NULL),
+	m_generic(nullptr),
 	m_typeDesc(typeDesc)
 
 {
