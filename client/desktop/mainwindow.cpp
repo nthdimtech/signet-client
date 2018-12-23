@@ -74,43 +74,45 @@ extern "C" {
 #include "esdbbookmarkmodule.h"
 #include "esdbaccountmodule.h"
 #include "generictypedesc.h"
+#include "esdb/generictype/esdbgenerictypemodule.h"
 
 MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	QMainWindow(parent),
 	m_dbFilename(dbFilename),
-	m_wipeProgress(NULL),
-	m_wipingWidget(NULL),
+	m_wipeProgress(nullptr),
+	m_wipingWidget(nullptr),
 	m_connected(false),
 	m_quitting(false),
-	m_fileMenu(NULL),
-	m_deviceMenu(NULL),
-	m_loggedInStack(NULL),
-	m_connectingLabel(NULL),
+	m_fileMenu(nullptr),
+	m_deviceMenu(nullptr),
+	m_loggedInStack(nullptr),
+	m_connectingLabel(nullptr),
 	m_loggedIn(false),
 	m_wasConnected(false),
 	m_deviceState(SignetApplication::STATE_INVALID),
-	m_backupWidget(NULL),
-	m_backupProgress(NULL),
-	m_backupFile(NULL),
+	m_backupWidget(nullptr),
+	m_backupProgress(nullptr),
+	m_backupFile(nullptr),
 	m_backupPrevState(SignetApplication::STATE_INVALID),
-	m_restoreWidget(NULL),
+	m_restoreWidget(nullptr),
 	m_restoreBlock(0),
-	m_restoreFile(NULL),
-	m_uninitPrompt(NULL),
-	m_backupAction(NULL),
-	m_restoreAction(NULL),
-	m_logoutAction(NULL),
-	m_wipeDeviceAction(NULL),
-	m_eraseDeviceAction(NULL),
-	m_changePasswordAction(NULL),
-	m_buttonWaitDialog(NULL),
+	m_restoreFile(nullptr),
+	m_uninitPrompt(nullptr),
+	m_backupAction(nullptr),
+	m_restoreAction(nullptr),
+	m_logoutAction(nullptr),
+	m_wipeDeviceAction(nullptr),
+	m_eraseDeviceAction(nullptr),
+	m_changePasswordAction(nullptr),
+	m_buttonWaitDialog(nullptr),
 	m_signetdevCmdToken(-1),
 	m_startedExport(false)
 {
 	SignetApplication *app = SignetApplication::get();
 	genericTypeDesc *g = new genericTypeDesc(-1);
 	g->name = "generic";
-	m_genericTypeModule = new esdbGenericModule(g);
+	m_genericModule = new esdbGenericModule(g);
+	m_genericTypeModule = new esdbGenericTypeModule();
 	m_accountTypeModule = new esdbAccountModule();
 	m_bookmarkTypeModule = new esdbBookmarkModule();
 
@@ -254,14 +256,14 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	if (m_dbFilename.size()) {
 		enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
 		enterDeviceState(SignetApplication::STATE_CONNECTING);
-		::signetdev_startup(NULL, &m_signetdevCmdToken);
+		::signetdev_startup(nullptr, &m_signetdevCmdToken);
 	} else {
 		enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
 #ifdef Q_OS_UNIX
 		enterDeviceState(SignetApplication::STATE_CONNECTING);
 		int rc = signetdev_open_connection();
 		if (rc == 0) {
-			::signetdev_startup(NULL, &m_signetdevCmdToken);
+			::signetdev_startup(nullptr, &m_signetdevCmdToken);
 		}
 #endif
 	}
@@ -307,7 +309,7 @@ void MainWindow::connectionError()
 		enterDeviceState(SignetApplication::STATE_CONNECTING);
 		int rc = signetdev_open_connection();
 		if (rc == 0) {
-			::signetdev_startup(NULL, &m_signetdevCmdToken);
+			::signetdev_startup(nullptr, &m_signetdevCmdToken);
 		}
 	}
 }
@@ -326,7 +328,7 @@ bool MainWindow::nativeEvent(const QByteArray & eventType, void *message, long *
 
 void MainWindow::deviceOpened()
 {
-	::signetdev_startup(NULL, &m_signetdevCmdToken);
+	::signetdev_startup(nullptr, &m_signetdevCmdToken);
 }
 
 void MainWindow::deviceClosed()
@@ -348,7 +350,7 @@ void MainWindow::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_g
 			m_wipeProgress->setRange(0, data.total_progress_maximum);
 			m_wipeProgress->setValue(data.total_progress);
 			m_wipeProgress->update();
-			::signetdev_get_progress(NULL, &m_signetdevCmdToken, data.total_progress, WIPING);
+			::signetdev_get_progress(nullptr, &m_signetdevCmdToken, data.total_progress, WIPING);
 			break;
 		case INVALID_STATE:
 			enterDeviceState(SignetApplication::STATE_UNINITIALIZED);
@@ -366,7 +368,7 @@ void MainWindow::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_g
 			m_firmwareUpdateProgress->setRange(0, data.total_progress_maximum);
 			m_firmwareUpdateProgress->setValue(data.total_progress);
 			m_firmwareUpdateProgress->update();
-			::signetdev_get_progress(NULL, &m_signetdevCmdToken, data.total_progress, ERASING_PAGES);
+			::signetdev_get_progress(nullptr, &m_signetdevCmdToken, data.total_progress, ERASING_PAGES);
 			break;
 		case INVALID_STATE: {
 			m_firmwareUpdateStage->setText("Writing firmware data...");
@@ -416,8 +418,8 @@ void MainWindow::signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray bl
 			m_backupFile->close();
 			m_backupFile->remove();
 			delete m_backupFile;
-			m_backupFile = NULL;
-			::signetdev_end_device_backup(NULL, &m_signetdevCmdToken);
+			m_backupFile = nullptr;
+			::signetdev_end_device_backup(nullptr, &m_signetdevCmdToken);
 			return;
 		}
 		m_backupBlock++;
@@ -425,9 +427,9 @@ void MainWindow::signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray bl
 		m_backupProgress->setMaximum(NUM_STORAGE_BLOCKS-1);
 		m_backupProgress->setValue(m_backupBlock);
 		if (m_backupBlock > (NUM_STORAGE_BLOCKS-1)) {
-			::signetdev_end_device_backup(NULL, &m_signetdevCmdToken);
+			::signetdev_end_device_backup(nullptr, &m_signetdevCmdToken);
 		} else {
-			::signetdev_read_block(NULL, &m_signetdevCmdToken, m_backupBlock);
+			::signetdev_read_block(nullptr, &m_signetdevCmdToken, m_backupBlock);
 		}
 	}
 	break;
@@ -438,13 +440,13 @@ void MainWindow::signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray bl
 		m_backupFile->close();
 		m_backupFile->remove();
 		delete m_backupFile;
-		m_backupFile = NULL;
+		m_backupFile = nullptr;
 		break;
 	default:
 		m_backupFile->close();
 		m_backupFile->remove();
 		delete m_backupFile;
-		m_backupFile = NULL;
+		m_backupFile = nullptr;
 		abort();
 		return;
 	}
@@ -479,7 +481,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 		break;
 	case SIGNETDEV_CMD_ERASE_PAGES:
 		if (code == OKAY) {
-			::signetdev_get_progress(NULL, &m_signetdevCmdToken, 0, ERASING_PAGES);
+			::signetdev_get_progress(nullptr, &m_signetdevCmdToken, 0, ERASING_PAGES);
 		}
 		break;
 	case SIGNETDEV_CMD_WRITE_FLASH:
@@ -488,7 +490,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 			m_firmwareUpdateProgress->setValue(m_totalWritten);
 			m_firmwareUpdateProgress->update();
 			if (m_writingSectionIter == m_fwSections.end()) {
-				::signetdev_reset_device(NULL, &m_signetdevCmdToken);
+				::signetdev_reset_device(nullptr, &m_signetdevCmdToken);
 			} else {
 				sendFirmwareWriteCmd();
 			}
@@ -505,13 +507,13 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 				QByteArray block(BLK_SIZE, 0);
 				int sz = m_restoreFile->read(block.data(), block.length());
 				if (sz == BLK_SIZE) {
-					::signetdev_write_block(NULL, &m_signetdevCmdToken, m_restoreBlock, block.data());
+					::signetdev_write_block(nullptr, &m_signetdevCmdToken, m_restoreBlock, block.data());
 				} else {
 					QMessageBox *box = SignetApplication::messageBoxError(QMessageBox::Critical, "Restore device", "Failed to read from source file", this);
 					connect(box, SIGNAL(finished(int)), this, SLOT(restoreError()));
 				}
 			} else {
-				::signetdev_end_device_restore(NULL, &m_signetdevCmdToken);
+				::signetdev_end_device_restore(nullptr, &m_signetdevCmdToken);
 			}
 		}
 		break;
@@ -522,14 +524,14 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 			m_backupPrevState = m_deviceState;
 			enterDeviceState(SignetApplication::STATE_BACKING_UP);
 			m_backupBlock = 0;
-			::signetdev_read_block(NULL, &m_signetdevCmdToken, m_backupBlock);
+			::signetdev_read_block(nullptr, &m_signetdevCmdToken, m_backupBlock);
 		} else {
 			do_abort = do_abort && (code != BUTTON_PRESS_CANCELED && code != BUTTON_PRESS_TIMEOUT);
 			if (m_backupFile) {
 				m_backupFile->close();
 				m_backupFile->remove();
 				delete m_backupFile;
-				m_backupFile = NULL;
+				m_backupFile = nullptr;
 			}
 		}
 		break;
@@ -537,7 +539,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 		if (m_backupFile) {
 			m_backupFile->close();
 			delete m_backupFile;
-			m_backupFile = NULL;
+			m_backupFile = nullptr;
 		}
 		if (code == OKAY) {
 			enterDeviceState(m_backupPrevState);
@@ -555,7 +557,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 			QByteArray block(BLK_SIZE, 0);
 			int sz = m_restoreFile->read(block.data(), block.length());
 			if (sz == BLK_SIZE) {
-				::signetdev_write_block(NULL, &m_signetdevCmdToken, m_restoreBlock, block.data());
+				::signetdev_write_block(nullptr, &m_signetdevCmdToken, m_restoreBlock, block.data());
 			} else {
 				QMessageBox *box = SignetApplication::messageBoxError(QMessageBox::Critical, "Restore device", "Failed to read from source file", this);
 				connect(box, SIGNAL(finished(int)), this, SLOT(restoreError()));
@@ -566,7 +568,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 		break;
 	case SIGNETDEV_CMD_END_DEVICE_RESTORE:
 		if (code == OKAY) {
-			::signetdev_startup(NULL, &m_signetdevCmdToken);
+			::signetdev_startup(nullptr, &m_signetdevCmdToken);
 		}
 		break;
 	case SIGNETDEV_CMD_LOGOUT:
@@ -608,12 +610,12 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 
 void MainWindow::restoreError()
 {
-	::signetdev_end_device_restore(NULL, &m_signetdevCmdToken);
+	::signetdev_end_device_restore(nullptr, &m_signetdevCmdToken);
 }
 
 void MainWindow::backupError()
 {
-	::signetdev_end_device_backup(NULL, &m_signetdevCmdToken);
+	::signetdev_end_device_backup(nullptr, &m_signetdevCmdToken);
 }
 
 #include "genericfields.h"
@@ -648,7 +650,7 @@ void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QBy
 		esdbEntry_1 tmp(id);
 		tmp.fromBlock(blk);
 
-		esdbTypeModule *typeModule = NULL;
+		esdbTypeModule *typeModule = nullptr;
 		QString typeName;
 
 		switch (tmp.type) {
@@ -661,16 +663,14 @@ void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QBy
 			typeName = typeModule->name();
 			break;
 		case ESDB_TYPE_GENERIC:
+			typeModule = m_genericModule;
+			break;
+		case ESDB_TYPE_GENERIC_TYPE_DESC:
 			typeModule = m_genericTypeModule;
 			break;
 		}
-		if (typeModule != NULL) {
-			esdbEntry *entry = typeModule->decodeEntry(id, tmp.revision, NULL, blk);
-			if (tmp.type == ESDB_TYPE_GENERIC) {
-				generic *g = (generic *)entry;
-				typeName = g->typeName;
-			}
-
+		if (typeModule != nullptr) {
+			esdbEntry *entry = typeModule->decodeEntry(id, tmp.revision, nullptr, blk);
 			if (entry) {
 				exportType &exportType = m_exportData[typeName];
 				QVector<genericField> fields;
@@ -712,7 +712,7 @@ void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QBy
 		}
 		m_backupFile->close();
 		delete m_backupFile;
-		m_backupFile = NULL;
+		m_backupFile = nullptr;
 		QMessageBox *box = new QMessageBox(QMessageBox::Information,
 						"Export database to CSV",
 						"Export successful",
@@ -756,7 +756,7 @@ void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, signetdev_start
 	if (m_restoreFile) {
 		m_restoreFile->close();
 		delete m_restoreFile;
-		m_restoreFile = NULL;
+		m_restoreFile = nullptr;
 	}
 
 	switch (code) {
@@ -838,7 +838,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 			break;
 		default:
 			event->ignore();
-			::signetdev_disconnect(NULL, &m_signetdevCmdToken);
+			::signetdev_disconnect(nullptr, &m_signetdevCmdToken);
 			return;
 		}
 		m_settings.windowGeometry = saveGeometry();
@@ -861,7 +861,7 @@ MainWindow::~MainWindow()
 void MainWindow::logoutUi()
 {
 	if (m_deviceState == SignetApplication::STATE_LOGGED_IN) {
-		::signetdev_logout(NULL, &m_signetdevCmdToken);
+		::signetdev_logout(nullptr, &m_signetdevCmdToken);
 	}
 }
 
@@ -1368,7 +1368,9 @@ void MainWindow::enterDeviceState(int state)
 		m_loggedInStack->setCurrentIndex(0);
 		m_loggedInStack->removeWidget(m_backupWidget);
 		m_backupWidget->deleteLater();
-		m_backupWidget = NULL;
+		m_backupWidget =
+
+	nullptr;
 		break;
 	case SignetApplication::STATE_LOGGED_IN_LOADING_ACCOUNTS: {
 		QWidget *w = m_loggedInStack->currentWidget();
@@ -1379,7 +1381,9 @@ void MainWindow::enterDeviceState(int state)
 	break;
 	case SignetApplication::STATE_CONNECTING:
 		m_connectingTimer.stop();
-		m_connectingLabel = NULL;
+		m_connectingLabel =
+
+	nullptr;
 		break;
 	default:
 		break;
@@ -1444,7 +1448,9 @@ void MainWindow::enterDeviceState(int state)
 		m_deviceMenu->setDisabled(true);
 		m_fileMenu->setDisabled(true);
 		setCentralWidget(m_wipingWidget);
-		::signetdev_get_progress(NULL, &m_signetdevCmdToken, 0, WIPING);
+		::signetdev_get_progress(
+
+	nullptr, &m_signetdevCmdToken, 0, WIPING);
 	}
 	break;
 	case SignetApplication::STATE_LOGGED_IN_LOADING_ACCOUNTS: {
@@ -1557,7 +1563,9 @@ void MainWindow::enterDeviceState(int state)
 				erase_pages_.push_back(i);
 			}
 		}
-		::signetdev_erase_pages(NULL, &m_signetdevCmdToken,
+		::signetdev_erase_pages(
+
+	nullptr, &m_signetdevCmdToken,
 					      erase_pages_.size(),
 					      (u8 *)erase_pages_.data());
 		setCentralWidget(m_firmwareUpdateWidget);
@@ -1696,7 +1704,7 @@ void MainWindow::openUi()
 		if (::signetdev_emulate_begin()) {
 			enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
 			enterDeviceState(SignetApplication::STATE_CONNECTING);
-			::signetdev_startup(NULL, &m_signetdevCmdToken);
+			::signetdev_startup(nullptr, &m_signetdevCmdToken);
 		}
 	} else {
 		SignetApplication::messageBoxError(QMessageBox::Warning, "Open", "Database file not valid", this);
@@ -1712,7 +1720,9 @@ void MainWindow::closeUi()
 		enterDeviceState(SignetApplication::STATE_CONNECTING);
 		int rc = signetdev_open_connection();
 		if (rc == 0) {
-			::signetdev_startup(NULL, &m_signetdevCmdToken);
+			::signetdev_startup(
+
+	nullptr, &m_signetdevCmdToken);
 		}
 	}
 }
@@ -1756,7 +1766,9 @@ void MainWindow::resetTimer()
 	m_wasConnected = false;
 	int rc = ::signetdev_open_connection();
 	if (rc == 0) {
-		::signetdev_startup(NULL, &m_signetdevCmdToken);
+		::signetdev_startup(
+
+	nullptr, &m_signetdevCmdToken);
 	}
 }
 
@@ -1773,7 +1785,9 @@ void MainWindow::sendFirmwareWriteCmd()
 	}
 	void *data = m_writingSectionIter->contents.data() + (m_writingAddr - section_lma);
 
-	::signetdev_write_flash(NULL, &m_signetdevCmdToken, m_writingAddr, data, write_size);
+	::signetdev_write_flash(
+
+	nullptr, &m_signetdevCmdToken, m_writingAddr, data, write_size);
 	if (advance) {
 		m_writingSectionIter++;
 		if (m_writingSectionIter != m_fwSections.end()) {
@@ -1868,7 +1882,7 @@ void MainWindow::updateFirmwareUi()
 		m_buttonWaitDialog = new ButtonWaitDialog("Update firmware", "update firmware", this, true);
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 		m_buttonWaitDialog->show();
-		::signetdev_begin_update_firmware(NULL, &m_signetdevCmdToken);
+		::signetdev_begin_update_firmware(nullptr, &m_signetdevCmdToken);
 	} else {
 		SignetApplication::messageBoxError(QMessageBox::Warning, "Update firmware", "Firmware file not valid", this);
 	}
@@ -1895,7 +1909,7 @@ void MainWindow::wipeDeviceDialogFinished(int result)
 	m_buttonWaitDialog = new ButtonWaitDialog("Wipe device", "wipe device", this, true);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 	m_buttonWaitDialog->show();
-	::signetdev_wipe(NULL, &m_signetdevCmdToken);
+	::signetdev_wipe(nullptr, &m_signetdevCmdToken);
 }
 
 void MainWindow::operationFinished(int code)
@@ -1904,7 +1918,7 @@ void MainWindow::operationFinished(int code)
 	if (code != QMessageBox::Ok) {
 		::signetdev_cancel_button_wait();
 	}
-	m_buttonWaitDialog = NULL;
+	m_buttonWaitDialog = nullptr;
 }
 
 void MainWindow::backupDevice(QString fileName)
@@ -1919,7 +1933,7 @@ void MainWindow::backupDevice(QString fileName)
 	m_buttonWaitDialog = new ButtonWaitDialog("Backup device to file", "start backing up device to " + fi.fileName(), this, true);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 	m_buttonWaitDialog->show();
-	::signetdev_begin_device_backup(NULL, &m_signetdevCmdToken);
+	::signetdev_begin_device_backup(nullptr, &m_signetdevCmdToken);
 }
 
 void MainWindow::aboutUi()
@@ -1995,7 +2009,7 @@ void MainWindow::exportCSVUi()
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 	m_buttonWaitDialog->show();
 	m_startedExport = true;
-	::signetdev_read_all_uids(NULL, &m_signetdevCmdToken, 0);
+	::signetdev_read_all_uids(nullptr, &m_signetdevCmdToken, 0);
 }
 
 void MainWindow::importDone(bool success)
@@ -2010,7 +2024,7 @@ void MainWindow::importDone(bool success)
 		mb->deleteLater();
 	}
 	m_dbImportController->deleteLater();
-	m_dbImportController = NULL;
+	m_dbImportController = nullptr;
 }
 
 void MainWindow::startImport(DatabaseImporter *importer)
@@ -2044,7 +2058,7 @@ void MainWindow::importKeePassUI()
 
 void MainWindow::passwordSlotsUi()
 {
-	::signetdev_read_cleartext_password_names(NULL, &m_signetdevCmdToken);
+	::signetdev_read_cleartext_password_names(nullptr, &m_signetdevCmdToken);
 }
 
 void MainWindow::signetdevReadCleartextPasswordNames(signetdevCmdRespInfo info, QVector<int> formats, QStringList names)
@@ -2107,5 +2121,5 @@ void MainWindow::restoreDeviceUi()
 	m_buttonWaitDialog = new ButtonWaitDialog("Restore device from file", "start restoring device", this, true);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 	m_buttonWaitDialog->show();
-	::signetdev_begin_device_restore(NULL, &m_signetdevCmdToken);
+	::signetdev_begin_device_restore(nullptr, &m_signetdevCmdToken);
 }

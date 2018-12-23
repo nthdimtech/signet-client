@@ -18,8 +18,8 @@ GenericActionBar::GenericActionBar(LoggedInWidget *parent, esdbTypeModule *modul
 	EsdbActionBar(parent, typeDesc->name, writeEnabled, typeEnabled),
 	m_module(module),
 	m_typeDesc(typeDesc),
-	m_newEntryDlg(NULL),
-	m_browseButton(NULL)
+	m_newEntryDlg(nullptr),
+	m_browseButton(nullptr)
 {
 	if (module->hasUrl()) {
 		m_browseButton = addBrowseButton();

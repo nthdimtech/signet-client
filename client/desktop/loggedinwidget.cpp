@@ -202,9 +202,10 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 
 	bool fromFile = mw->getDatabaseFileName().size();
 
-	genericTypeDesc *place = new genericTypeDesc(-1);
-	place->name = "";
-	m_genericDecoder = new esdbGenericModule(place);
+	genericTypeDesc *miscTypeDesc = new genericTypeDesc(-1);
+	miscTypeDesc->name = "Misc";
+	miscTypeDesc->typeId = 0;
+	m_genericModules.push_back(new esdbGenericModule(miscTypeDesc, false, false));
 
 	m_writeEnabled = !fromFile;
 	m_typeEnabled = !fromFile;
@@ -221,13 +222,9 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	m_typeData.push_back(bookmarksTypeData);
 	m_dataTypesModel->addModule(m_bookmarks, true);
 
-	genericTypeDesc *genericTypeDesc_;
-
 	if (USE_MISC_TYPE) {
-		genericTypeDesc_ = new genericTypeDesc(-1);
-		genericTypeDesc_->name = "Misc";
-		typeData *d = new typeData(new esdbGenericModule(genericTypeDesc_, false, false));
-		d->actionBar = new GenericActionBar(this, d->module, genericTypeDesc_, m_writeEnabled, m_typeEnabled);
+		typeData *d = new typeData(m_genericModules[0]);
+		d->actionBar = new GenericActionBar(this, d->module, miscTypeDesc, m_writeEnabled, m_typeEnabled);
 		m_typeData.push_back(d);
 		m_dataTypesModel->addModule(d->module, true);
 	}
@@ -384,6 +381,14 @@ void LoggedInWidget::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int uid
 		}
 		m_populatingCantRead = 0;
 		m_populating = false;
+		for (auto entry : m_entries) {
+			int index = esdbEntryToIndex(entry);
+			if (index >= 0) {
+				m_typeData.at(index)->entries->insert(entry->id, entry);
+			} else {
+				//TODO
+			}
+		}
 		m_searchListbox->setEnabled(true);
 		m_filterEdit->setEnabled(true);
 		m_newAcctButton->setEnabled(true);
@@ -482,32 +487,40 @@ void LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent, EsdbActi
 	}
 }
 
+esdbTypeModule *LoggedInWidget::esdbEntryToModule(esdbEntry *entry)
+{
+	esdbTypeModule *module = nullptr;
+
+	switch (entry->type) {
+	case ESDB_TYPE_ACCOUNT:
+		module = m_accounts;
+		break;
+	case ESDB_TYPE_BOOKMARK:
+		module = m_bookmarks;
+		break;
+	case ESDB_TYPE_GENERIC_TYPE_DESC:
+		module = m_genericTypeModule;
+		break;
+	case ESDB_TYPE_GENERIC: {
+		generic *g = static_cast<generic *>(entry);
+		if (g->typeId < m_genericModules.size()) {
+			module = m_genericModules[g->typeId];
+		}
+		if (!module) {
+			module = m_genericModules[0];
+		}
+		} break;
+	}
+	return module;
+}
+
 void LoggedInWidget::entryChanged(int id)
 {
 	esdbEntry *entry = m_entries[id];
-	entryIconCheck(entry);
-	switch (entry->type) {
-	case ESDB_TYPE_ACCOUNT:
-		//TODO: bad magic number
-		populateEntryList(m_typeData.at(0), m_filterEdit->text());
-		break;
-	case ESDB_TYPE_BOOKMARK:
-		//TODO: bad magic number
-		populateEntryList(m_typeData.at(1), m_filterEdit->text());
-		break;
-	case ESDB_TYPE_GENERIC_TYPE_DESC:
-		//TODO: bad magic number
-		populateEntryList(m_typeData.at(3), m_filterEdit->text());
-		break;
-	case ESDB_TYPE_GENERIC: {
-			generic *g = static_cast<generic *>(entry);
-			for (int i = 2; i < m_typeData.size(); i++) {
-				if (m_typeData.at(i)->module->name() == g->typeName) {
-					populateEntryList(m_typeData.at(i), m_filterEdit->text());
-					break;
-				}
-			}
-		} break;
+	if (entry) {
+		entryIconCheck(entry);
+		int typeIdx = esdbEntryToIndex(entry);
+		populateEntryList(m_typeData.at(typeIdx), m_filterEdit->text());
 	}
 }
 
@@ -667,36 +680,15 @@ EsdbActionBar *LoggedInWidget::getActiveActionBar()
 
 int LoggedInWidget::esdbEntryToIndex(esdbEntry *entry)
 {
-	int ret = -1;
-	switch (entry->type) {
-	case ESDB_TYPE_ACCOUNT:
-		return 0;
-	case ESDB_TYPE_BOOKMARK:
-		return 1;
-	case ESDB_TYPE_GENERIC: {
-		generic *g = static_cast<generic *>(entry);
-		for (int i = 0; i < m_actionBarStack->count(); i++) {
-			EsdbActionBar *bar = static_cast<EsdbActionBar *>(m_actionBarStack->widget(i));
-			if (bar->esdbType() == ESDB_TYPE_GENERIC) {
-				GenericActionBar *genericBar = static_cast<GenericActionBar *>(bar);
-				if (genericBar->typeDesc()->name == g->typeName) {
-					return i;
-				}
-			}
-		}
-	}
-	break;
-	case ESDB_TYPE_GENERIC_TYPE_DESC: {
-		for (int i = 0; i < m_actionBarStack->count(); i++) {
-			EsdbActionBar *bar = static_cast<EsdbActionBar *>(m_actionBarStack->widget(i));
-			if (bar->esdbType() == ESDB_TYPE_GENERIC_TYPE_DESC) {
+	esdbTypeModule *module = esdbEntryToModule(entry);
+	if (module) {
+		for (int i = 0; i < m_typeData.size(); i++) {
+			if (m_typeData.at(i)->module == module) {
 				return i;
 			}
 		}
 	}
-	break;
-	}
-	return ret;
+	return -1;
 }
 
 EsdbActionBar *LoggedInWidget::getActionBarByEntry(esdbEntry *entry)
@@ -713,9 +705,9 @@ esdbTypeModule *LoggedInWidget::getTypeModule(int type)
 {
 	esdbTypeModule *module = nullptr;
 	switch (type) {
-	case ESDB_TYPE_GENERIC:
-		module = m_genericDecoder;
-		break;
+	case ESDB_TYPE_GENERIC: {
+		module = m_genericModules[0];
+		} break;
 	case ESDB_TYPE_GENERIC_TYPE_DESC:
 		module = m_genericTypeModule;
 		break;
@@ -826,10 +818,10 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 		if (!exists) {
 			entryIconCheck(entry);
 			m_entries[id] = entry;
-			int index = esdbEntryToIndex(entry);
-			if (index >= 0) {
-				m_typeData.at(index)->entries->insert(id, entry);
-				if (!m_populating) {
+			if (!m_populating) {
+				int index = esdbEntryToIndex(entry);
+				if (index >= 0) {
+					m_typeData.at(index)->entries->insert(id, entry);
 					populateEntryList(m_activeType, m_searchListbox->filterText());
 				}
 			}
@@ -895,6 +887,35 @@ void LoggedInWidget::filterEditPressed()
 	}
 }
 
+int LoggedInWidget::getUnusedTypeId()
+{
+	std::vector<int> match;
+	match.push_back(0);
+	match.push_back(0);
+	for (esdbEntry *entry : m_entries) {
+		int typeIdx = -1;
+		if (entry->type == ESDB_TYPE_GENERIC) {
+			generic *g = static_cast<generic *>(entry);
+			typeIdx = g->typeId;
+		} else if (entry->type == ESDB_TYPE_GENERIC_TYPE_DESC) {
+			genericTypeDesc *gt = static_cast<genericTypeDesc *>(entry);
+			typeIdx = gt->typeId;
+		}
+		if (typeIdx >= 0 && (typeIdx + 1) >= match.size()) {
+			match.resize(typeIdx + 2, 0);
+		}
+		if (typeIdx >= 0) {
+			match[typeIdx] = 1;
+		}
+	}
+
+	for (int i = 1; i < match.size(); i++) {
+		if (!match[i])
+			return i;
+	}
+	return -1;
+}
+
 int LoggedInWidget::getUnusedId()
 {
 	int entriesValid[MAX_UID+1];
@@ -919,20 +940,8 @@ int LoggedInWidget::getUnusedId()
 
 void LoggedInWidget::newEntryUI()
 {
-	int entriesValid[MAX_UID+1];
-	//TODO: optimize this
-	for (int i = MIN_UID; i <= MAX_UID; i++) {
-		entriesValid[i] = 0;
-	}
-	for (auto entry : m_entries) {
-		entriesValid[entry->id] = 1;
-	}
-	int id;
-	for (id = MIN_UID; id <= MAX_UID; id++) {
-		if (!entriesValid[id])
-			break;
-	}
-	if (id > MAX_UID) {
+	int id = getUnusedId();
+	if (id < 0) {
 		SignetApplication::messageBoxError(QMessageBox::Warning,
 						   "Account creation failed",
 						   "No space left on device",
@@ -980,6 +989,7 @@ void LoggedInWidget::entryIconCheck(esdbEntry *entry)
 	}
 }
 
+
 void LoggedInWidget::addGenericType(genericTypeDesc *genericTypeDesc_)
 {
 	typeData *d = new typeData(new esdbGenericModule(genericTypeDesc_, false, false));
@@ -987,6 +997,10 @@ void LoggedInWidget::addGenericType(genericTypeDesc *genericTypeDesc_)
 	m_typeData.push_back(d);
 	m_actionBarStack->addWidget(d->actionBar);
 	m_dataTypesModel->addModule(d->module, false);
+	if (m_genericModules.size() <= genericTypeDesc_->typeId) {
+		m_genericModules.resize(genericTypeDesc_->typeId + 1, nullptr);
+	}
+	m_genericModules[genericTypeDesc_->typeId] = static_cast<esdbGenericModule *>(d->module);
 }
 
 void LoggedInWidget::entryCreated(QString typeName, esdbEntry *entry)

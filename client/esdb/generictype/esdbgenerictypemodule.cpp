@@ -10,6 +10,7 @@ esdbEntry *esdbGenericTypeModule::decodeEntry(int id, int revision, esdbEntry *p
 {
 	esdbEntry *entry = nullptr;
 	genericTypeDesc *desc = nullptr;
+	genericTypeDesc_1 rev_1(id);
 	if (!prev) {
 		desc = new genericTypeDesc(id);
 	} else {
@@ -19,6 +20,19 @@ esdbEntry *esdbGenericTypeModule::decodeEntry(int id, int revision, esdbEntry *p
 	switch(revision) {
 	case 0:
 	case 1:
+		rev_1.fromBlock(blk);
+		break;
+	case 2:
+		desc->fromBlock(blk);
+		break;
+	}
+
+	switch(revision) {
+	case 0:
+	case 1:
+		desc->upgrade(rev_1);
+		break;
+	case 2:
 		desc->fromBlock(blk);
 		break;
 	default:

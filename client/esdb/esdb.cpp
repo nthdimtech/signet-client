@@ -74,14 +74,16 @@ u16 block::readU16()
 void block::writeU8(u8 v)
 {
 	output_bytes_needed(index + 1 + 1);
-	((u8 *)data.data())[index++] = v;
+	((u8 *)data.data())[index] = v;
+	index++;
 }
 
 void block::writeU16(u16 v)
 {
 	output_bytes_needed(index + 1 + 2);
-	((u8 *)data.data())[index++] = v & 0xff;
-	((u8 *)data.data())[index++] = v >> 8;
+	((u8 *)data.data())[index] = v & 0xff;
+	((u8 *)data.data())[index + 1] = v >> 8;
+	index += 2;
 }
 
 void block::writeString(const QString &str, bool masked)
@@ -138,7 +140,6 @@ esdbEntry::esdbEntry(int id_) :
 	id(id_),
 	iconSet(false)
 {
-
 }
 
 void esdbEntry::fromBlock(block *blk)

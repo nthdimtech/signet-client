@@ -135,10 +135,9 @@ class LoggedInWidget : public QWidget
 
 	esdbAccountModule *m_accounts;
 	esdbBookmarkModule *m_bookmarks;
-	esdbGenericTypeModule *m_genericTypeModule;
-	esdbGenericModule *m_genericDecoder;
-
 	SearchFilterEdit *m_filterEdit;
+	esdbGenericTypeModule *m_genericTypeModule;
+	std::vector<esdbGenericModule *> m_genericModules;
 	NewAccount *m_newAccountDlg;
 	QWidget *m_accountGroup;
 	QComboBox *m_viewSelector;
@@ -168,6 +167,7 @@ class LoggedInWidget : public QWidget
 	void expandTreeItems(QModelIndex parent);
 	void deselectEntry();
 	void addGenericType(genericTypeDesc *genericTypeDesc_);
+	esdbTypeModule *esdbEntryToModule(esdbEntry *entry);
 public:
 	enum ID_TASK {
 		ID_TASK_NONE,
@@ -180,6 +180,7 @@ public:
 	void beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar);
 	void getSelectedAccountRect(QRect &r);
 	int getUnusedId();
+	int getUnusedTypeId();
 	const esdbEntry *findEntry(QString type, QString name) const;
 
 	QList<esdbTypeModule *> getTypeModules();

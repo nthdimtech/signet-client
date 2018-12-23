@@ -54,6 +54,7 @@ void EditGeneric::applyChanges(esdbEntry *e)
 	generic *g = static_cast<generic *>(e);
 	g->name = entryName();
 	g->fields = m_fields;
+	g->typeId = m_typeDesc->typeId;
 	m_genericFieldsEditor->saveFields(g->fields);
 }
 
@@ -68,7 +69,7 @@ void EditGeneric::undoChanges()
 esdbEntry *EditGeneric::createEntry(int id)
 {
 	generic *g = new generic(id);
-	g->typeName = m_typeDesc->name;
+	g->typeId = m_typeDesc->typeId;
 	return g;
 }
 

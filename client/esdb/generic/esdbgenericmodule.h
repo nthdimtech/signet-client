@@ -13,6 +13,7 @@ struct genericTypeDesc;
 
 class esdbGenericModule : public esdbTypeModule
 {
+	genericTypeDesc *m_typeDesc;
 private:
 	//genericTypeDesc *m_typeDesc;
 	esdbEntry *decodeEntry(int id, int revision, esdbEntry *prev, struct block *blk) const;

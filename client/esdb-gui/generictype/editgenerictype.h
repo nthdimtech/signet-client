@@ -28,8 +28,9 @@ class EditGenericType : public EditEntryDialog
 	void copyFromGenericFields(genericTypeDesc *g, const genericFields &gf);
 	void copyToGenericFields(const genericTypeDesc *g, genericFields &gf);
 	void setup(QString name);
+	u16 m_typeId;
 public:
-	EditGenericType(int id, const QString &name, QWidget *parent);
+	EditGenericType(int id, u16 typeId, const QString &name, QWidget *parent);
 	EditGenericType(genericTypeDesc *g, QWidget *parent);
 };
 

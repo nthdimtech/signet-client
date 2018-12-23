@@ -18,7 +18,7 @@ void generic_2::fromBlock(block *blk)
 	fields.fromBlock(blk);
 }
 
-void generic::fromBlock(block *blk)
+void generic_3::fromBlock(block *blk)
 {
 	esdbEntry::fromBlock(blk);
 	blk->readString(this->typeName);
@@ -26,10 +26,18 @@ void generic::fromBlock(block *blk)
 	fields.fromBlock(blk);
 }
 
+void generic::fromBlock(block *blk)
+{
+	esdbEntry::fromBlock(blk);
+	this->typeId = blk->readU16();
+	blk->readString(this->name);
+	fields.fromBlock(blk);
+}
+
 void generic::toBlock(block *blk) const
 {
 	esdbEntry::toBlock(blk);
-	blk->writeString(this->typeName, false);
+	blk->writeU16(this->typeId);
 	blk->writeString(this->name, false);
 	fields.toBlock(blk);
 }

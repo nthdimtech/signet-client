@@ -46,7 +46,7 @@ void genericFields::fromBlock(block *blk)
 
 void genericFields::toBlock(block *blk) const
 {
-	blk->writeU8(m_fields.count());
+	blk->writeU8(static_cast<u8>(m_fields.count()));
 	for (auto fld : m_fields) {
 		blk->writeString(fld.name, true);
 		blk->writeString(fld.type, true);
@@ -61,7 +61,7 @@ const genericField *genericFields::getField(const QString &name) const
 			return &f;
 		}
 	}
-	return NULL;
+	return nullptr;
 }
 
 void genericFields::getFields(QVector<genericField> &fields) const

@@ -14,6 +14,7 @@
 #include "systemtray.h"
 #include "signetapplication.h"
 #include "localsettings.h"
+#include "esdbgenericmodule.h"
 
 #include <QVector>
 
@@ -65,6 +66,7 @@ class MainWindow : public QMainWindow
 	esdbTypeModule *m_genericTypeModule;
 	esdbTypeModule *m_accountTypeModule;
 	esdbTypeModule *m_bookmarkTypeModule;
+	esdbTypeModule *m_genericModule;
 	LoggedInWidget *m_loggedInWidget;
 public:
 	explicit MainWindow(QString dbFilename, QWidget *parent = 0);

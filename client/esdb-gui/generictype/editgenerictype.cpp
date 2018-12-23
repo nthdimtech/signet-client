@@ -59,6 +59,7 @@ void EditGenericType::applyChanges(esdbEntry *ent)
 {
 	genericTypeDesc *g = static_cast<genericTypeDesc *>(ent);
 	g->name = m_typeNameEdit->text();
+	g->typeId = m_typeId;
 	genericFields gf;
 	copyToGenericFields(g, gf);
 	m_genericFieldsEditor->saveFields(gf);
@@ -81,10 +82,12 @@ void EditGenericType::setup(QString name)
 	connect(m_typeNameEdit, SIGNAL(textEdited(QString)), this, SLOT(entryNameEdited()));
 }
 
-EditGenericType::EditGenericType(int id, const QString &name, QWidget *parent) :
+EditGenericType::EditGenericType(int id, u16 typeId, const QString &name, QWidget *parent) :
 	EditEntryDialog(QString("Data type"), id, parent),
 	m_genericTypeDesc(nullptr),
-	m_genericFieldsEditor(nullptr)
+	m_genericFieldsEditor(nullptr),
+	m_typeId(typeId)
+
 {
 	setup(name);
 }
@@ -92,7 +95,8 @@ EditGenericType::EditGenericType(int id, const QString &name, QWidget *parent) :
 EditGenericType::EditGenericType(genericTypeDesc *g, QWidget *parent) :
 	EditEntryDialog(g->name, g, parent),
 	m_genericTypeDesc(nullptr),
-	m_genericFieldsEditor(nullptr)
+	m_genericFieldsEditor(nullptr),
+	m_typeId(g->typeId)
 {
 	setup(g->name);
 	genericFields gf;

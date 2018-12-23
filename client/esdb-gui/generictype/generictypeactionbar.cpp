@@ -22,11 +22,16 @@ void GenericTypeActionBar::defaultAction(esdbEntry *entry)
 
 void GenericTypeActionBar::newInstanceUI(int id, const QString &name)
 {
-	EditGenericType *t = new EditGenericType(id, name, this);
-	QObject::connect(t, SIGNAL(entryCreated(esdbEntry *)), this, SLOT(entryCreated(esdbEntry *)));
-	t->exec();
-	m_parent->finishTask(false);
-	t->deleteLater();
+	int typeId = m_parent->getUnusedTypeId();
+	if (typeId >= 0) {
+		EditGenericType *t = new EditGenericType(id, typeId, name, this);
+		QObject::connect(t, SIGNAL(entryCreated(esdbEntry *)), this, SLOT(entryCreated(esdbEntry *)));
+		t->exec();
+		m_parent->finishTask(false);
+		t->deleteLater();
+	} else {
+		//TODO: handle error
+	}
 }
 
 GenericTypeActionBar::GenericTypeActionBar(LoggedInWidget *parent, esdbTypeModule *module, bool writeEnabled, bool typeEnabled) :

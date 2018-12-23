@@ -15,9 +15,21 @@ struct fieldSpec {
 	fieldSpec() {}
 };
 
+struct genericTypeDesc_1 : public esdbEntry {
+	QString name;
+	QString group;
+	QList<fieldSpec> fields;
+	void fromBlock(block *blk);
+
+	genericTypeDesc_1(int id) : esdbEntry(id, ESDB_TYPE_GENERIC_TYPE_DESC, 1, id, 1) {
+
+	}
+};
+
 struct genericTypeDesc : public esdbEntry {
 	QString name;
 	QString group;
+	u16 typeId;
 	QList<fieldSpec> fields;
 	void fromBlock(block *blk);
 	void toBlock(block *blk) const;
@@ -27,7 +39,10 @@ struct genericTypeDesc : public esdbEntry {
 	QString getPath() const {
 		return group;
 	}
-	genericTypeDesc(int id) : esdbEntry(id, ESDB_TYPE_GENERIC_TYPE_DESC, 1, id, 1) {
+
+	void upgrade(const genericTypeDesc_1 &prev);
+
+	genericTypeDesc(int id) : esdbEntry(id, ESDB_TYPE_GENERIC_TYPE_DESC, 2, id, 1) {
 
 	}
 	void getFields(QVector<genericField> &fields_) const;
