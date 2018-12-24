@@ -34,7 +34,6 @@ class AccountActionBar : public EsdbActionBar
 	bool m_accessPassword;
 	bool m_accessPending;
 
-	void accessAccount(account *acct, bool username, bool password);
 	void newInstanceUI(int id, const QString &name);
 	void typeAccountData(account *acct);
 	void copyAccountData(account *acct, bool username, bool password);
@@ -52,6 +51,8 @@ class AccountActionBar : public EsdbActionBar
 
 	bool m_quickTypeMode;
 	void accessEntryComplete(esdbEntry *entry, int intent);
+	void accessAccountUI(bool typeData, bool username, bool password);
+	void accessAccount(account *acct, bool typeData, bool username, bool password);
 private slots:
 	void entryCreated(esdbEntry *entry);
 signals:
@@ -67,7 +68,6 @@ public slots:
 	void typeAccountUserUI();
 	void typeAccountUserPassUI();
 	void typeAccountPassUI();
-	void accessAccountUI(bool username, bool password);
 	void browseUrlUI();
 	void copyUsername();
 	void copyPassword();

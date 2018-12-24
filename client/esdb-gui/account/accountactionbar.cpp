@@ -75,15 +75,15 @@ void AccountActionBar::defaultAction(esdbEntry *entry)
 	menu = new QMenu(this);
 	QAction *browseAction = menu->addAction("&Browse");
 	menu->addSeparator();
-	QAction *loginAction = NULL;
-	QAction *copyUsernamePasswordAction = NULL;
+	QAction *loginAction = nullptr;
+	QAction *copyUsernamePasswordAction = nullptr;
 	if (m_typeEnabled) {
 		loginAction = menu->addAction("&Login");
 	} else {
 		copyUsernamePasswordAction = menu->addAction("Copy username and password");
 	}
-	QAction *usernameAction = NULL;
-	QAction *passwordAction = NULL;
+	QAction *usernameAction = nullptr;
+	QAction *passwordAction = nullptr;
 	if (m_typeEnabled) {
 		usernameAction = menu->addAction("&Username");
 		passwordAction = menu->addAction("&Password");
@@ -161,27 +161,27 @@ void AccountActionBar::browseUrlUI()
 	}
 }
 
-void AccountActionBar::accessAccountUI(bool username, bool password)
+void AccountActionBar::accessAccountUI(bool typeData, bool username, bool password)
 {
 	account *acct = (account *)selectedEntry();
 	if (acct) {
-		accessAccount(acct, username, password);
+		accessAccount(acct, typeData, username, password);
 	}
 }
 
 void AccountActionBar::typeAccountUserUI()
 {
-	accessAccountUI(true, false);
+	accessAccountUI(true, true, false);
 }
 
 void AccountActionBar::typeAccountPassUI()
 {
-	accessAccountUI(false, true);
+	accessAccountUI(true, false, true);
 }
 
 void AccountActionBar::typeAccountUserPassUI()
 {
-	accessAccountUI(true, true);
+	accessAccountUI(true, true, true);
 }
 
 void AccountActionBar::openAccountUI()
@@ -197,24 +197,27 @@ void AccountActionBar::deleteAccountUI()
 void AccountActionBar::copyUsername()
 {
 	esdbEntry *entry = selectedEntry();
-	QString message("copy username \"" + entry->getTitle() + "\"");
-	accessEntry(selectedEntry(), INTENT_COPY_ENTRY, message, true, false);
+	if (entry) {
+		accessAccount(static_cast<account *>(entry), false, true, false);
+	}
 }
 
 void AccountActionBar::copyPassword()
 {
 	esdbEntry *entry = selectedEntry();
-	QString message("copy password \"" + entry->getTitle() + "\"");
-	accessEntry(selectedEntry(), INTENT_COPY_ENTRY, message, true, false);}
+	if (entry) {
+		accessAccount(static_cast<account *>(entry), false, false, true);
+	}
+}
 
-
-void AccountActionBar::accessAccount(account *acct, bool username, bool password)
+void AccountActionBar::accessAccount(account *acct, bool typeData, bool username, bool password)
 {
 	m_accessUsername = username;
 	m_accessPassword = password;
+	bool doTypeData = m_typeEnabled && typeData;
 	QString message;
 	if (username && password) {
-		if (m_typeEnabled) {
+		if (doTypeData) {
 			message.append("to login to ");
 		} else {
 			message.append("to copy username and password for ");
@@ -222,13 +225,13 @@ void AccountActionBar::accessAccount(account *acct, bool username, bool password
 		message.append(acct->acctName);
 	} else {
 		if (username) {
-			if (m_typeEnabled)
+			if (doTypeData)
 				message.append("type username ");
 			else
 				message.append("copy username ");
 			m_quickTypeState = QUICKTYPE_STATE_USERNAME;
 		} else if (password) {
-			if (m_typeEnabled)
+			if (m_typeEnabled && typeData)
 				message.append("type password ");
 			else
 				message.append("copy password ");
@@ -237,8 +240,8 @@ void AccountActionBar::accessAccount(account *acct, bool username, bool password
 		message.append("for ");
 		message.append(acct->acctName);
 	}
-	accessEntry(acct, m_typeEnabled ? INTENT_TYPE_ENTRY : INTENT_COPY_ENTRY,
-		    message, !m_quickTypeMode, m_accessUsername && m_accessPassword && m_typeEnabled);
+	accessEntry(acct, doTypeData ? INTENT_TYPE_ENTRY : INTENT_COPY_ENTRY,
+		    message, !m_quickTypeMode, m_accessUsername && m_accessPassword && doTypeData);
 }
 
 void AccountActionBar::typeAccountData(account *acct)
