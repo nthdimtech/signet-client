@@ -321,7 +321,7 @@ void AccountActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 	case INTENT_OPEN_ENTRY: {
 		EditAccount *ea = new EditAccount(acct, m_parent);
 		connect(ea, SIGNAL(abort()), this, SIGNAL(abort()));
-		connect(ea, SIGNAL(accountChanged(int)), m_parent, SLOT(entryChanged(int)));
+		connect(ea, SIGNAL(entryChanged(int)), m_parent, SLOT(entryChanged(int)));
 		connect(ea, SIGNAL(finished(int)), ea, SLOT(deleteLater()));
 		ea->show();
 	} break;

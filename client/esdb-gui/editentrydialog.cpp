@@ -196,7 +196,7 @@ void EditEntryDialog::signetdevCmdResp(signetdevCmdRespInfo info)
 				close();
 			} else {
 				applyChanges(m_entry);
-				emit accountChanged(m_id);
+				emit entryChanged(m_id);
 				m_submitButton->setDisabled(true);
 				m_undoChangesButton->setDisabled(true);
 				m_changesMade = false;

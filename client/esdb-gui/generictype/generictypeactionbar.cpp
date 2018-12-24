@@ -71,7 +71,7 @@ void GenericTypeActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 		}
 		EditGenericType *ogt = new EditGenericType(g, m_parent);
 		connect(ogt, SIGNAL(abort()), this, SIGNAL(abort()));
-		connect(ogt, SIGNAL(accountChanged(int)), m_parent, SLOT(entryChanged(int)));
+		connect(ogt, SIGNAL(entryChanged(int)), m_parent, SLOT(entryChanged(int)));
 		connect(ogt, SIGNAL(finished(int)), ogt, SLOT(deleteLater()));
 		ogt->show();
 	} break;

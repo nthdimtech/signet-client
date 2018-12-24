@@ -32,11 +32,12 @@ public:
 	}
 
 	esdbTypeModule(const QString &name);
+	esdbTypeModule();
 	virtual ~esdbTypeModule()
 	{
 	}
 
-	QString name() const
+	virtual QString name() const
 	{
 		return m_name;
 	}

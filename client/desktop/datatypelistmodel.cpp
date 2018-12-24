@@ -50,6 +50,18 @@ void DataTypeListModel::removeModule(esdbTypeModule *m)
 	}
 }
 
+void DataTypeListModel::moduleChanged(esdbTypeModule *m)
+{
+	for (int i = 0; i < m_dynamicTypes.size(); i++) {
+		if (m_dynamicTypes.at(i) == m) {
+			int row = i + m_builtInTypes.size();
+			QVector<int> roles;
+			emit dataChanged(createIndex(row, 0), createIndex(row, 0), roles);
+			break;
+		}
+	}
+}
+
 DataTypeListModel::DataTypeListModel()
 {
 

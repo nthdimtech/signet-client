@@ -32,7 +32,7 @@ class EditEntryDialog : public QDialog
 	void closeEvent(QCloseEvent *event);
 signals:
 	void abort();
-	void accountChanged(int id);
+	void entryChanged(int id);
 	void entryCreated(esdbEntry *);
 public:
 	EditEntryDialog(QString typeName, int id, QWidget *parent);

@@ -17,6 +17,7 @@ public:
 	void addModule(esdbTypeModule *m, bool builtIn);
 	void removeModule(esdbTypeModule *m);
 	DataTypeListModel();
+	void moduleChanged(esdbTypeModule *m);
 };
 
 #endif // DATATYPELISTMODEL_H

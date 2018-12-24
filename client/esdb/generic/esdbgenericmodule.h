@@ -20,7 +20,9 @@ private:
 	//bool m_userDefined;
 	esdbEntry *decodeEntry(const QVector<genericField> &fields, bool doAliasMatch) const;
 public:
-	esdbGenericModule(genericTypeDesc *typeDesc, bool userDefined = false, bool plural = true);
+	esdbGenericModule(genericTypeDesc *typeDesc);
+
+	QString name() const override;
 };
 
 #endif // ESDBGENERICMODULE_H

@@ -7,6 +7,12 @@ esdbTypeModule::esdbTypeModule(const QString &name) :
 {
 }
 
+esdbTypeModule::esdbTypeModule() :
+	m_name("")
+{
+
+}
+
 QVector<QStringList::const_iterator> esdbTypeModule::aliasMatch(const QVector<QStringList> &aliasedFields, const QStringList &fields) const
 {
 	QVector<QStringList::const_iterator> aliasMatched;

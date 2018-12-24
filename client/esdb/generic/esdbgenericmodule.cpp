@@ -7,16 +7,20 @@
 
 class EsdbActionBar;
 
-esdbGenericModule::esdbGenericModule(genericTypeDesc *typeDesc, bool userDefined, bool plural) :
-	esdbTypeModule(plural ? typeDesc->name + "s" : typeDesc->name),
+esdbGenericModule::esdbGenericModule(genericTypeDesc *typeDesc) :
+	esdbTypeModule(),
 	m_typeDesc(typeDesc)
 {
-	Q_UNUSED(userDefined);
+}
+
+QString esdbGenericModule::name() const
+{
+	return m_typeDesc->name;
 }
 
 esdbEntry *esdbGenericModule::decodeEntry(int id, int revision, esdbEntry *prev, struct block *blk) const
 {
-	generic *g = NULL;
+	generic *g = nullptr;
 
 	if (!prev) {
 		g = new generic(id);

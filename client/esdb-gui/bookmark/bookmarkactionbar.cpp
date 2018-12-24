@@ -77,7 +77,7 @@ void BookmarkActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 	case INTENT_OPEN_ENTRY: {
 		EditBookmark *eb = new EditBookmark(b, m_parent);
 		connect(eb, SIGNAL(abort()), this, SIGNAL(abort()));
-		connect(eb, SIGNAL(accountChanged(int)), m_parent, SLOT(entryChanged(int)));
+		connect(eb, SIGNAL(entryChanged(int)), m_parent, SLOT(entryChanged(int)));
 		connect(eb, SIGNAL(finished(int)), eb, SLOT(deleteLater()));
 		eb->show();
 	} break;

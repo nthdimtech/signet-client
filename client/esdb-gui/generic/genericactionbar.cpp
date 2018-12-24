@@ -79,7 +79,7 @@ void GenericActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 		}
 		EditGeneric *og = new EditGeneric(g, m_typeDesc, m_parent);
 		connect(og, SIGNAL(abort()), this, SIGNAL(abort()));
-		connect(og, SIGNAL(accountChanged(int)), m_parent, SLOT(entryChanged(int)));
+		connect(og, SIGNAL(entryChanged(int)), m_parent, SLOT(entryChanged(int)));
 		connect(og, SIGNAL(finished(int)), og, SLOT(deleteLater()));
 		og->show();
 	} break;

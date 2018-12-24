@@ -205,7 +205,7 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	genericTypeDesc *miscTypeDesc = new genericTypeDesc(-1);
 	miscTypeDesc->name = "Misc";
 	miscTypeDesc->typeId = 0;
-	m_genericModules.push_back(new esdbGenericModule(miscTypeDesc, false, false));
+	m_genericModules.push_back(new esdbGenericModule(miscTypeDesc));
 
 	m_writeEnabled = !fromFile;
 	m_typeEnabled = !fromFile;
@@ -520,7 +520,11 @@ void LoggedInWidget::entryChanged(int id)
 	if (entry) {
 		entryIconCheck(entry);
 		int typeIdx = esdbEntryToIndex(entry);
-		populateEntryList(m_typeData.at(typeIdx), m_filterEdit->text());
+		typeData *td = m_typeData.at(typeIdx);
+		if (entry->type == ESDB_TYPE_GENERIC_TYPE_DESC) {
+			m_dataTypesModel->moduleChanged(td->module);
+		}
+		populateEntryList(td, m_filterEdit->text());
 	}
 }
 
@@ -990,17 +994,17 @@ void LoggedInWidget::entryIconCheck(esdbEntry *entry)
 }
 
 
-void LoggedInWidget::addGenericType(genericTypeDesc *genericTypeDesc_)
+void LoggedInWidget::addGenericType(genericTypeDesc *genericTypeDesc)
 {
-	typeData *d = new typeData(new esdbGenericModule(genericTypeDesc_, false, false));
-	d->actionBar = new GenericActionBar(this, d->module, genericTypeDesc_, m_writeEnabled, m_typeEnabled);
+	typeData *d = new typeData(new esdbGenericModule(genericTypeDesc));
+	d->actionBar = new GenericActionBar(this, d->module, genericTypeDesc, m_writeEnabled, m_typeEnabled);
 	m_typeData.push_back(d);
 	m_actionBarStack->addWidget(d->actionBar);
 	m_dataTypesModel->addModule(d->module, false);
-	if (m_genericModules.size() <= genericTypeDesc_->typeId) {
-		m_genericModules.resize(genericTypeDesc_->typeId + 1, nullptr);
+	if (m_genericModules.size() <= genericTypeDesc->typeId) {
+		m_genericModules.resize(genericTypeDesc->typeId + 1, nullptr);
 	}
-	m_genericModules[genericTypeDesc_->typeId] = static_cast<esdbGenericModule *>(d->module);
+	m_genericModules[genericTypeDesc->typeId] = static_cast<esdbGenericModule *>(d->module);
 }
 
 void LoggedInWidget::entryCreated(QString typeName, esdbEntry *entry)
