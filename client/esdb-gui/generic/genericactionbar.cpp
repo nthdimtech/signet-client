@@ -35,6 +35,8 @@ GenericActionBar::GenericActionBar(LoggedInWidget *parent, esdbTypeModule *modul
 
 void GenericActionBar::entrySelected(esdbEntry *entry)
 {
+	if (!entry)
+		return;
 	if (m_browseButton) {
 		QUrl url(entry->getUrl());
 		m_browseButton->setEnabled(entry && url.isValid() && !url.isEmpty());
@@ -94,7 +96,7 @@ int GenericActionBar::esdbType()
 void GenericActionBar::newEntryFinished(int)
 {
 	m_newEntryDlg->deleteLater();
-	m_newEntryDlg = NULL;
+	m_newEntryDlg = nullptr;
 	m_parent->finishTask(false);
 }
 

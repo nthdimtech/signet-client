@@ -14,9 +14,9 @@
 
 BookmarkActionBar::BookmarkActionBar(esdbTypeModule *module, LoggedInWidget *parent, bool writeEnabled, bool typeEnabled) :
 	EsdbActionBar(parent, "Account", writeEnabled, typeEnabled),
-	m_newEntryDlg(NULL),
+	m_newEntryDlg(nullptr),
 	m_module(module),
-	m_browseButton(NULL)
+	m_browseButton(nullptr)
 {
 	if (module->hasUrl()) {
 		m_browseButton = addBrowseButton();
@@ -36,6 +36,8 @@ BookmarkActionBar::BookmarkActionBar(esdbTypeModule *module, LoggedInWidget *par
 
 void BookmarkActionBar::entrySelected(esdbEntry *entry)
 {
+	if (!entry)
+		return;
 	if (m_browseButton) {
 		QUrl url(entry->getUrl());
 		m_browseButton->setEnabled(entry && url.isValid() && !url.isEmpty());

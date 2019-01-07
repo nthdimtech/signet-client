@@ -27,7 +27,7 @@ class GenericActionBar : public EsdbActionBar
 	virtual int esdbType();
 
 	//Overrides
-	void entrySelected(esdbEntry *entry);
+	virtual void entrySelected(esdbEntry *entry);
 	void defaultAction(esdbEntry *entry);
 	void newInstanceUI(int id, const QString &name);
 

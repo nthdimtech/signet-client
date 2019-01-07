@@ -14,10 +14,10 @@ class GenericTypeActionBar : public EsdbActionBar
 	{
 		return ESDB_TYPE_GENERIC_TYPE_DESC;
 	}
-	void selectedEntry(esdbEntry *entry);
 	void defaultAction(esdbEntry *entry);
 	void newInstanceUI(int id, const QString &name);
 	void accessEntryComplete(esdbEntry *entry, int intent);
+	void deleteEntryComplete(esdbEntry *entry);
 public:
 	explicit GenericTypeActionBar(LoggedInWidget *parent, esdbTypeModule *module, bool writeEnabled, bool typeEnabled);
 

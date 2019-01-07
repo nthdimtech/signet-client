@@ -120,6 +120,8 @@ void EsdbActionBar::idTaskComplete(bool error, int id, esdbEntry *entry, int tas
 		if (intent != INTENT_TYPE_ENTRY && m_buttonWaitDialog)
 			m_buttonWaitDialog->done(QMessageBox::Ok);
 		accessEntryComplete(entry, intent);
+	} if (entry && task == LoggedInWidget::ID_TASK_DELETE) {
+		deleteEntryComplete(entry);
 	} else {
 		if (m_buttonWaitDialog)
 			m_buttonWaitDialog->done(QMessageBox::Ok);
@@ -132,6 +134,7 @@ void EsdbActionBar::selectEntry(esdbEntry *entry)
 	for (auto x : m_allButtons) {
 		x->setEnabled(m_selectedEntry);
 	}
+	entrySelected(entry);
 }
 
 void EsdbActionBar::browseUrl(esdbEntry *entry)

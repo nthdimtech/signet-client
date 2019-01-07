@@ -111,8 +111,6 @@ class LoggedInWidget : public QWidget
 
 	DataTypeListModel *m_dataTypesModel;
 
-	QList<typeData *> m_typeData;
-
 	typeData *m_activeType;
 	int m_activeTypeIndex;
 
@@ -157,7 +155,7 @@ class LoggedInWidget : public QWidget
 	bool m_typeEnabled;
 
 	void getEntryDone(int id, int code, block *, bool task);
-	int esdbEntryToIndex(esdbEntry *entry);
+	int entryToIndex(esdbEntry *entry);
 	EsdbActionBar *getActionBarByEntry(esdbEntry *entry);
 	EsdbActionBar *getActiveActionBar();
 	esdbTypeModule *getTypeModule(int type);
@@ -168,6 +166,8 @@ class LoggedInWidget : public QWidget
 	void deselectEntry();
 	void addGenericType(genericTypeDesc *genericTypeDesc_);
 	esdbTypeModule *esdbEntryToModule(esdbEntry *entry);
+	QList<typeData *> m_typeData;
+	typeData *m_miscTypeData;
 public:
 	enum ID_TASK {
 		ID_TASK_NONE,
@@ -182,8 +182,10 @@ public:
 	int getUnusedId();
 	int getUnusedTypeId();
 	const esdbEntry *findEntry(QString type, QString name) const;
+	const QMap<int, esdbEntry *> *entryToEntryMap(esdbEntry *entry);
 
 	QList<esdbTypeModule *> getTypeModules();
+	const QMap<int, esdbEntry *> *typeNameToEntryMap(QString name);
 signals:
 	void abort();
 	void enterDeviceState(int);

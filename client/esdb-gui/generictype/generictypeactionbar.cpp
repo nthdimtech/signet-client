@@ -9,11 +9,8 @@
 #include "loggedinwidget.h"
 #include "generictypedesc.h"
 #include "buttonwaitdialog.h"
-
-void GenericTypeActionBar::selectedEntry(esdbEntry *entry)
-{
-	Q_UNUSED(entry);
-}
+#include "generictypeactionbar.h"
+#include <QMessageBox>
 
 void GenericTypeActionBar::defaultAction(esdbEntry *entry)
 {
@@ -24,7 +21,7 @@ void GenericTypeActionBar::newInstanceUI(int id, const QString &name)
 {
 	int typeId = m_parent->getUnusedTypeId();
 	if (typeId >= 0) {
-		EditGenericType *t = new EditGenericType(id, typeId, name, this);
+		EditGenericType *t = new EditGenericType(id, static_cast<u16>(typeId), name, this);
 		QObject::connect(t, SIGNAL(entryCreated(esdbEntry *)), this, SLOT(entryCreated(esdbEntry *)));
 		t->exec();
 		m_parent->finishTask(false);
@@ -48,7 +45,34 @@ GenericTypeActionBar::GenericTypeActionBar(LoggedInWidget *parent, esdbTypeModul
 
 void GenericTypeActionBar::deletePressed()
 {
-	deleteEntry();
+	auto entry = selectedEntry();
+	if (!entry)
+		return;
+
+	auto entryMap = m_parent->typeNameToEntryMap(entry->getTitle());
+	if (!entryMap)
+		return;
+
+	int numEntriesOfType = entryMap->size();
+	if (numEntriesOfType > 0) {
+		QMessageBox *box = new QMessageBox(QMessageBox::Warning,
+						"Delete datatype",
+						"There are still entries with this data type. If you delete this data type these entries will move to the 'Misc' group.\n\n Delete this data type?",
+						QMessageBox::Yes | QMessageBox::No,
+						this);
+		int rc = box->exec();
+		box->deleteLater();
+		if (rc == QMessageBox::Yes) {
+			deleteEntry();
+		}
+	} else {
+		deleteEntry();
+	}
+}
+
+void GenericTypeActionBar::deleteEntryComplete(esdbEntry *entry)
+{
+	Q_UNUSED(entry);
 }
 
 void GenericTypeActionBar::entryCreated(esdbEntry *entry)

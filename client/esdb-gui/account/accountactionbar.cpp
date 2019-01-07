@@ -137,6 +137,8 @@ int AccountActionBar::esdbType()
 
 void AccountActionBar::entrySelected(esdbEntry *entry)
 {
+	if (!entry)
+		return;
 	if (entry != m_selectedEntry) {
 		m_quickTypeState = QUICKTYPE_STATE_INITIAL;
 	}

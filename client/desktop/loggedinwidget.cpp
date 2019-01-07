@@ -49,9 +49,6 @@ extern "C" {
 #include "generic.h"
 #include "datatypelistmodel.h"
 
-#define USE_MISC_TYPE 1
-#define USE_PREDEFINED_TYPES 0
-
 int iconAccount::matchQuality(esdbEntry *entry)
 {
 	int quality = 0;
@@ -222,12 +219,10 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	m_typeData.push_back(bookmarksTypeData);
 	m_dataTypesModel->addModule(m_bookmarks, true);
 
-	if (USE_MISC_TYPE) {
-		typeData *d = new typeData(m_genericModules[0]);
-		d->actionBar = new GenericActionBar(this, d->module, miscTypeDesc, m_writeEnabled, m_typeEnabled);
-		m_typeData.push_back(d);
-		m_dataTypesModel->addModule(d->module, true);
-	}
+	m_miscTypeData = new typeData(m_genericModules[0]);
+	m_miscTypeData->actionBar = new GenericActionBar(this, m_miscTypeData->module, miscTypeDesc, m_writeEnabled, m_typeEnabled);
+	m_typeData.push_back(m_miscTypeData);
+	m_dataTypesModel->addModule(m_miscTypeData->module, true);
 
 	m_genericTypeModule = new esdbGenericTypeModule();
 	typeData *genericTypeData = new typeData(m_genericTypeModule);
@@ -382,7 +377,7 @@ void LoggedInWidget::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int uid
 		m_populatingCantRead = 0;
 		m_populating = false;
 		for (auto entry : m_entries) {
-			int index = esdbEntryToIndex(entry);
+			int index = entryToIndex(entry);
 			if (index >= 0) {
 				m_typeData.at(index)->entries->insert(entry->id, entry);
 			} else {
@@ -507,7 +502,7 @@ esdbTypeModule *LoggedInWidget::esdbEntryToModule(esdbEntry *entry)
 			module = m_genericModules[g->typeId];
 		}
 		if (!module) {
-			module = m_genericModules[0];
+			module = m_miscTypeData->module;
 		}
 		} break;
 	}
@@ -519,7 +514,7 @@ void LoggedInWidget::entryChanged(int id)
 	esdbEntry *entry = m_entries[id];
 	if (entry) {
 		entryIconCheck(entry);
-		int typeIdx = esdbEntryToIndex(entry);
+		int typeIdx = entryToIndex(entry);
 		typeData *td = m_typeData.at(typeIdx);
 		if (entry->type == ESDB_TYPE_GENERIC_TYPE_DESC) {
 			m_dataTypesModel->moduleChanged(td->module);
@@ -563,7 +558,9 @@ void LoggedInWidget::signetdevCmdResp(signetdevCmdRespInfo info)
 					for (auto typeIter = m_typeData.begin(); typeIter != m_typeData.end(); typeIter++) {
 						struct typeData *d = (*typeIter);
 						if (d->module->name() == e->name) {
+							m_miscTypeData->entries->unite(*(d->entries));
 							m_dataTypesModel->removeModule(d->module);
+							m_genericModules[e->typeId] = nullptr;
 							delete d;
 							m_typeData.erase(typeIter);
 							break;
@@ -682,7 +679,7 @@ EsdbActionBar *LoggedInWidget::getActiveActionBar()
 	return static_cast<EsdbActionBar *>(m_actionBarStack->widget(m_activeTypeIndex));
 }
 
-int LoggedInWidget::esdbEntryToIndex(esdbEntry *entry)
+int LoggedInWidget::entryToIndex(esdbEntry *entry)
 {
 	esdbTypeModule *module = esdbEntryToModule(entry);
 	if (module) {
@@ -695,10 +692,26 @@ int LoggedInWidget::esdbEntryToIndex(esdbEntry *entry)
 	return -1;
 }
 
+const QMap<int, esdbEntry *> *LoggedInWidget::entryToEntryMap(esdbEntry *entry)
+{
+	int index = entryToIndex(entry);
+	return m_typeData[index]->entries;
+}
+
+const QMap<int, esdbEntry *> *LoggedInWidget::typeNameToEntryMap(QString name)
+{
+	for (auto td : m_typeData) {
+		if (td->module->name() == name) {
+			return td->entries;
+		}
+	}
+	return nullptr;
+}
+
 EsdbActionBar *LoggedInWidget::getActionBarByEntry(esdbEntry *entry)
 {
 	EsdbActionBar *bar = nullptr;
-	int index = esdbEntryToIndex(entry);
+	int index = entryToIndex(entry);
 	if (index >= 0) {
 		bar = static_cast<EsdbActionBar *>(m_actionBarStack->widget(index));
 	}
@@ -710,7 +723,7 @@ esdbTypeModule *LoggedInWidget::getTypeModule(int type)
 	esdbTypeModule *module = nullptr;
 	switch (type) {
 	case ESDB_TYPE_GENERIC: {
-		module = m_genericModules[0];
+		module = m_miscTypeData->module;
 		} break;
 	case ESDB_TYPE_GENERIC_TYPE_DESC:
 		module = m_genericTypeModule;
@@ -823,7 +836,7 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 			entryIconCheck(entry);
 			m_entries[id] = entry;
 			if (!m_populating) {
-				int index = esdbEntryToIndex(entry);
+				int index = entryToIndex(entry);
 				if (index >= 0) {
 					m_typeData.at(index)->entries->insert(id, entry);
 					populateEntryList(m_activeType, m_searchListbox->filterText());
@@ -913,9 +926,9 @@ int LoggedInWidget::getUnusedTypeId()
 		}
 	}
 
-	for (int i = 1; i < match.size(); i++) {
+	for (size_t i = 1; i < match.size(); i++) {
 		if (!match[i])
-			return i;
+			return static_cast<int>(i);
 	}
 	return -1;
 }

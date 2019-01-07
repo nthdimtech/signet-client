@@ -56,15 +56,20 @@ public:
 
 	void selectEntry(esdbEntry *entry);
 
-	virtual void entrySelected()
+	virtual void entrySelected(esdbEntry *entry)
 	{
-
+		Q_UNUSED(entry);
 	}
 
 	virtual void accessEntryComplete(esdbEntry *entry, int intent)
 	{
 		Q_UNUSED(entry);
 		Q_UNUSED(intent);
+	}
+
+	virtual void deleteEntryComplete(esdbEntry *entry)
+	{
+		Q_UNUSED(entry);
 	}
 
 	virtual int esdbType() = 0;
@@ -81,9 +86,9 @@ signals:
 	void background();
 	void abort();
 private slots:
-	void deleteEntryFinished(int);
 	void openEntryFinished(int);
 	void accessAccountFinished(int code);
+	void deleteEntryFinished(int);
 };
 
 #endif // ESDBACTIONBAR_H

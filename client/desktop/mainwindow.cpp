@@ -555,7 +555,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 			m_restoreProgress->setMaximum(NUM_DATA_BLOCKS);
 			m_restoreProgress->setValue(m_restoreBlock);
 			QByteArray block(BLK_SIZE, 0);
-			int sz = m_restoreFile->read(block.data(), block.length());
+			qint64 sz = m_restoreFile->read(block.data(), block.length());
 			if (sz == BLK_SIZE) {
 				::signetdev_write_block(nullptr, &m_signetdevCmdToken, m_restoreBlock, block.data());
 			} else {
