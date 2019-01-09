@@ -9,6 +9,9 @@
 
 #include "signetapplication.h"
 
+//Remove this to display git revision in about window
+#undef GITVERSION
+
 About::About(bool connectedDevice, QWidget *parent):
 	QDialog(parent)
 {

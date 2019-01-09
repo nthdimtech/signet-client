@@ -1247,7 +1247,7 @@ void MainWindow::loadSettings()
 	QDateTime release = QDateTime(app->getReleaseDate());
 	QDateTime prompt = m_settings.lastUpdatePrompt;
 
-	if ((release.daysTo(current) > 30) &&
+	if ((release.daysTo(current) > app->releasePeriod()) &&
 			(!prompt.isValid() ||
 				(prompt.daysTo(current) > 30))) {
 		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Client update check",
