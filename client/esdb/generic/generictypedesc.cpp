@@ -51,8 +51,8 @@ void genericTypeDesc::toBlock(block *blk) const
 	blk->writeU16(typeId);
 	blk->writeU8(static_cast<u8>(fields.size()));
 	for (auto f : fields) {
-		blk->writeString(f.name, true);
-		blk->writeString(f.type, true);
+		blk->writeString(f.name, false);
+		blk->writeString(f.type, false);
 	}
 }
 
