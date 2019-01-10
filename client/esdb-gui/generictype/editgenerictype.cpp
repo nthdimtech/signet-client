@@ -101,5 +101,7 @@ EditGenericType::EditGenericType(genericTypeDesc *g, QWidget *parent) :
 	setup(g->name);
 	genericFields gf;
 	copyToGenericFields(g, gf);
+	m_settingFields = true;
 	m_genericFieldsEditor->loadFields(gf);
+	m_settingFields = false;
 }
