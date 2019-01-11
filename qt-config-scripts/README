@@ -1,0 +1,1 @@
+These scripts configure the Qt sources to build minimal sized static Qt libraries suitable for linking with the Signet desktop client. Each script is for a different platform. The first argument to each script is the path to the Qt configure script. The second argument is the path to place the Qt libraries.
