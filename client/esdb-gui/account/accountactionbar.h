@@ -55,9 +55,6 @@ class AccountActionBar : public EsdbActionBar
 	void accessAccount(account *acct, bool typeData, bool username, bool password);
 private slots:
 	void entryCreated(esdbEntry *entry);
-signals:
-	void background();
-	void abort();
 public:
 	AccountActionBar(LoggedInWidget *parent, bool writeEnabled = true, bool typeEnabled = true);
 public slots:

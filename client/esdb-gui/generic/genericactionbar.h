@@ -46,8 +46,6 @@ public slots:
 	void browseUrlUI();
 	void openEntryUI();
 	void deleteEntryUI();
-signals:
-	void abort();
 };
 
 #endif // GENERICACTIONBAR_H
