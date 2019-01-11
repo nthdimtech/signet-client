@@ -6,12 +6,16 @@ Signet desktop client version 0.9.12 release notes
 
 ### Improvements
 
-- Database import operations require only a single long press when firmware version is 1.3.3 or higher
+- Database import operations require only a single long press. (requires firmware version 1.3.4+)
 
 ### Bug fixes
 
+- Slowed down typing rate to 30ms per character. The maximum rate caused some systems for registering incorrect characters. (requires firemware version 1.3.4+)
+
+- Fixed issue resulting in incorrect characters being typed when sequential characters had the same physical key (i.e. 'a' and 'A')
+
 - Fixed issue causing crashes when importing data
 
-- Prevented client from getting into backup request loop when device is disconnected
+- Prevented client from requesting to perform a backup when device is disconnected
 
 - Fixed several glitches causing unexpected or incorreect behavior on entry selection
