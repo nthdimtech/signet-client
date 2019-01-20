@@ -341,7 +341,7 @@ void AccountActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 
 void AccountActionBar::entryCreated(esdbEntry *entry)
 {
-	m_parent->entryCreated("Account", entry);
+	m_parent->entryCreated("Accounts", entry);
 }
 
 void AccountActionBar::retryTypeData()
