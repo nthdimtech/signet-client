@@ -1,4 +1,4 @@
-Signet desktop client version 0.9.12 release notes
+Signet desktop client version 0.9.12.1 release notes
 
 ### New features
 
@@ -9,6 +9,8 @@ Signet desktop client version 0.9.12 release notes
 - Database import operations require only a single long press. (requires firmware version 1.3.4+)
 
 ### Bug fixes
+
+- Fixed issue introduced in 0.9.12.0 causing newly created counts to not immediate appear in list
 
 - Slowed down typing rate to 30ms per character. The maximum rate caused some systems for registering incorrect characters. (requires firemware version 1.3.4+)
 
