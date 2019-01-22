@@ -111,7 +111,7 @@ public:
 	};
 
 	static QDate getReleaseDate() {
-		return QDate(2019,1,10);
+		return QDate(2019,1,21);
 	}
 
 	static int releasePeriod() {
@@ -122,7 +122,7 @@ public:
 		major = 0;
 		minor = 9;
 		step = 12;
-		subStep = 0;
+		subStep = 1;
 	}
 
 	void getFirmwareVersion(int &major, int &minor, int &step) {
