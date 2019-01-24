@@ -11,6 +11,8 @@ class QPushButton;
 class lineFieldEdit : public genericFieldEdit
 {
 	QLineEdit *m_lineEdit;
+	void showContent();
+	void hideContent();
 public:
 	lineFieldEdit(const QString &name, bool canRemove);
 	QString toString() const;

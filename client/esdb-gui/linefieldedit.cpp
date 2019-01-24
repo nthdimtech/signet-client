@@ -3,6 +3,16 @@
 #include <QLineEdit>
 #include <QString>
 
+void lineFieldEdit::showContent()
+{
+	m_lineEdit->setEchoMode(QLineEdit::Normal);
+}
+
+void lineFieldEdit::hideContent()
+{
+	m_lineEdit->setEchoMode(QLineEdit::Password);
+}
+
 lineFieldEdit::lineFieldEdit(const QString &name, bool canRemove) :
 	genericFieldEdit(name)
 {

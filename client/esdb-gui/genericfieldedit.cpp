@@ -9,6 +9,7 @@
 #include <QClipboard>
 #include <QApplication>
 #include <QGridLayout>
+#include <QCheckBox>
 
 extern "C" {
 #include "signetdev/host/signetdev.h"
@@ -16,7 +17,7 @@ extern "C" {
 
 genericFieldEdit::genericFieldEdit(const QString &name) :
 	m_name(name),
-	m_widget(NULL),
+	m_widget(nullptr),
 	m_signetdevCmdToken(-1)
 {
 	SignetApplication *app = SignetApplication::get();
@@ -37,8 +38,16 @@ void genericFieldEdit::createWidget(bool canRemove, QWidget *editWidget, bool ou
 	}
 	m_editWidget->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Ignored));
 	m_widget->layout()->setContentsMargins(0,0,0,0);
-	m_widget->layout()->addWidget(new QLabel(m_name));
+	m_widget->layout()->addWidget(new QLabel(displayName()));
 	m_widget->layout()->addWidget(m_editWidget);
+
+	if (isSecretField()) {
+		m_secretCheckbox = new QCheckBox("Hide");
+		m_secretCheckbox->setCheckState(Qt::Checked);
+		hideContent();
+		m_widget->layout()->addWidget(m_secretCheckbox);
+		connect(m_secretCheckbox, SIGNAL(stateChanged(int)), SLOT(secretCheckStateChanged(int)));
+	}
 	if (outputEnable) {
 		m_widget->layout()->addWidget(m_copyButton);
 		m_widget->layout()->addWidget(m_typeButton);
@@ -174,6 +183,15 @@ void genericFieldEdit::signetdevCmdResp(signetdevCmdRespInfo info)
 			m_buttonWait->done(QMessageBox::Ok);
 		abort();
 		return;
+	}
+}
+
+void genericFieldEdit::secretCheckStateChanged(int state)
+{
+	if (state == Qt::Checked) {
+		hideContent();
+	} else {
+		showContent();
 	}
 }
 

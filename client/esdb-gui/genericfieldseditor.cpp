@@ -42,9 +42,10 @@ GenericFieldsEditor::GenericFieldsEditor(QList<fieldSpec> requiredFieldSpecs,
 	layout()->addWidget(m_newField);
 
 	m_newFieldTypeCombo = new QComboBox();
-	m_newFieldTypeCombo->addItem("Text");
-	m_newFieldTypeCombo->addItem("Text block");
-	m_newFieldTypeCombo->addItem("Integer");
+	m_newFieldTypeCombo->addItem("Text", "Text");
+	m_newFieldTypeCombo->addItem("Text (Secret)", ".Text");
+	m_newFieldTypeCombo->addItem("Text block", "Text block");
+	m_newFieldTypeCombo->addItem("Integer", "Integer");
 
 	m_requiredFieldsWidget->setLayout(new QVBoxLayout());
 	m_requiredFieldsWidget->layout()->setAlignment(Qt::AlignTop);
@@ -127,7 +128,12 @@ void GenericFieldsEditor::addNewFieldUI()
 	QString fieldName = m_newFieldNameEdit->text();
 	if (fieldName.size()) {
 		m_newFieldNameEdit->clear();
-		addNewField(fieldName, m_newFieldTypeCombo->currentText());
+		QString dataType = m_newFieldTypeCombo->currentData().toString();
+		if (dataType[0] == '.') {
+			dataType.remove(0, 1);
+			fieldName.prepend('.');
+		}
+		addNewField(fieldName, dataType);
 		emit edited();
 	}
 }

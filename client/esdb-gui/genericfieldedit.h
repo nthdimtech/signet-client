@@ -9,6 +9,7 @@
 class QWidget;
 class QPushButton;
 class ButtonWaitDialog;
+class QCheckBox;
 
 class genericFieldEdit : public QObject
 {
@@ -21,9 +22,16 @@ class genericFieldEdit : public QObject
 	QWidget *m_editWidget;
 	ButtonWaitDialog *m_buttonWait;
 	QVector<u16> m_keysToType;
+	QCheckBox *m_secretCheckbox;
 protected:
 	void createWidget(bool canRemove, QWidget *editWidget, bool outputEnable = true);
 	void createTallWidget(int rows, bool canRemove, QWidget *editWidget);
+	virtual void showContent() {
+
+	}
+	virtual void hideContent() {
+
+	}
 public:
 	genericFieldEdit(const QString &name);
 
@@ -33,6 +41,19 @@ public:
 
 	QString name() const {
 		return m_name;
+	}
+
+	QString displayName() const {
+		if (m_name[0] == '.') {
+			QString nameCpy = m_name;
+			return nameCpy.remove(0,1);
+		} else {
+			return m_name;
+		}
+	}
+
+	bool isSecretField() const {
+		return (m_name[0] == '.');
 	}
 
 	virtual void fromString(const QString &s) = 0;
@@ -60,6 +81,7 @@ public slots:
 	void copyPressed();
 	void typeFieldFinished(int);
 	void signetdevCmdResp(signetdevCmdRespInfo info);
+	void secretCheckStateChanged(int state);
 signals:
 	void edited();
 	void editingFinished();
