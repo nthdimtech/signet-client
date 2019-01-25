@@ -108,7 +108,7 @@ genericFieldEdit *GenericFieldsEditor::addNewField(QString name, QString type)
 genericFieldEdit *GenericFieldsEditor::createFieldEdit(QString name, QString type, bool canRemove)
 {
 	auto *fieldEditFactory = genericFieldEditFactory::get();
-	genericFieldEdit *fieldEdit = NULL;
+	genericFieldEdit *fieldEdit = nullptr;
 	if (m_descEdit) {
 		fieldEdit = fieldEditFactory->generate(name, QString("type desc"), canRemove);
 	} else {

@@ -165,7 +165,6 @@ class LoggedInWidget : public QWidget
 	void expandTreeItems(QModelIndex parent);
 	void deselectEntry();
 	void addGenericType(genericTypeDesc *genericTypeDesc_);
-	esdbTypeModule *esdbEntryToModule(esdbEntry *entry);
 	QList<typeData *> m_typeData;
 	typeData *m_miscTypeData;
 public:
@@ -174,6 +173,7 @@ public:
 		ID_TASK_DELETE,
 		ID_TASK_READ
 	} m_idTask;
+	esdbTypeModule *esdbEntryToModule(esdbEntry *entry);
 	explicit LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, QWidget *parent = 0);
 	~LoggedInWidget();
 	void finishTask(bool deselect = true);

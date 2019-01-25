@@ -656,11 +656,9 @@ void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QBy
 		switch (tmp.type) {
 		case ESDB_TYPE_ACCOUNT:
 			typeModule = m_accountTypeModule;
-			typeName = typeModule->name();
 			break;
 		case ESDB_TYPE_BOOKMARK:
 			typeModule = m_bookmarkTypeModule;
-			typeName = typeModule->name();
 			break;
 		case ESDB_TYPE_GENERIC:
 			typeModule = m_genericModule;
@@ -672,22 +670,23 @@ void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QBy
 		if (typeModule != nullptr) {
 			esdbEntry *entry = typeModule->decodeEntry(id, tmp.revision, nullptr, blk);
 			if (entry) {
-				exportType &exportType = m_exportData[typeName];
+				esdbTypeModule *entryTypeModule = m_loggedInWidget->esdbEntryToModule(entry);
+				exportType &exportType = m_exportData[entryTypeModule->name()];
 				QVector<genericField> fields;
 				entry->getFields(fields);
-				for (genericField x : fields) {
-					auto iter = m_exportFieldMap.find(x.name);
+				for (genericField field : fields) {
+					auto iter = m_exportFieldMap.find(field.name);
 					if (iter == m_exportFieldMap.end()) {
-						m_exportField.push_back(x.name);
-						m_exportFieldMap[x.name] = m_exportField.size() - 1;
+						m_exportField.push_back(field.name);
+						m_exportFieldMap[field.name] = m_exportField.size() - 1;
 					}
 				}
 				exportType.m_data.push_back(QVector<QString>());
 				QVector<QString> &csvEntry = exportType.m_data.back();
 				csvEntry.resize(m_exportField.size() + 1);
-				for (genericField x : fields) {
-					int index = m_exportFieldMap[x.name];
-					csvEntry[index] = x.value;
+				for (genericField field : fields) {
+					int index = m_exportFieldMap[field.name];
+					csvEntry[index] = field.value;
 				}
 			}
 		}
@@ -700,12 +699,12 @@ void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QBy
 			out << csvQuote(x) << ",";
 		}
 		out << endl;
-		QMap<QString, exportType>::iterator x;
-		for (x = m_exportData.begin(); x != m_exportData.end(); x++) {
-			for (auto y : x.value().m_data) {
-				out << csvQuote(x.key()) << ",";
-				for (auto z : y) {
-					out << csvQuote(z) << ",";
+		QMap<QString, exportType>::iterator exportType;
+		for (exportType = m_exportData.begin(); exportType != m_exportData.end(); exportType++) {
+			for (auto entry : exportType.value().m_data) {
+				out << csvQuote(exportType.key()) << ",";
+				for (auto value : entry) {
+					out << csvQuote(value) << ",";
 				}
 				out << endl;
 			}
@@ -773,7 +772,6 @@ void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, signetdev_start
 			break;
 		}
 		break;
-		return;
 	case BUTTON_PRESS_CANCELED:
 	case BUTTON_PRESS_TIMEOUT:
 	case SIGNET_ERROR_DISCONNECT:
