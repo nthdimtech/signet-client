@@ -45,6 +45,7 @@ LoginWindow::LoginWindow(QWidget *parent) : QWidget(parent),
 	m_loginButton->setAutoDefault(true);
 
 	m_preparingLabel = new QLabel("Generating authorization key...");
+	m_preparingLabel->setStyleSheet("QLabel { font : italic bold }");
 	m_preparingLabel->hide();
 
 	layout->addWidget(password_label);

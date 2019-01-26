@@ -11,6 +11,7 @@
 class QLabel;
 class CommThread;
 class KeyGeneratorThread;
+class QSpinBox;
 
 struct signetdevCmdRespInfo;
 
@@ -18,7 +19,7 @@ class ResetDevice : public QDialog
 {
 	Q_OBJECT
 public:
-	explicit ResetDevice(bool destructive, QWidget *parent = 0);
+	explicit ResetDevice(bool destructive, QWidget *parent = nullptr);
 private:
 	QDialog *m_buttonPrompt;
 	QLabel *m_warningMessage;
@@ -35,6 +36,9 @@ private:
 	QString m_passwd;
 	QPushButton *m_resetButton;
 	KeyGeneratorThread *m_keyGenerator;
+	QLabel *m_securityLevelComment;
+	QSpinBox *m_authSecurityLevel;
+
 	int m_signetdevCmdToken;
 	bool m_destructive;
 signals:

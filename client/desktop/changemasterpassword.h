@@ -13,6 +13,7 @@ class QLineEdit;
 class ButtonWaitDialog;
 class QPushButton;
 struct signetdevCmdRespInfo;
+class QSpinBox;
 
 class ChangeMasterPassword : public QDialog
 {
@@ -33,6 +34,8 @@ class ChangeMasterPassword : public QDialog
 	QByteArray m_newHashfn;
 	QByteArray m_newSalt;
 	int m_signetdevCmdToken;
+	QLabel *m_securityLevelComment;
+	QSpinBox *m_authSecurityLevel;
 public:
 	ChangeMasterPassword(QWidget *parent = 0);
 	virtual ~ChangeMasterPassword();

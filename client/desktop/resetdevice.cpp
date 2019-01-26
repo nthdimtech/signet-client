@@ -10,8 +10,10 @@
 #include <QProgressBar>
 #include <QStackedWidget>
 #include <QByteArray>
+#include <QSpinBox>
 #include <algorithm>
 #include <random>
+#include <QTextBlock>
 
 #include "buttonwaitdialog.h"
 
@@ -26,18 +28,18 @@ extern "C" {
 
 ResetDevice::ResetDevice(bool destructive, QWidget *parent) :
 	QDialog(parent),
-	m_buttonPrompt(NULL),
-	m_warningMessage(NULL),
-	m_passwordEdit_1(NULL),
-	m_passwordEdit_2(NULL),
-	m_passwordEdit_1Label(NULL),
-	m_passwordEdit_2Label(NULL),
-	m_passwordWarningMessage(NULL),
-	m_writeProgressLabel(NULL),
-	m_writeProgressBar(NULL),
-	m_randomDataProgressLabel(NULL),
-	m_randomDataProgressBar(NULL),
-	m_resetButton(NULL),
+	m_buttonPrompt(nullptr),
+	m_warningMessage(nullptr),
+	m_passwordEdit_1(nullptr),
+	m_passwordEdit_2(nullptr),
+	m_passwordEdit_1Label(nullptr),
+	m_passwordEdit_2Label(nullptr),
+	m_passwordWarningMessage(nullptr),
+	m_writeProgressLabel(nullptr),
+	m_writeProgressBar(nullptr),
+	m_randomDataProgressLabel(nullptr),
+	m_randomDataProgressBar(nullptr),
+	m_resetButton(nullptr),
 	m_signetdevCmdToken(-1),
 	m_destructive(destructive)
 {
@@ -61,6 +63,7 @@ ResetDevice::ResetDevice(bool destructive, QWidget *parent) :
 	m_passwordEdit_1Label = new QLabel("Master password");
 	m_passwordEdit_2Label = new QLabel("Master password (repeat)");
 	m_generatingKeyLabel =  new QLabel("Generating login key...");
+	m_generatingKeyLabel->setStyleSheet("QLabel { font : bold italic }");
 	m_passwordEdit_1 = new QLineEdit();
 	m_passwordEdit_2 = new QLineEdit();
 	m_passwordEdit_1->setEchoMode(QLineEdit::Password);
@@ -92,7 +95,7 @@ ResetDevice::ResetDevice(bool destructive, QWidget *parent) :
 		m_warningMessage = new QLabel("Warning, this permenantly erase the contents of your device.");
 		m_warningMessage->setStyleSheet("QLabel { color : red; }");
 	} else {
-		m_warningMessage = NULL;
+		m_warningMessage = nullptr;
 	}
 	m_passwordWarningMessage = new QLabel();
 	m_passwordWarningMessage->hide();
@@ -100,11 +103,26 @@ ResetDevice::ResetDevice(bool destructive, QWidget *parent) :
 	if (m_destructive) {
 		layout->addWidget(m_warningMessage);
 	}
+
+	m_authSecurityLevel = new QSpinBox();
+	m_authSecurityLevel->setRange(1, 8);
+	m_authSecurityLevel->setValue(4);
+
+	m_securityLevelComment = new QLabel("Note: The security level controls how long it takes to unlock your device. A value of (4) will secure your data against for most threats and allow you to unlock your device in 1-2 seconds. A value of (8) could increase login times to over a minute.");
+	m_securityLevelComment->setWordWrap(true);
+	m_securityLevelComment->setStyleSheet("QLabel { font : italic  }");
+
+	auto securityLevelEdit = new QHBoxLayout();
+	securityLevelEdit->addWidget(new QLabel("Security level (1-8)"));
+	securityLevelEdit->addWidget(m_authSecurityLevel);
+
 	layout->addWidget(m_passwordEdit_1Label);
 	layout->addWidget(m_passwordEdit_1);
 	layout->addWidget(m_passwordEdit_2Label);
 	layout->addWidget(m_passwordEdit_2);
 	layout->addWidget(m_passwordWarningMessage);
+	layout->addLayout(securityLevelEdit);
+	layout->addWidget(m_securityLevelComment);
 	layout->addWidget(m_writeProgressLabel);
 	layout->addWidget(m_writeProgressBar);
 	layout->addWidget(m_randomDataProgressLabel);
@@ -136,7 +154,7 @@ void ResetDevice::keyGenerated()
 		memcpy(rand_data + i, &x,
 		       std::min((int)sizeof(unsigned int), sz - i));
 	}
-	::signetdev_begin_initialize_device(NULL, &m_signetdevCmdToken,
+	::signetdev_begin_initialize_device(nullptr, &m_signetdevCmdToken,
 		(const u8 *)m_keyGenerator->getKey().data(), m_keyGenerator->getKey().length(),
 		(const u8 *)m_keyGenerator->getHashfn().data(), m_keyGenerator->getHashfn().length(),
 		(const u8 *)m_keyGenerator->getSalt().data(), m_keyGenerator->getSalt().length(),
@@ -165,8 +183,8 @@ void ResetDevice::reset()
 
 	hashfn.resize(HASH_FN_SZ);
 	hashfn.data()[0] = 1;
-	hashfn.data()[1] = 12;
-	hashfn.data()[2] = 32;
+	hashfn.data()[1] = 11 + m_authSecurityLevel->value();
+	hashfn.data()[2] = 8;
 	hashfn.data()[3] = 0;
 	hashfn.data()[4] = 1;
 
@@ -174,6 +192,7 @@ void ResetDevice::reset()
 	for (int i = 0; i < (SALT_SZ_V2/4); i++) {
 		*((uint32_t *)(salt.data() + (i*4))) = rd();
 	}
+	m_securityLevelComment->hide();
 	m_keyGenerator->setParams(m_passwd, hashfn, salt, AES_256_KEY_SIZE);
 	m_keyGenerator->start();
 }
@@ -239,7 +258,7 @@ void ResetDevice::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_
 			m_randomDataProgressBar->setValue(data.progress[1]);
 			m_randomDataProgressBar->update();
 		}
-		::signetdev_get_progress(NULL, &m_signetdevCmdToken, data.total_progress, INITIALIZING);
+		::signetdev_get_progress(nullptr, &m_signetdevCmdToken, data.total_progress, INITIALIZING);
 		break;
 	case INVALID_STATE: {
 		SignetApplication *app = SignetApplication::get();
@@ -267,10 +286,11 @@ void ResetDevice::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_
 void ResetDevice::resetButtonPromptFinished(int code)
 {
 	if (code != QMessageBox::Ok) {
+		m_securityLevelComment->show();
 		::signetdev_cancel_button_wait();
 	}
 	m_buttonPrompt->deleteLater();
-	m_buttonPrompt = NULL;
+	m_buttonPrompt = nullptr;
 }
 
 void ResetDevice::resetDeviceFinalize()

@@ -8,6 +8,7 @@ extern "C" {
 #include <QLineEdit>
 #include <QBoxLayout>
 #include <QLabel>
+#include <QSpinBox>
 #include "buttonwaitdialog.h"
 #include "signetapplication.h"
 
@@ -16,29 +17,16 @@ extern "C" {
 
 ChangeMasterPassword::ChangeMasterPassword(QWidget *parent) :
 	QDialog(parent),
-	m_newPasswordWarningMessage(NULL),
-	m_oldPasswordWarningMessage(NULL),
-	m_oldPasswordEdit(NULL),
-	m_newPasswordEdit(NULL),
-	m_newPasswordRepeatEdit(NULL),
-	m_buttonDialog(NULL),
+	m_newPasswordWarningMessage(nullptr),
+	m_oldPasswordWarningMessage(nullptr),
+	m_oldPasswordEdit(nullptr),
+	m_newPasswordEdit(nullptr),
+	m_newPasswordRepeatEdit(nullptr),
+	m_buttonDialog(nullptr),
 	m_generatingOldKey(false),
 	m_generatingNewKey(false),
 	m_signetdevCmdToken(-1)
 {
-	std::random_device rd;
-	m_newHashfn.resize(HASH_FN_SZ);
-	m_newHashfn.data()[0] = 1;
-	m_newHashfn.data()[1] = 12;
-	m_newHashfn.data()[2] = 32;
-	m_newHashfn.data()[3] = 0;
-	m_newHashfn.data()[4] = 1;
-
-	m_newSalt.resize(SALT_SZ_V2);
-	for (int i = 0; i < (SALT_SZ_V2/4); i++) {
-		*((uint32_t *)(m_newSalt.data() + (i*4))) = rd();
-	}
-
 	m_keyGenerator = new KeyGeneratorThread();
 	QObject::connect(m_keyGenerator, SIGNAL(finished()), this, SLOT(keyGenerated()));
 
@@ -59,6 +47,7 @@ ChangeMasterPassword::ChangeMasterPassword(QWidget *parent) :
 	old_password_layout->addWidget(m_oldPasswordEdit);
 
 	m_generatingKeys = new QLabel("Generating login keys...");
+	m_generatingKeys->setStyleSheet("QLabel { font : italic bold }");
 	m_generatingKeys->hide();
 
 	m_oldPasswordWarningMessage = new QLabel();
@@ -84,11 +73,25 @@ ChangeMasterPassword::ChangeMasterPassword(QWidget *parent) :
 	m_changePasswordBtn = new QPushButton("Change password");
 	m_changePasswordBtn->setAutoDefault(true);
 
+	m_authSecurityLevel = new QSpinBox();
+	m_authSecurityLevel->setRange(1, 8);
+	m_authSecurityLevel->setValue(4);
+
+	auto securityLevelEdit = new QHBoxLayout();
+	securityLevelEdit->addWidget(new QLabel("New security level (1-8)"));
+	securityLevelEdit->addWidget(m_authSecurityLevel);
+
+	m_securityLevelComment = new QLabel("Note: The security level controls how long it takes to unlock your device. A value of (4) will secure your data against for most threats and allow you to unlock your device in 1-2 seconds. A value of (8) could increase login times to over a minute.");
+	m_securityLevelComment->setWordWrap(true);
+	m_securityLevelComment->setStyleSheet("QLabel { font : italic  }");
+
 	layout->addLayout(old_password_layout);
 	layout->addWidget(m_oldPasswordWarningMessage);
 	layout->addLayout(new_password_layout);
 	layout->addLayout(new_password_repeat_layout);
 	layout->addWidget(m_newPasswordWarningMessage);
+	layout->addLayout(securityLevelEdit);
+	layout->addWidget(m_securityLevelComment);
 	layout->addWidget(m_generatingKeys);
 	layout->addWidget(m_changePasswordBtn);
 	setLayout(layout);
@@ -129,7 +132,7 @@ ChangeMasterPassword::~ChangeMasterPassword()
 	m_generatingNewKey = false;
 	m_keyGenerator->wait();
 	m_keyGenerator->deleteLater();
-	m_keyGenerator = NULL;
+	m_keyGenerator = nullptr;
 }
 
 void ChangeMasterPassword::newPasswordTextEdited(QString s)
@@ -150,6 +153,19 @@ void ChangeMasterPassword::changePasswordUi()
 		m_newPasswordWarningMessage->setText("New passwords don't match, try again");
 		m_newPasswordWarningMessage->show();
 	} else {
+		std::random_device rd;
+
+		m_newSalt.resize(SALT_SZ_V2);
+		for (int i = 0; i < (SALT_SZ_V2/4); i++) {
+			*((uint32_t *)(m_newSalt.data() + (i*4))) = rd();
+		}
+		m_newHashfn.resize(HASH_FN_SZ);
+		m_newHashfn.data()[0] = 1;
+		m_newHashfn.data()[1] = 11 + m_authSecurityLevel->value();
+		m_newHashfn.data()[2] = 8;
+		m_newHashfn.data()[3] = 0;
+		m_newHashfn.data()[4] = 1;
+
 		m_newPasswordEdit->setEnabled(false);
 		m_oldPasswordEdit->setEnabled(false);
 		m_changePasswordBtn->setEnabled(false);
@@ -160,6 +176,7 @@ void ChangeMasterPassword::changePasswordUi()
 		QByteArray current_hashfn = app->getHashfn();
 		QByteArray current_salt = app->getSalt();
 		int keyLength = app->getKeyLength();
+		m_securityLevelComment->hide();
 		m_keyGenerator->setParams(this->m_oldPasswordEdit->text(), current_hashfn, current_salt, keyLength);
 		m_keyGenerator->start();
 	}
@@ -168,6 +185,7 @@ void ChangeMasterPassword::changePasswordUi()
 void ChangeMasterPassword::changePasswordFinished(int code)
 {
 	if (code != QMessageBox::Ok) {
+		m_securityLevelComment->show();
 		::signetdev_cancel_button_wait();
 	}
 }
@@ -183,7 +201,7 @@ void ChangeMasterPassword::signetdevCmdResp(signetdevCmdRespInfo info)
 	if (m_buttonDialog) {
 		m_buttonDialog->done(QMessageBox::Ok);
 		m_buttonDialog->deleteLater();
-		m_buttonDialog = NULL;
+		m_buttonDialog = nullptr;
 	}
 
 	switch (code) {
@@ -192,6 +210,7 @@ void ChangeMasterPassword::signetdevCmdResp(signetdevCmdRespInfo info)
 		connect(box, SIGNAL(finished(int)), this, SLOT(close()));
 		SignetApplication::get()->setHashfn(m_newHashfn);
 		SignetApplication::get()->setSalt(m_newSalt);
+		m_securityLevelComment->show();
 	}
 	break;
 	case BAD_PASSWORD:
@@ -200,12 +219,14 @@ void ChangeMasterPassword::signetdevCmdResp(signetdevCmdRespInfo info)
 		m_newPasswordEdit->setEnabled(true);
 		m_oldPasswordEdit->setEnabled(true);
 		m_changePasswordBtn->setEnabled(true);
+		m_securityLevelComment->show();
 		break;
 	case BUTTON_PRESS_TIMEOUT:
 	case BUTTON_PRESS_CANCELED:
 		m_newPasswordEdit->setEnabled(true);
 		m_oldPasswordEdit->setEnabled(true);
 		m_changePasswordBtn->setEnabled(true);
+		m_securityLevelComment->show();
 		break;
 	case SIGNET_ERROR_DISCONNECT:
 	case SIGNET_ERROR_QUIT:
