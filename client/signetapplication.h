@@ -122,7 +122,7 @@ public:
 		major = 0;
 		minor = 9;
 		step = 12;
-		subStep = 1;
+		subStep = 2;
 	}
 
 	void getFirmwareVersion(int &major, int &minor, int &step) {

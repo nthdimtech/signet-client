@@ -6,7 +6,6 @@
 #include<QPushButton>
 #include<QApplication>
 #include<QClipboard>
-
 #include "buttonwaitdialog.h"
 #include "signetapplication.h"
 
@@ -113,8 +112,9 @@ void DatabaseField::signetdevCmdResp(signetdevCmdRespInfo info)
 				break;
 			}
 			if (m_buttonWait) {
-				m_buttonWait->done(OKAY);
+				m_buttonWait->done(QMessageBox::Ok);
 			}
+			//Sleep(10);
 			::signetdev_type_w(NULL, &m_signetdevCmdToken,
 					       (u16 *)m_keysToType.data(), m_keysToType.length());
 		}

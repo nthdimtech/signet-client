@@ -98,7 +98,7 @@ void PasswordEdit::signetdevGetRandBits(signetdevCmdRespInfo info, QByteArray bl
 	}
 	m_signetdevCmdToken = -1;
 	if (m_generatingDialog) {
-		m_generatingDialog->done(OKAY);
+		m_generatingDialog->done(QMessageBox::Ok);
 		m_generatingDialog->deleteLater();
 		m_generatingDialog = NULL;
 	}
