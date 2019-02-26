@@ -15,6 +15,8 @@
 #include <X11/keysymdef.h>
 #endif
 
+//Scancodes to test and their row/column position on most keyboards
+//Comments indicate expected key for an en/US keyboard layout
 KeyboardLayoutTester::scancodeInfo KeyboardLayoutTester::s_scancodeSequence[] = {
 	{4 /*a*/, 2, 3},
 	{5 /*b*/, 6, 4},
@@ -73,7 +75,7 @@ KeyboardLayoutTester::scancodeInfo KeyboardLayoutTester::s_scancodeSequence[] = 
 	{48 /* ]} */, 13, 2},
 
 	{49 /* \| */, 14, 2},
-	{50 /* unknown */, 13, 3},
+
 	{51 /* ;: */, 11, 3},
 	{52 /* '" */, 12, 3},
 	{53 /* `~ */, 1, 1},
@@ -81,6 +83,9 @@ KeyboardLayoutTester::scancodeInfo KeyboardLayoutTester::s_scancodeSequence[] = 
 
 	{55 /* .> */, 10, 4},
 	{56 /* /? */, 11, 4},
+
+	{50 /* non-us */, 13, 3},
+	{100 /* non-us */, 1, 4},
 
 	{0, 0, 0} //This zero value marks the end of the sequence
 };
