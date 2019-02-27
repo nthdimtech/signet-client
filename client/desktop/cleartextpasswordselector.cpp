@@ -121,12 +121,10 @@ void cleartextPasswordSelector::signetdevCmdResp(signetdevCmdRespInfo info)
 			m_deleteButton->setDisabled(true);
 		}
 	} else {
-		QMessageBox *warn;
-		warn = SignetApplication::messageBoxError(QMessageBox::Critical,
-							 "Save password slot",
-							 "Failed to delete password slot",
-							 this);
-		warn->exec();
+		SignetApplication::messageBoxError(QMessageBox::Critical,
+						 "Save password slot",
+						 "Failed to delete password slot",
+						 this);
 	}
 }
 

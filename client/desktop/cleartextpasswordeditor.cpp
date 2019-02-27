@@ -71,7 +71,6 @@ void cleartextPasswordEditor::savePressed()
 		warn = SignetApplication::messageBoxWarn("Save password slot", "Name must be less than " +
 						  QString::number((CLEARTEXT_PASS_NAME_SIZE - 1)) +
 						  " characters", this);
-		warn->exec();
 		return;
 	}
 
@@ -79,7 +78,6 @@ void cleartextPasswordEditor::savePressed()
 		warn = SignetApplication::messageBoxWarn("Save password slot", "Password must be less than " +
 						  QString::number((CLEARTEXT_PASS_PASS_SIZE - 1)) +
 						  " characters", this);
-		warn->exec();
 		return;
 	}
 
@@ -95,13 +93,11 @@ void cleartextPasswordEditor::savePressed()
 		warn = SignetApplication::messageBoxWarn("Save password slot",
 							 "Password is too long",
 							 this);
-		warn->exec();
 		return;
 	case 2:
 		warn = SignetApplication::messageBoxWarn("Save password slot",
 							 "Password contains characters not found in keyboard layout",
 							 this);
-		warn->exec();
 		return;
 	}
 
@@ -125,12 +121,10 @@ void cleartextPasswordEditor::signetdevCmdResp(signetdevCmdRespInfo info)
 		m_changesMade = false;
 		close();
 	} else {
-		QMessageBox *warn;
-		warn = SignetApplication::messageBoxError(QMessageBox::Critical,
-							 "Save password slot",
-							 "Failed to save password slot",
-							 this);
-		warn->exec();
+		SignetApplication::messageBoxError(QMessageBox::Critical,
+						 "Save password slot",
+						 "Failed to save password slot",
+						 this);
 	}
 }
 
@@ -152,13 +146,22 @@ void cleartextPasswordEditor::closeEvent(QCloseEvent *event)
 					       QMessageBox::Yes |
 					       QMessageBox::No,
 					       this);
-		int rc = box->exec();
-		box->deleteLater();
-		if (rc == QMessageBox::Yes) {
-			event->ignore();
-			savePressed();
-			return;
-		}
+		connect(box, SIGNAL(finished(int)), this, SLOT(saveOnCloseDialogFinished(int)));
+		box->setWindowModality(Qt::WindowModal);
+		box->setAttribute(Qt::WA_DeleteOnClose);
+		box->show();
+		event->ignore();
+		return;
 	}
 	event->accept();
+}
+
+void cleartextPasswordEditor::saveOnCloseDialogFinished(int rc)
+{
+	if (rc == QMessageBox::Yes) {
+		savePressed();
+	} else {
+		m_changesMade = false;
+		done(0);
+	}
 }

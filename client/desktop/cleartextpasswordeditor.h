@@ -36,6 +36,7 @@ private slots:
 	void savePressed();
 	void buttonWaitFinished(int);
 	void signetdevCmdResp(struct signetdevCmdRespInfo info);
+	void saveOnCloseDialogFinished(int rc);
 };
 
 #endif // CLEARTEXTPASSWORDEDITOR_H

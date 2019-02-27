@@ -717,8 +717,7 @@ void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QBy
 						"Export successful",
 						QMessageBox::Ok,
 						this);
-		box->exec();
-		box->deleteLater();
+		Q_UNUSED(box);
 		enterDeviceState(SignetApplication::STATE_LOGGED_IN);
 	}
 }
@@ -1004,71 +1003,80 @@ void MainWindow::autoBackupCheck()
 							" days. Create a new backup?",
 							QMessageBox::Yes | QMessageBox::No,
 							this);
-			int rc = box->exec();
-			box->deleteLater();
-			if (rc == QMessageBox::Yes) {
-				QMessageBox *box = new QMessageBox(QMessageBox::Information,
-								   "Load volume",
-								   "Insert and open volume " + m_settings.removableBackupVolume +
-								   " then click 'Ok' to start backup",
-								   QMessageBox::Ok | QMessageBox::Cancel,
-								   this);
-				int rc = box->exec();
-				box->deleteLater();
-				QStorageInfo storageInfo;
-				bool volumeFound = false;
-				if (rc == QMessageBox::Ok) {
-					QList<QStorageInfo> volumes = QStorageInfo::mountedVolumes();
-					for (auto x : volumes) {
-						if (x.name() != m_settings.removableBackupVolume)
-							continue;
-						storageInfo = x;
-						volumeFound = true;
-						break;
-					}
-					if (volumeFound) {
-						QString backupPath = storageInfo.rootPath() + "/" +
-								m_settings.removableBackupPath;
-						QString backupFileName = backupPath + "/" +
-								QString::number(currentTime.date().year()) + "-" +
-								QString::number(currentTime.date().month()) + "-" +
-								QString::number(currentTime.date().day()) + ".sdb";
-						QDir backupPathDir(backupPath);
-						if (!backupPathDir.exists()) {
-							QString dirName = backupPathDir.dirName();
-							if (backupPathDir.cdUp()) {
-								backupPathDir.mkdir(dirName);
-								backupPathDir.setPath(m_settings.localBackupPath);
-							}
-						}
-						if (backupPathDir.exists()) {
-							backupDevice(backupFileName);
-							m_settings.lastRemoveableBackup = currentTime;
-							saveSettings();
-						} else {
-							QMessageBox *box = new QMessageBox(QMessageBox::Warning,
-											   "Backup database",
-											   "Failed to create backup path",
-											   QMessageBox::Ok,
-											   this);
-							box->exec();
-							box->deleteLater();
-						}
-					} else {
-						QMessageBox *box = new QMessageBox(QMessageBox::Warning,
-										   "Backup database",
-										   "No open volume named " + m_settings.removableBackupVolume +
-										   " found",
-										   QMessageBox::Ok,
-										   this);
-						box->exec();
-						box->deleteLater();
-					}
-				}
-			}
+			connect(box, SIGNAL(finished(int)), this, SLOT(backupDatabasePromptDialogFinished(int)));
+			box->setWindowModality(Qt::WindowModal);
+			box->setAttribute(Qt::WA_DeleteOnClose);
+			box->show();
 		}
 	}
 #endif
+}
+
+void MainWindow::backupDatabasePromptDialogFinished(int rc)
+{
+	QDateTime currentTime = QDateTime::currentDateTime();
+	if (rc == QMessageBox::Yes) {
+		QMessageBox *box = new QMessageBox(QMessageBox::Information,
+						   "Load volume",
+						   "Insert and open volume " + m_settings.removableBackupVolume +
+						   " then click 'Ok' to start backup",
+						   QMessageBox::Ok | QMessageBox::Cancel,
+						   this);
+		int rc = box->exec();
+		box->deleteLater();
+		QStorageInfo storageInfo;
+		bool volumeFound = false;
+		if (rc == QMessageBox::Ok) {
+			QList<QStorageInfo> volumes = QStorageInfo::mountedVolumes();
+			for (auto x : volumes) {
+				if (x.name() != m_settings.removableBackupVolume)
+					continue;
+				storageInfo = x;
+				volumeFound = true;
+				break;
+			}
+			if (volumeFound) {
+				QString backupPath = storageInfo.rootPath() + "/" +
+						m_settings.removableBackupPath;
+				QString backupFileName = backupPath + "/" +
+						QString::number(currentTime.date().year()) + "-" +
+						QString::number(currentTime.date().month()) + "-" +
+						QString::number(currentTime.date().day()) + ".sdb";
+				QDir backupPathDir(backupPath);
+				if (!backupPathDir.exists()) {
+					QString dirName = backupPathDir.dirName();
+					if (backupPathDir.cdUp()) {
+						backupPathDir.mkdir(dirName);
+						backupPathDir.setPath(m_settings.localBackupPath);
+					}
+				}
+				if (backupPathDir.exists()) {
+					backupDevice(backupFileName);
+					m_settings.lastRemoveableBackup = currentTime;
+					saveSettings();
+				} else {
+					QMessageBox *box = new QMessageBox(QMessageBox::Warning,
+									   "Backup database",
+									   "Failed to create backup path",
+									   QMessageBox::Ok,
+									   this);
+					box->setWindowModality(Qt::WindowModal);
+					box->setAttribute(Qt::WA_DeleteOnClose);
+					box->show();
+				}
+			} else {
+				QMessageBox *box = new QMessageBox(QMessageBox::Warning,
+								   "Backup database",
+								   "No open volume named " + m_settings.removableBackupVolume +
+								   " found",
+								   QMessageBox::Ok,
+								   this);
+				box->setWindowModality(Qt::WindowModal);
+				box->setAttribute(Qt::WA_DeleteOnClose);
+				box->show();
+			}
+		}
+	}
 }
 
 void MainWindow::settingsChanged()
@@ -1299,25 +1307,31 @@ void MainWindow::loadSettings()
 				"may not function correctly.",
 			    QMessageBox::No | QMessageBox::Yes,
 			    this);
-		int rc = box->exec();
-		box->deleteLater();
-		if (rc == QMessageBox::Yes) {
-			QVector<struct signetdev_key> currentLayout;
+		connect(box, SIGNAL(finished(int)), this, SLOT(keyboardLayoutNotConfiguredDialogFinished(int)));
+		box->setWindowModality(Qt::WindowModal);
+		box->setAttribute(Qt::WA_DeleteOnClose);
+		box->show();
+	}
+}
 
-			int n_keys;
-			const signetdev_key *keymap = ::signetdev_get_keymap(&n_keys);
-			for (int i = 0; i < n_keys; i++) {
-				currentLayout.append(keymap[i]);
-			}
+void MainWindow::keyboardLayoutNotConfiguredDialogFinished(int rc)
+{
+	if (rc == QMessageBox::Yes) {
+		QVector<struct signetdev_key> currentLayout;
 
-			m_keyboardLayoutTester = new KeyboardLayoutTester(currentLayout, this);
-			connect(m_keyboardLayoutTester, SIGNAL(closing(bool)),
-				this, SLOT(keyboardLayoutTesterClosing(bool)));
-			connect(m_keyboardLayoutTester, SIGNAL(applyChanges()),
-				this, SLOT(applyKeyboardLayoutChanges()));
-			m_keyboardLayoutTester->setWindowModality(Qt::WindowModal);
-			m_keyboardLayoutTester->show();
+		int n_keys;
+		const signetdev_key *keymap = ::signetdev_get_keymap(&n_keys);
+		for (int i = 0; i < n_keys; i++) {
+			currentLayout.append(keymap[i]);
 		}
+
+		m_keyboardLayoutTester = new KeyboardLayoutTester(currentLayout, this);
+		connect(m_keyboardLayoutTester, SIGNAL(closing(bool)),
+			this, SLOT(keyboardLayoutTesterClosing(bool)));
+		connect(m_keyboardLayoutTester, SIGNAL(applyChanges()),
+			this, SLOT(applyKeyboardLayoutChanges()));
+		m_keyboardLayoutTester->setWindowModality(Qt::WindowModal);
+		m_keyboardLayoutTester->show();
 	}
 }
 
@@ -1728,8 +1742,14 @@ void MainWindow::closeUi()
 void MainWindow::openSettingsUi()
 {
 	SettingsDialog *config = new SettingsDialog(this, false);
-	int rc = config->exec();
-	config->deleteLater();
+	config->setWindowModality(Qt::WindowModal);
+	config->setAttribute(Qt::WA_DeleteOnClose);
+	connect(config, SIGNAL(finished(int)), this, SLOT(settingDialogFinished(int)));
+	config->show();
+}
+
+void MainWindow::settingDialogFinished(int rc)
+{
 	if (!rc) {
 		saveSettings();
 		settingsChanged();
@@ -2018,8 +2038,7 @@ void MainWindow::importDone(bool success)
 				typeName + " Import",
 				typeName + " import successful",
 				this);
-		mb->exec();
-		mb->deleteLater();
+		Q_UNUSED(mb);
 	}
 	m_dbImportController->deleteLater();
 	m_dbImportController = nullptr;
@@ -2065,8 +2084,9 @@ void MainWindow::signetdevReadCleartextPasswordNames(signetdevCmdRespInfo info, 
 		cleartextPasswordSelector *s = new cleartextPasswordSelector(formats, names, this);
 		s->setMinimumWidth(300);
 		s->setWindowTitle("Password slots");
-		s->exec();
-		s->deleteLater();
+		s->setWindowModality(Qt::WindowModal);
+		s->setAttribute(Qt::WA_DeleteOnClose);
+		s->show();
 	}
 }
 

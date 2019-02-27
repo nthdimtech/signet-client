@@ -85,6 +85,7 @@ public slots:
 	void focusWindowChanged(QWindow *);
 private slots:
 	void canelPressed();
+	void testInterruptedDialogFinished(int rc);
 };
 
 #endif // KEYBOARDLAYOUTTESTER_H

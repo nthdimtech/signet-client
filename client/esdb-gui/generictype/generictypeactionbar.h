@@ -28,6 +28,8 @@ public slots:
 private slots:
 	void entryCreated(esdbEntry *entry);
 	void openEntryUI();
+	void editFinished();
+	void deleteConfirmDialogFinished(int rc);
 };
 
 #endif // GENERICTYPEACTIONBAR_H

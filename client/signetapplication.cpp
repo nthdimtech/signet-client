@@ -250,6 +250,7 @@ QMessageBox *SignetApplication::messageBoxError(QMessageBox::Icon icon, const QS
 	QMessageBox *box = new QMessageBox(icon, title, text, QMessageBox::Ok, parent);
 	connect(box, SIGNAL(finished(int)), box, SLOT(deleteLater()));
 	box->setWindowModality(Qt::WindowModal);
+	box->setAttribute(Qt::WA_DeleteOnClose);
 	box->show();
 	return box;
 }
@@ -259,6 +260,7 @@ QMessageBox *SignetApplication::messageBoxWarn(const QString &title, const QStri
 	QMessageBox *box = new QMessageBox(QMessageBox::Warning, title, text, QMessageBox::Ok, parent);
 	connect(box, SIGNAL(finished(int)), box, SLOT(deleteLater()));
 	box->setWindowModality(Qt::WindowModal);
+	box->setAttribute(Qt::WA_DeleteOnClose);
 	box->show();
 	return box;
 }

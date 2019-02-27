@@ -50,6 +50,11 @@ void KeePassImporter::traverse(QString path, Group *g)
 	}
 }
 
+void KeePassImporter::failedToOpenDatabaseDialogFinished(int rc)
+{
+	Q_UNUSED(rc);
+	done(false);
+}
 void KeePassImporter::start()
 {
 	QFileDialog *fd = new QFileDialog(m_parent, databaseTypeName() + " Import");
@@ -78,8 +83,7 @@ void KeePassImporter::start()
 						   databaseTypeName()+ " Import",
 						   "Failed to open KeePass database file",
 						   m_parent);
-		mb->exec();
-		done(false);
+		connect(mb, SIGNAL(finished(int)), this, SIGNAL(failedToOpenDatabaseDialogFinished(int)));
 		return;
 	}
 
@@ -100,12 +104,10 @@ void KeePassImporter::start()
 					databaseTypeName()+ " Import",
 					"Invalid credentials for KeePass database",
 					QMessageBox::NoButton, m_parent);
+		connect(msg, SIGNAL(finished(int)), this, SLOT(invalidCredientialsDialogFinished(int)));
 		msg->setWindowModality(Qt::WindowModal);
-		msg->exec();
-		m_keePassDatabase->deleteLater();
-		m_keePassDatabase = NULL;
-		done(false);
-		return;
+		msg->setAttribute(Qt::WA_DeleteOnClose);
+		msg->show();
 	} else {
 		m_db = new database();
 		m_accountType = new databaseType();
@@ -114,4 +116,12 @@ void KeePassImporter::start()
 		m_keePassDatabase->deleteLater();
 		done(true);
 	}
+}
+
+void KeePassImporter::invalidCredientialsDialogFinished(int rc)
+{
+	Q_UNUSED(rc);
+	m_keePassDatabase->deleteLater();
+	m_keePassDatabase = NULL;
+	done(false);
 }

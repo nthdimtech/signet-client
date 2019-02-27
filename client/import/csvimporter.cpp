@@ -17,6 +17,12 @@ CSVImporter::CSVImporter(QList<esdbTypeModule *> typeModules, QWidget *parent) :
 
 }
 
+void CSVImporter::failedToOpenCSVDialogFinished(int rc)
+{
+	Q_UNUSED(rc);
+	done(false);
+}
+
 void CSVImporter::start()
 {
 	QFileDialog *fd = new QFileDialog(m_parent, databaseTypeName() + " Import");
@@ -46,8 +52,7 @@ void CSVImporter::start()
 						   databaseTypeName() + " Import",
 						   "Failed to open CSV file",
 						   m_parent);
-		mb->exec();
-		done(false);
+		connect(mb, SIGNAL(finished(int)), this, SLOT(failedToOpenCSVDialogFinished(int)));
 		return;
 	}
 

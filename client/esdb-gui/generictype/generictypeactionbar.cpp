@@ -22,13 +22,18 @@ void GenericTypeActionBar::newInstanceUI(int id, const QString &name)
 	int typeId = m_parent->getUnusedTypeId();
 	if (typeId >= 0) {
 		EditGenericType *t = new EditGenericType(id, static_cast<u16>(typeId), name, this);
-		QObject::connect(t, SIGNAL(entryCreated(esdbEntry *)), this, SLOT(entryCreated(esdbEntry *)));
-		t->exec();
-		m_parent->finishTask(false);
-		t->deleteLater();
+		connect(t, SIGNAL(entryCreated(esdbEntry *)), this, SLOT(entryCreated(esdbEntry *)));
+		connect(t, SIGNAL(finished(int)), this, SLOT(editFinished()));
+		t->setAttribute(Qt::WA_DeleteOnClose);
+		t->show();
 	} else {
 		//TODO: handle error
 	}
+}
+
+void GenericTypeActionBar::editFinished()
+{
+	m_parent->finishTask(false);
 }
 
 GenericTypeActionBar::GenericTypeActionBar(LoggedInWidget *parent, esdbTypeModule *module, bool writeEnabled, bool typeEnabled) :
@@ -60,12 +65,17 @@ void GenericTypeActionBar::deletePressed()
 						"There are still entries with this data type. If you delete this data type these entries will move to the 'Misc' group.\n\n Delete this data type?",
 						QMessageBox::Yes | QMessageBox::No,
 						this);
-		int rc = box->exec();
-		box->deleteLater();
-		if (rc == QMessageBox::Yes) {
-			deleteEntry();
-		}
+		box->setWindowModality(Qt::WindowModal);
+		box->setAttribute(Qt::WA_DeleteOnClose);
+		box->show();
 	} else {
+		deleteEntry();
+	}
+}
+
+void GenericTypeActionBar::deleteConfirmDialogFinished(int rc)
+{
+	if (rc == QMessageBox::Yes) {
 		deleteEntry();
 	}
 }

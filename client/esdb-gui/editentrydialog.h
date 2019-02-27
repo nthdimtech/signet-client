@@ -52,6 +52,7 @@ private slots:
 	void undoButtonPressed();
 	void submitEntryFinished(int code);
 	void signetdevCmdResp(signetdevCmdRespInfo info);
+	void saveOnCloseDialogFinished(int rc);
 public slots:
 	void edited();
 	void entryNameEdited();

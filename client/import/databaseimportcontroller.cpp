@@ -89,7 +89,7 @@ bool DatabaseImportController::nextEntry()
 							  progressString() +
 							  " already exists",
 							  QMessageBox::NoButton,
-							  (QWidget *)parent());
+							  static_cast<QWidget *>(parent()));
 		QPushButton *cancelButton = resolution->addButton("Cancel", QMessageBox::AcceptRole);
 		QPushButton *ovewriteAllButton = resolution->addButton("Overwrite All", QMessageBox::AcceptRole);
 		QPushButton *ovewriteButton = resolution->addButton("Overwrite", QMessageBox::AcceptRole);
@@ -166,13 +166,13 @@ bool DatabaseImportController::nextEntry()
 	m_entry = importEntry;
 	m_entry->toBlock(&blk);
 	if (m_useUpdateUids) {
-		::signetdev_update_uids(NULL, &m_signetdevCmdToken,
+		::signetdev_update_uids(nullptr, &m_signetdevCmdToken,
 					   m_entry->id,
 					   blk.data.size(),
 					   (const u8 *)blk.data.data(),
 					   (const u8 *)blk.mask.data(), 1);
 	} else {
-		::signetdev_update_uid(NULL, &m_signetdevCmdToken,
+		::signetdev_update_uid(nullptr, &m_signetdevCmdToken,
 					   m_entry->id,
 					   blk.data.size(),
 					   (const u8 *)blk.data.data(),

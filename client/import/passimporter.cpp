@@ -30,8 +30,7 @@ void PassImporter::start()
 						   databaseTypeName() + " Import",
 						   "Couldn't find valid password store",
 						   m_parent);
-		box->exec();
-		done(false);
+		connect(box, SIGNAL(destroyed(QObject *)), this, SLOT(doneFail()));
 		return;
 	}
 
@@ -50,6 +49,11 @@ void PassImporter::start()
 	m_db->insert("Accounts", m_accountType);
 	traverse(QString(), root);
 	done(true);
+}
+
+void PassImporter::doneFail()
+{
+	done(false);
 }
 
 void PassImporter::traverse(QString path, QDir &dir)
@@ -76,6 +80,7 @@ void PassImporter::traverse(QString path, QDir &dir)
 							   "Failed to decrypt " + accountName,
 							   m_parent);
 			box->exec();
+			box->deleteLater();
 		} else {
 			QString accountPassword = QString::fromUtf8(p.readAllStandardOutput());
 

@@ -86,12 +86,10 @@ void KeePassUnlockDialog::okayPressed()
 		if (f.load(keyPath)) {
 			k.addKey(f);
 		} else {
-			QMessageBox *mb = SignetApplication::messageBoxError(QMessageBox::Warning,
+			SignetApplication::messageBoxError(QMessageBox::Warning,
 								windowTitle(),
 								"Key file invalid",
 								this);
-			mb->exec();
-			mb->deleteLater();
 			m_keyFileCheckBox->setChecked(false);
 			m_keyPathEdit->setText("");
 			return;

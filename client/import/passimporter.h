@@ -27,6 +27,8 @@ public:
 	PassImporter(QWidget *parent);
 public slots:
 	void start();
+private slots:
+	void doneFail();
 };
 
 #endif // PASSIMPORTER_H

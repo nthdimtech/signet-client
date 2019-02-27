@@ -72,7 +72,7 @@ void EditEntryDialog::setupBase()
 	}
 
 	QPushButton *closeButton = new QPushButton("Close");
-	connect(closeButton, SIGNAL(pressed()), this, SLOT(close()));
+	connect(closeButton, SIGNAL(pressed()), this, SLOT(accept()));
 
 	m_buttons = new QBoxLayout(QBoxLayout::LeftToRight);
 	m_buttons->addWidget(m_submitButton);
@@ -114,8 +114,6 @@ void EditEntryDialog::oversizedDialog()
 	m_submitButton->setDisabled(true);
 	m_dataOversized->show();
 	auto mb = SignetApplication::messageBoxWarn("Entry too large", "This entry is too large. You must delete something to save it", this);
-	mb->exec();
-	mb->deleteLater();
 }
 
 void EditEntryDialog::submitButtonPressed()
@@ -193,7 +191,7 @@ void EditEntryDialog::signetdevCmdResp(signetdevCmdRespInfo info)
 		case SIGNETDEV_CMD_UPDATE_UID:
 			if (m_isNew) {
 				emit entryCreated(m_entry);
-				close();
+				accept();
 			} else {
 				applyChanges(m_entry);
 				emit entryChanged(m_id);
@@ -201,7 +199,7 @@ void EditEntryDialog::signetdevCmdResp(signetdevCmdRespInfo info)
 				m_undoChangesButton->setDisabled(true);
 				m_changesMade = false;
 				if (m_closeOnSave) {
-					close();
+					accept();
 				}
 			}
 			break;
@@ -220,7 +218,7 @@ void EditEntryDialog::signetdevCmdResp(signetdevCmdRespInfo info)
 		break;
 	case SIGNET_ERROR_DISCONNECT:
 	case SIGNET_ERROR_QUIT:
-		close();
+		reject();
 		break;
 	default: {
 		emit abort();
@@ -265,19 +263,27 @@ void EditEntryDialog::entryNameEdited()
 void EditEntryDialog::closeEvent(QCloseEvent *event)
 {
 	if (m_changesMade && !m_isNew) {
-		QMessageBox *box = new QMessageBox(QMessageBox::Question, windowTitle(),
+		QMessageBox *saveOnClose = new QMessageBox(QMessageBox::Question, windowTitle(),
 					       "You have made changes. Do you want to save them",
 					       QMessageBox::Yes |
 					       QMessageBox::No,
 					       this);
-		int rc = box->exec();
-		box->deleteLater();
-		if (rc == QMessageBox::Yes) {
-			m_closeOnSave = true;
-			event->ignore();
-			submitButtonPressed();
-			return;
-		}
+		connect(saveOnClose, SIGNAL(finished(int)), this, SLOT(saveOnCloseDialogFinished(int)));
+		saveOnClose->setWindowModality(Qt::WindowModal);
+		saveOnClose->setAttribute(Qt::WA_DeleteOnClose);
+		saveOnClose->show();
+		event->ignore();
+		return;
 	}
 	event->accept();
+}
+
+void EditEntryDialog::saveOnCloseDialogFinished(int rc)
+{
+	if (rc == QMessageBox::Yes) {
+		submitButtonPressed();
+	} else {
+		m_changesMade = false;
+		done(0);
+	}
 }

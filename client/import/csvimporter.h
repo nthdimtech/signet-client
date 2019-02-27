@@ -27,6 +27,8 @@ public:
 
 public slots:
 	void start();
+private slots:
+	void failedToOpenCSVDialogFinished(int rc);
 };
 
 #endif // CSVIMPORTER_H

@@ -137,9 +137,9 @@ void KeyboardLayoutTester::configure()
 					   "ability to capture the generated characters.", QMessageBox::Ok,
 					   this);
 	msg->setWindowModality(Qt::WindowModal);
-	msg->exec();
-	msg->deleteLater();
-	connect(msg, SIGNAL(destroyed(QObject*)), this, SLOT(prepareToTest()));
+	msg->setAttribute(Qt::WA_DeleteOnClose);
+	msg->show();
+	connect(msg, SIGNAL(destroyed(QObject *)), this, SLOT(prepareToTest()));
 }
 
 void KeyboardLayoutTester::prepareToTest()
@@ -186,9 +186,15 @@ void KeyboardLayoutTester::testInterrupted()
 	QMessageBox *msg = new QMessageBox(QMessageBox::Information, "Keyboard layout configuration failed",
 					"Keyboard layout configuration interrupted. Try again.",
 					   QMessageBox::Ok, this);
+	QObject::connect(msg, SIGNAL(finished(int)), this, SLOT(testInterruptedDialogFinished(int)));
 	msg->setWindowModality(Qt::WindowModal);
-	msg->exec();
-	msg->deleteLater();
+	msg->setAttribute(Qt::WA_DeleteOnClose);
+	msg->show();
+}
+
+void KeyboardLayoutTester::testInterruptedDialogFinished(int rc)
+{
+	Q_UNUSED(rc);
 	m_configureButton->setEnabled(true);
 	m_applyButton->setEnabled(false);
 	m_resetButton->setEnabled(false);

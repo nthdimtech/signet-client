@@ -168,6 +168,7 @@ private:
 	bool nativeEvent(const QByteArray &eventType, void *message, long *result);
 #endif
 	void startImport(DatabaseImporter *importer);
+	void settingDialogFinished(int rc);
 public:
 	bool connected() const
 	{
@@ -178,6 +179,8 @@ private slots:
 	void backupError();
 	void importDone(bool success);
 	void closeUi();
+	void keyboardLayoutNotConfiguredDialogFinished(int rc);
+	void backupDatabasePromptDialogFinished(int rc);
 public slots:
 	void signetDevEvent(int);
 	void deviceOpened();
