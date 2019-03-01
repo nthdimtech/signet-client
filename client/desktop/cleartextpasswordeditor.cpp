@@ -65,17 +65,15 @@ void cleartextPasswordEditor::savePressed()
 	m_passNext.format = 1;
 	m_passNext.scancode_entries = 0;
 
-	QMessageBox *warn;
-
 	if (nameUTF8.size() > (CLEARTEXT_PASS_NAME_SIZE - 1)) {
-		warn = SignetApplication::messageBoxWarn("Save password slot", "Name must be less than " +
+		SignetApplication::messageBoxWarn("Save password slot", "Name must be less than " +
 						  QString::number((CLEARTEXT_PASS_NAME_SIZE - 1)) +
 						  " characters", this);
 		return;
 	}
 
 	if (passwordUTF8.size() > (CLEARTEXT_PASS_PASS_SIZE - 1)) {
-		warn = SignetApplication::messageBoxWarn("Save password slot", "Password must be less than " +
+		SignetApplication::messageBoxWarn("Save password slot", "Password must be less than " +
 						  QString::number((CLEARTEXT_PASS_PASS_SIZE - 1)) +
 						  " characters", this);
 		return;
@@ -90,12 +88,12 @@ void cleartextPasswordEditor::savePressed()
 
 	switch (rc) {
 	case 1:
-		warn = SignetApplication::messageBoxWarn("Save password slot",
+		SignetApplication::messageBoxWarn("Save password slot",
 							 "Password is too long",
 							 this);
 		return;
 	case 2:
-		warn = SignetApplication::messageBoxWarn("Save password slot",
+		SignetApplication::messageBoxWarn("Save password slot",
 							 "Password contains characters not found in keyboard layout",
 							 this);
 		return;
@@ -105,7 +103,7 @@ void cleartextPasswordEditor::savePressed()
 	m_buttonWaitDialog = new ButtonWaitDialog("Save password slot", "save password slot", this, false);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(buttonWaitFinished(int)));
 	m_buttonWaitDialog->show();
-	::signetdev_write_cleartext_password(NULL, &m_signetdevCmdToken, m_index, &m_passNext);
+	::signetdev_write_cleartext_password(nullptr, &m_signetdevCmdToken, m_index, &m_passNext);
 }
 
 void cleartextPasswordEditor::signetdevCmdResp(signetdevCmdRespInfo info)

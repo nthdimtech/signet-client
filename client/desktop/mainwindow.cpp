@@ -1401,7 +1401,7 @@ void MainWindow::enterDeviceState(int state)
 		break;
 	}
 
-	m_deviceState = (enum SignetApplication::device_state) state;
+	m_deviceState = static_cast<enum SignetApplication::device_state>(state);
 
 	switch (m_deviceState) {
 	case SignetApplication::STATE_DISCONNECTING: {
@@ -1575,11 +1575,9 @@ void MainWindow::enterDeviceState(int state)
 				erase_pages_.push_back(i);
 			}
 		}
-		::signetdev_erase_pages(
-
-	nullptr, &m_signetdevCmdToken,
-					      erase_pages_.size(),
-					      (u8 *)erase_pages_.data());
+		::signetdev_erase_pages(nullptr, &m_signetdevCmdToken,
+					erase_pages_.size(),
+					(u8 *)erase_pages_.data());
 		setCentralWidget(m_firmwareUpdateWidget);
 	}
 	break;
@@ -1794,7 +1792,7 @@ void MainWindow::sendFirmwareWriteCmd()
 {
 	bool advance = false;
 	unsigned int section_lma = m_writingSectionIter->lma;
-	unsigned int section_size = m_writingSectionIter->size;
+	int section_size = m_writingSectionIter->size;
 	unsigned int section_end = section_lma + section_size;
 	unsigned int write_size = 1024;
 	if ((m_writingAddr + write_size) >= section_end) {
@@ -1886,8 +1884,8 @@ void MainWindow::updateFirmwareUi()
 				valid_fw = false;
 				break;
 			}
-			section.lma = (unsigned int)(lma_val.toDouble());
-			section.size = (unsigned int)(size_val.toDouble());
+			section.lma = static_cast<unsigned int>(lma_val.toDouble());
+			section.size = static_cast<int>(size_val.toDouble());
 			section.contents = QByteArray::fromBase64(contents_val.toString().toLatin1());
 			if (section.contents.size() != section.size) {
 				valid_fw = false;
