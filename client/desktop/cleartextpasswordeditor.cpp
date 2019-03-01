@@ -133,7 +133,7 @@ void cleartextPasswordEditor::buttonWaitFinished(int result)
 	}
 	if (m_buttonWaitDialog)
 		m_buttonWaitDialog->deleteLater();
-	m_buttonWaitDialog = NULL;
+	m_buttonWaitDialog = nullptr;
 }
 
 void cleartextPasswordEditor::closeEvent(QCloseEvent *event)

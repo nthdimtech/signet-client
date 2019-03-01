@@ -195,6 +195,7 @@ public:
 
 	static void generateKey(const QString &password, QByteArray &key, const QByteArray &hashfn, const QByteArray &salt, int keyLength);
 	void setAsyncListener(SignetAsyncListener *l);
+	bool isDeviceEmulated();
 signals:
 	void deviceOpened();
 	void deviceClosed();

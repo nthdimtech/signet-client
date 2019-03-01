@@ -6,6 +6,7 @@ typeDescEdit::typeDescEdit(const QString &name, bool canRemove) :
 	genericFieldEdit(name)
 {
 	m_typeEditCombo = new QComboBox();
+	m_typeEditCombo->setEnabled(!SignetApplication::get()->isDeviceEmulated());
 	m_typeEditCombo->addItem("Text");
 	m_typeEditCombo->addItem("Text block");
 	m_typeEditCombo->addItem("Integer");

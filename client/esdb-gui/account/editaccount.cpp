@@ -41,6 +41,7 @@ EditAccount::EditAccount(account *acct, QWidget *parent) :
 void EditAccount::setup(QString name)
 {
 	m_accountNameEdit = new QLineEdit(name);
+	m_accountNameEdit->setReadOnly(SignetApplication::get()->isDeviceEmulated());
 
 	m_genericFieldsEditor = new GenericFieldsEditor(QList<fieldSpec>());
 

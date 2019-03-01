@@ -7,6 +7,7 @@ integerFieldEdit::integerFieldEdit(const QString &name, bool canRemove) :
 	genericFieldEdit(name)
 {
 	m_spinBoxEdit = new QSpinBox();
+	m_spinBoxEdit->setReadOnly(SignetApplication::get()->isDeviceEmulated());
 	connect(m_spinBoxEdit, SIGNAL(valueChanged(QString)),
 		this, SIGNAL(edited()));
 	connect(m_spinBoxEdit, SIGNAL(editingFinished()),

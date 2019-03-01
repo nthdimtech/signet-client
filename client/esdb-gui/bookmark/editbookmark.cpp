@@ -38,6 +38,8 @@ void EditBookmark::setup(QString name)
 {
 	QBoxLayout *nameLayout = new QBoxLayout(QBoxLayout::LeftToRight);
 	m_nameField = new QLineEdit(name);
+	m_nameField->setReadOnly(SignetApplication::get()->isDeviceEmulated());
+
 	nameLayout->addWidget(new QLabel("Name"));
 	nameLayout->addWidget(m_nameField);
 

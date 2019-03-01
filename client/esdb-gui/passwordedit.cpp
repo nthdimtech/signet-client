@@ -17,6 +17,7 @@ PasswordEdit::PasswordEdit(QWidget *parent) :
 {
 	QList<QWidget *> extraWidgets;
 	m_generatePassword = new QPushButton("Generate");
+	m_generatePassword->setEnabled(!SignetApplication::get()->isDeviceEmulated());
 	m_hide = new QCheckBox("Hide");
 	m_hide->setChecked(true);
 	connect(m_generatePassword, SIGNAL(pressed()), this, SLOT(generatePassword()));

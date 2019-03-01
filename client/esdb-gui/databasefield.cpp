@@ -14,7 +14,7 @@ extern "C" {
 };
 
 DatabaseField::DatabaseField(const QString &name, int width, QList<QWidget *> &widgets, QWidget *parent) : QWidget(parent),
-	m_buttonWait(NULL),
+	m_buttonWait(nullptr),
 	m_name(name),
 	m_signetdevCmdToken(-1)
 {
@@ -23,10 +23,11 @@ DatabaseField::DatabaseField(const QString &name, int width, QList<QWidget *> &w
 
 
 DatabaseField::DatabaseField(const QString &name, int width, QWidget *middle, QWidget *parent) : QWidget(parent),
-	m_buttonWait(NULL),
+	m_buttonWait(nullptr),
 	m_name(name),
 	m_signetdevCmdToken(-1)
 {
+
 	QList<QWidget *> widgets;
 	if (middle)
 		widgets.append(middle);
@@ -44,6 +45,7 @@ void DatabaseField::init(int width, QList<QWidget *> &widgets)
 	type_button->setToolTip("Type");
 	type_button->setFocusPolicy(Qt::NoFocus);
 	connect(type_button, SIGNAL(clicked()), this, SLOT(typeFieldUi()));
+	type_button->setEnabled(!SignetApplication::get()->isDeviceEmulated());
 
 	QPushButton *copy_button = new QPushButton(QIcon(":/images/clipboard.png"),"");
 	copy_button->setToolTip("Copy");
@@ -62,6 +64,7 @@ void DatabaseField::init(int width, QList<QWidget *> &widgets)
 	capitalized_name[0] = capitalized_name[0].toUpper();
 	layout->addWidget(new QLabel(capitalized_name));
 	layout->addWidget(m_fieldEdit);
+	m_fieldEdit->setReadOnly(SignetApplication::get()->isDeviceEmulated());
 
 	for (auto w : widgets) {
 		layout->addWidget(w);
@@ -114,7 +117,7 @@ void DatabaseField::signetdevCmdResp(signetdevCmdRespInfo info)
 			if (m_buttonWait) {
 				m_buttonWait->done(QMessageBox::Ok);
 			}
-			::signetdev_type_w(NULL, &m_signetdevCmdToken,
+			::signetdev_type_w(nullptr, &m_signetdevCmdToken,
 					       (u16 *)m_keysToType.data(), m_keysToType.length());
 		}
 		break;

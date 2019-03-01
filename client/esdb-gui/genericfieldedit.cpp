@@ -32,9 +32,11 @@ void genericFieldEdit::createWidget(bool canRemove, QWidget *editWidget, bool ou
 	if (outputEnable) {
 		m_copyButton = new QPushButton(QIcon(":/images/clipboard.png"),"");
 		m_typeButton = new QPushButton(QIcon(":/images/keyboard.png"),"");
+		m_typeButton->setEnabled(!SignetApplication::get()->isDeviceEmulated());
 	}
 	if (canRemove) {
 		m_deleteButton = new QPushButton(QIcon(":/images/delete.png"),"");
+		m_deleteButton->setEnabled(!SignetApplication::get()->isDeviceEmulated());
 	}
 	m_editWidget->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Ignored));
 	m_widget->layout()->setContentsMargins(0,0,0,0);
@@ -72,6 +74,7 @@ void genericFieldEdit::createTallWidget(int rows, bool canRemove, QWidget *editW
 	m_widget->setLayout(grid);
 	m_copyButton = new QPushButton(QIcon(":/images/clipboard.png"),"");
 	m_typeButton = new QPushButton(QIcon(":/images/keyboard.png"),"");
+	m_typeButton->setEnabled(!SignetApplication::get()->isDeviceEmulated());
 	if (canRemove) {
 		m_deleteButton = new QPushButton(QIcon(":/images/delete.png"),"");
 	}

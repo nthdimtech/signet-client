@@ -17,6 +17,7 @@ lineFieldEdit::lineFieldEdit(const QString &name, bool canRemove) :
 	genericFieldEdit(name)
 {
 	m_lineEdit = new QLineEdit();
+	m_lineEdit->setReadOnly(SignetApplication::get()->isDeviceEmulated());
 	connect(m_lineEdit, SIGNAL(textEdited(QString)),
 		this, SIGNAL(edited()));
 	connect(m_lineEdit, SIGNAL(editingFinished()),

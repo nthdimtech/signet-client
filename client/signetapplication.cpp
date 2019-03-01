@@ -245,6 +245,11 @@ void SignetApplication::init(bool startInTray, QString dbFilename)
 #endif
 }
 
+bool SignetApplication::isDeviceEmulated()
+{
+	return m_main_window && m_main_window->getDatabaseFileName().size();
+}
+
 QMessageBox *SignetApplication::messageBoxError(QMessageBox::Icon icon, const QString &title, const QString &text, QWidget *parent)
 {
 	QMessageBox *box = new QMessageBox(icon, title, text, QMessageBox::Ok, parent);

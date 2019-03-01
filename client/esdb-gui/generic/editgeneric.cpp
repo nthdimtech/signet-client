@@ -76,6 +76,7 @@ esdbEntry *EditGeneric::createEntry(int id)
 void EditGeneric::setup(QString name)
 {
 	m_genericNameEdit = new QLineEdit(name);
+	m_genericNameEdit->setReadOnly(SignetApplication::get()->isDeviceEmulated());
 
 	QBoxLayout *nameLayout = new QBoxLayout(QBoxLayout::LeftToRight);
 	nameLayout->addWidget(new QLabel("Name"));

@@ -24,9 +24,11 @@ GenericFieldsEditor::GenericFieldsEditor(QList<fieldSpec> requiredFieldSpecs,
 	m_extraFieldsWidget = new QWidget();
 	m_newField = new QDialog();
 	m_newFieldAddButton = new QPushButton(QIcon(":/images/plus.png"),"");
+	m_newFieldAddButton->setEnabled(!SignetApplication::get()->isDeviceEmulated());
 	QLayout *newFieldDescLayout = new QHBoxLayout();
 	newFieldDescLayout->addWidget(new QLabel("Field Name"));
 	m_newFieldNameEdit = new QLineEdit();
+	m_newFieldNameEdit->setEnabled(!SignetApplication::get()->isDeviceEmulated());
 	newFieldDescLayout->addWidget(m_newFieldNameEdit);
 
 	connect(m_newFieldNameEdit, SIGNAL(returnPressed()), m_newFieldAddButton, SLOT(click()));
@@ -46,6 +48,7 @@ GenericFieldsEditor::GenericFieldsEditor(QList<fieldSpec> requiredFieldSpecs,
 	m_newFieldTypeCombo->addItem("Text (Secret)", ".Text");
 	m_newFieldTypeCombo->addItem("Text block", "Text block");
 	m_newFieldTypeCombo->addItem("Integer", "Integer");
+	m_newFieldTypeCombo->setEnabled(!SignetApplication::get()->isDeviceEmulated());
 
 	m_requiredFieldsWidget->setLayout(new QVBoxLayout());
 	m_requiredFieldsWidget->layout()->setAlignment(Qt::AlignTop);

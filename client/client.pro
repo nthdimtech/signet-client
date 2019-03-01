@@ -81,8 +81,7 @@ SOURCES += ../signet-base/signetdev/host/signetdev.c \
     esdb-gui/generic/editgeneric.cpp \
     esdb-gui/bookmark/editbookmark.cpp \
     esdb-gui/generictype/editgenerictype.cpp \
-    desktop/datatypelistmodel.cpp \
-    esdb-gui/fielddescfieldedit.cpp
+    desktop/datatypelistmodel.cpp
 
 macx|linux-g++ {
 HEADERS += import/passimporter.h \
@@ -145,8 +144,7 @@ HEADERS += esdb/esdb.h \
     esdb-gui/generic/editgeneric.h \
     esdb-gui/bookmark/editbookmark.h \
     esdb-gui/generictype/editgenerictype.h \
-    desktop/datatypelistmodel.h \
-    esdb-gui/fielddescfieldedit.h
+    desktop/datatypelistmodel.h
 #
 # ESDB GUI sources
 #
