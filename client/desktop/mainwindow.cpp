@@ -1014,6 +1014,7 @@ void MainWindow::autoBackupCheck()
 
 void MainWindow::backupDatabasePromptDialogFinished(int rc)
 {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
 	QDateTime currentTime = QDateTime::currentDateTime();
 	if (rc == QMessageBox::Yes) {
 		QMessageBox *box = new QMessageBox(QMessageBox::Information,
@@ -1077,6 +1078,9 @@ void MainWindow::backupDatabasePromptDialogFinished(int rc)
 			}
 		}
 	}
+#else
+	Q_UNUSED(rc);
+#endif
 }
 
 void MainWindow::settingsChanged()
