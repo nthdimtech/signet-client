@@ -45,7 +45,9 @@ public:
 	virtual ~EditAccount();
 public slots:
 	void browseUrl();
-	void accountNameEdited();
+    void accountNameEdited();
+private slots:
+    void usernameEditingFinished();
 };
 
 #endif // EDITACCOUNT_H

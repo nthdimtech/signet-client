@@ -20,8 +20,8 @@ class DatabaseField : public QWidget
 	QVector<u16> m_keysToType;
 	void init(int width, QList<QWidget *> &widgets);
 public:
-	explicit DatabaseField(const QString &name, int width, QWidget *middle = 0, QWidget *parent = 0);
-	DatabaseField(const QString &name, int width, QList<QWidget *> &widgets, QWidget *parent = 0);
+    explicit DatabaseField(const QString &name, int width, QWidget *middle = nullptr, QWidget *parent = nullptr);
+    DatabaseField(const QString &name, int width, QList<QWidget *> &widgets, QWidget *parent = nullptr);
 	QString text() const;
 	QString name() const
 	{

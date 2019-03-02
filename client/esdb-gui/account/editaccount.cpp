@@ -55,13 +55,15 @@ void EditAccount::setup(QString name)
 	m_accountNameWarning->setStyleSheet("QLabel { color : red; }");
 	m_accountNameWarning->hide();
 
-	m_usernameField = new DatabaseField("username", 120, NULL);
-	m_groupField = new DatabaseField("group", 120, NULL);
-	m_emailField = new DatabaseField("email", 120, NULL);
+    m_usernameField = new DatabaseField("username", 120, nullptr);
+    m_groupField = new DatabaseField("group", 120, nullptr);
+    m_emailField = new DatabaseField("email", 120, nullptr);
 	m_passwordEdit = new PasswordEdit();
 	m_browseUrlButton = new QPushButton(QIcon(":/images/browse.png"),"");
 	m_browseUrlButton->setToolTip("Browse");
 	connect(m_browseUrlButton, SIGNAL(pressed()), this, SLOT(browseUrl()));
+
+    connect(m_usernameField, SIGNAL(editingFinished()), this, SLOT(usernameEditingFinished()));
 
 	m_urlField = new DatabaseField("URL", 140, m_browseUrlButton);
 
@@ -96,6 +98,7 @@ void EditAccount::setup(QString name)
 EditAccount::~EditAccount()
 {
 }
+
 
 void EditAccount::accountNameEdited()
 {
@@ -139,6 +142,13 @@ void EditAccount::applyChanges(esdbEntry *ent)
 	acct->path = m_groupField->text();
 	acct->fields = acct->fields;
 	m_genericFieldsEditor->saveFields(acct->fields);
+}
+
+void EditAccount::usernameEditingFinished()
+{
+    if (m_emailField->text().isEmpty() && isEmail(m_usernameField->text())) {
+        m_emailField->setText(m_usernameField->text());
+    }
 }
 
 esdbEntry *EditAccount::createEntry(int id)
