@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 	if (app.qmlEngine().rootObjects().isEmpty())
 		return -1;
 
-	app.init(false);
+    app.init(false, QString());
 
 	int rc = app.exec();
 	__android_log_print(ANDROID_LOG_DEBUG, "SIGNET_ACTIVITY", "App exit %d\n", rc);

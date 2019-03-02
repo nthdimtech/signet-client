@@ -45,6 +45,7 @@ QVariant EsdbEntryModel::data(const QModelIndex &index, int role) const
 
 int EsdbEntryModel::rowCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent);
 	return m_entries->length();
 }
 
@@ -71,7 +72,6 @@ SignetDeviceManager::SignetDeviceManager(QQmlApplicationEngine &engine, QObject 
 
 	QObject *mainLoader = findQMLObject("mainLoader");
 	connect(mainLoader, SIGNAL(loaded()), this, SLOT(loaded()));
-
 	app->setAsyncListener(this);
 
 	connect(app, SIGNAL(deviceOpened()), this, SLOT(deviceOpened()));
@@ -102,7 +102,7 @@ SignetDeviceManager::SignetDeviceManager(QQmlApplicationEngine &engine, QObject 
 
 void SignetDeviceManager::keyGenerationFinished()
 {
-	::signetdev_login(NULL, &m_signetdevCmdToken,
+    ::signetdev_login(nullptr, &m_signetdevCmdToken,
 			  (u8 *)m_keyGeneratorThread->getKey().data(),
 			  m_keyGeneratorThread->getKey().length(), 0);
 }
@@ -115,7 +115,7 @@ void SignetDeviceManager::connectingTimer()
 void SignetDeviceManager::deviceOpened()
 {
 	m_connectingTimer.stop();
-	::signetdev_startup(NULL, &m_signetdevCmdToken);
+    ::signetdev_startup(nullptr, &m_signetdevCmdToken);
 }
 
 void SignetDeviceManager::connectionError()
@@ -133,7 +133,7 @@ void SignetDeviceManager::deviceClosed()
 
 QObject *SignetDeviceManager::findQMLObject(QString name)
 {
-	QObject *ret = NULL;
+    QObject *ret = nullptr;
 	for (auto o : m_qmlEngine.rootObjects()) {
 		ret = o->findChild<QObject *>(name);
 		if (ret)
@@ -169,6 +169,7 @@ void SignetDeviceManager::setLoaderSource(QString str)
 
 void SignetDeviceManager::loaded()
 {
+    m_qmlEngine.clearComponentCache();
 	switch (m_deviceState) {
 	case SignetApplication::STATE_LOGGED_OUT: {
 		QObject *loader = findQMLObject("mainLoader");
@@ -182,7 +183,7 @@ void SignetDeviceManager::loaded()
 		QObject *loader = findQMLObject("mainLoader");
 		m_loadingProgress = loader->findChild<QObject *>("loadingProgress");
 		m_entriesLoaded = 0;
-		::signetdev_read_all_uids(NULL, &m_signetdevCmdToken, 1);
+        ::signetdev_read_all_uids(nullptr, &m_signetdevCmdToken, 1);
 		} break;
 	case SignetApplication::STATE_LOGGED_IN: {
 		QObject *loader = findQMLObject("mainLoader");
@@ -212,7 +213,7 @@ void SignetDeviceManager::loginSignal(QString password)
 void SignetDeviceManager::lockSignal()
 {
 	__android_log_print(ANDROID_LOG_DEBUG, "SIGNET_ACTIVITY", "Lock");
-	::signetdev_logout(NULL, &m_signetdevCmdToken);
+    ::signetdev_logout(nullptr, &m_signetdevCmdToken);
 }
 
 void SignetDeviceManager::filterTextChangedSignal(QString text)
@@ -247,7 +248,7 @@ void SignetDeviceManager::copyPasswordSignal(int index)
 {
 	if (index >= 0) {
 		account *a = (account *)m_entriesFiltered.at(index);
-		::signetdev_read_uid(NULL, &m_signetdevCmdToken, a->id, 0);
+        ::signetdev_read_uid(nullptr, &m_signetdevCmdToken, a->id, 0);
 	}
 }
 
@@ -302,14 +303,13 @@ void SignetDeviceManager::signetdevStartupResp(signetdevCmdRespInfo info, signet
 	int code = info.resp_code;
 	SignetApplication *app = SignetApplication::get();
 	QByteArray salt;
-	int keyLength;
-	int saltLength;
+    int keyLength = LOGIN_KEY_SZ;
+    int saltLength = SALT_SZ_V1;
 	int root_block_format = resp.root_block_format;
 	int device_state = resp.device_state;
 	int db_format = resp.db_format;
 	if (root_block_format >= 2) {
-		saltLength = AES_256_KEY_SIZE;
-		keyLength = AES_256_KEY_SIZE;
+        saltLength = SALT_SZ_V2;
 	}
 	salt = QByteArray((const char *)resp.salt, saltLength);
 	app->setSaltLength(saltLength);
@@ -392,17 +392,20 @@ void  SignetDeviceManager::signetdevCmdResp(signetdevCmdRespInfo info)
 
 void SignetDeviceManager::signetdevEventAsync(int eventType)
 {
+    Q_UNUSED(eventType);
 	__android_log_print(ANDROID_LOG_DEBUG, "SIGNET_ACTIVITY", "Button Event");
 	QAndroidJniObject::callStaticMethod<void>("com/nthdimtech/SignetService", "foregroundActivity");
 }
 
 void SignetDeviceManager::signetdevEvent(int eventType)
 {
+    Q_UNUSED(eventType);
 }
 
 void SignetDeviceManager::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_get_progress_resp_data data)
 {
-
+    Q_UNUSED(info);
+    Q_UNUSED(data);
 }
 
 void SignetDeviceManager::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask)
@@ -422,7 +425,7 @@ void SignetDeviceManager::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, in
 		m_loadingProgress->setProperty("value", QVariant(m_entriesLoaded));
 	}
 	if (tmp.type == ESDB_TYPE_ACCOUNT) {
-		esdbEntry *entry = m_acctTypeModule.decodeEntry(id, tmp.revision, NULL, b);
+        esdbEntry *entry = m_acctTypeModule.decodeEntry(id, tmp.revision, nullptr, b);
 		if (entry) {
 			m_entries.push_back(entry);
 		}
@@ -463,7 +466,7 @@ void SignetDeviceManager::signetdevReadUIdResp(signetdevCmdRespInfo info, QByteA
 		esdbEntry_1 tmp(-1);
 		tmp.fromBlock(b);
 		QClipboard *clipboard = SignetApplication::get()->clipboard();
-		esdbEntry *entry = m_acctTypeModule.decodeEntry(-1, tmp.revision, NULL, b);
+        esdbEntry *entry = m_acctTypeModule.decodeEntry(-1, tmp.revision, nullptr, b);
 		if (entry) {
 			account *a = (account *)entry;
 			clipboard->setText(a->password);

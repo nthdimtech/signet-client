@@ -241,7 +241,7 @@ void SignetApplication::init(bool startInTray, QString dbFilename)
 #else
 	m_signetDeviceManager = new SignetDeviceManager(m_qmlEngine, this);
 	Q_UNUSED(startInTray);
-	Q_UNUSED(dbFIlename);
+    Q_UNUSED(dbFilename);
 #endif
 }
 

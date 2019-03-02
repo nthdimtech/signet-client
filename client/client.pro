@@ -72,16 +72,7 @@ LIBS += -lhid -lsetupapi -lz -lgcrypt -lgpg-error
 #
 
 SOURCES += ../signet-base/signetdev/host/signetdev.c \
-    ../signet-base/signetdev/host/signetdev_emulate.c \
-    desktop/cleartextpasswordeditor.cpp \
-    desktop/cleartextpasswordselector.cpp \
-    esdb/generictype/esdbgenerictypemodule.cpp \
-    esdb-gui/generictype/generictypeactionbar.cpp \
-    esdb-gui/editentrydialog.cpp \
-    esdb-gui/generic/editgeneric.cpp \
-    esdb-gui/bookmark/editbookmark.cpp \
-    esdb-gui/generictype/editgenerictype.cpp \
-    desktop/datatypelistmodel.cpp
+    ../signet-base/signetdev/host/signetdev_emulate.c 
 
 macx|linux-g++ {
 HEADERS += import/passimporter.h \
@@ -124,7 +115,8 @@ SOURCES += esdb/esdb.cpp \
     esdb/generic/generic.cpp \
     esdb/generic/generictypedesc.cpp \
     esdb/generic/esdbgenericmodule.cpp \
-    esdb/generic/genericfields.cpp
+    esdb/generic/genericfields.cpp \
+    esdb/generictype/esdbgenerictypemodule.cpp
 
 HEADERS += esdb/esdb.h \
     esdb/esdbtypemodule.h \
@@ -136,15 +128,11 @@ HEADERS += esdb/esdb.h \
     esdb/generic/genericfields.h \
     esdb/generic/generictypedesc.h \
     esdb/generic/esdbgenericmodule.h \
-    desktop/cleartextpasswordeditor.h \
-    desktop/cleartextpasswordselector.h \
-    esdb/generictype/esdbgenerictypemodule.h \
-    esdb-gui/generictype/generictypeactionbar.h \
-    esdb-gui/editentrydialog.h \
-    esdb-gui/generic/editgeneric.h \
-    esdb-gui/bookmark/editbookmark.h \
-    esdb-gui/generictype/editgenerictype.h \
-    desktop/datatypelistmodel.h
+    esdb/generictype/esdbgenerictypemodule.h
+
+
+win32|linux-g++|macx {
+
 #
 # ESDB GUI sources
 #
@@ -162,7 +150,12 @@ SOURCES += esdb-gui/esdbmodel.cpp \
     esdb-gui/account/editaccount.cpp \
     esdb-gui/account/accountactionbar.cpp \
     esdb-gui/bookmark/bookmarkactionbar.cpp \
-    esdb-gui/generic/genericactionbar.cpp
+    esdb-gui/generic/genericactionbar.cpp \
+    esdb-gui/generictype/generictypeactionbar.cpp \
+    esdb-gui/editentrydialog.cpp \
+    esdb-gui/generic/editgeneric.cpp \
+    esdb-gui/bookmark/editbookmark.cpp \
+    esdb-gui/generictype/editgenerictype.cpp \
 
 HEADERS +=  esdb-gui/esdbmodel.h \
     esdb-gui/databasefield.h \
@@ -178,7 +171,13 @@ HEADERS +=  esdb-gui/esdbmodel.h \
     esdb-gui/account/editaccount.h \
     esdb-gui/account/accountactionbar.h \
     esdb-gui/bookmark/bookmarkactionbar.h \
-    esdb-gui/generic/genericactionbar.h
+    esdb-gui/generic/genericactionbar.h \
+    esdb-gui/generictype/generictypeactionbar.h \
+    esdb-gui/editentrydialog.h \
+    esdb-gui/generic/editgeneric.h \
+    esdb-gui/bookmark/editbookmark.h \
+    esdb-gui/generictype/editgenerictype.h 
+}
 
 #
 # Common Misc
@@ -248,6 +247,8 @@ HEADERS += import/keepassunlockdialog.h \
     import/csvimporter.h \
     import/csvimportconfigure.h
 
+
+
 #
 # Desktop applicaiton sources
 #
@@ -264,7 +265,11 @@ SOURCES += desktop/main.cpp \
         desktop/searchlistbox.cpp \
         desktop/buttonwaitdialog.cpp \
         desktop/searchfilteredit.cpp \
-        desktop/loginwindow.cpp
+        desktop/loginwindow.cpp \
+	desktop/cleartextpasswordeditor.cpp \
+	desktop/cleartextpasswordselector.cpp \
+	desktop/datatypelistmodel.cpp
+
 
 HEADERS +=  desktop/mainwindow.h \
         desktop/localsettings.h \
@@ -279,7 +284,10 @@ HEADERS +=  desktop/mainwindow.h \
         desktop\searchlistbox.h \
         desktop\buttonwaitdialog.h \
         desktop\searchfilteredit.h \
-        desktop\loginwindow.h
+        desktop\loginwindow.h \
+	desktop/cleartextpasswordeditor.h \
+	desktop/cleartextpasswordselector.h \
+	desktop/datatypelistmodel.h
 
 #
 # Qt single appliction

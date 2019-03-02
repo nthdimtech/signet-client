@@ -17,7 +17,8 @@ QVariant EsdbGroupModel::data(const QModelIndex &index, int role) const
 
 int EsdbGroupModel::rowCount(const QModelIndex &parent) const
 {
-	return m_entries->length();
+    Q_UNUSED(parent);
+    return m_entries->length();
 }
 
 QString EsdbGroupModel::text(int index)

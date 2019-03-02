@@ -13,7 +13,6 @@ import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbConstants;
 import android.content.BroadcastReceiver;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.app.Application;
 import android.app.Service;
@@ -24,8 +23,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import android.content.ComponentName;
 
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
+//import android.support.v4.content.LocalBroadcastManager;
+//import android.support.v4.app.ActivityCompat;
+//import android.support.v4.content.ContextCompat;
 import android.content.pm.PackageManager;
 import android.Manifest;
 

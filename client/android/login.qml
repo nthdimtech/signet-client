@@ -45,8 +45,9 @@ Item {
                     id: password
                     padding: 3
                     width: parent.parent.width/2
-                    focus: true
+                    focus: false
                     echoMode: TextInput.Password
+                    inputMethodHints: Qt.ImhNoPredictiveText | Qt.ImhSensitiveData
                     onTextChanged: {
                         badpasswordWarning.visible = false;
                     }
