@@ -6,8 +6,8 @@
 
 esdbEntry *esdbAccountModule::decodeEntry(int id, int revision, esdbEntry *prev, struct block *blk) const
 {
-	esdbEntry *entry = NULL;
-	account *acct = NULL;
+    esdbEntry *entry = nullptr;
+    account *acct = nullptr;
 	account_0 rev0(id);
 	account_1 rev1(id);
 	account_2 rev2(id);
@@ -15,8 +15,6 @@ esdbEntry *esdbAccountModule::decodeEntry(int id, int revision, esdbEntry *prev,
 	account_4 rev4(id);
 	account_5 rev5(id);
 	account_6 rev6(id);
-
-
 
 	if (!prev) {
 		acct = new account(id);
@@ -135,7 +133,7 @@ esdbEntry *esdbAccountModule::decodeEntry(const QVector<genericField> &fields, b
 	acct->acctName = fieldValues[0];
 	if (!acct->acctName.size()) {
 		delete acct;
-		return NULL;
+        return nullptr;
 	}
 	acct->userName = fieldValues[1];
 	acct->password = fieldValues[2];

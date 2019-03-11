@@ -185,7 +185,8 @@ public:
 	const QMap<int, esdbEntry *> *entryToEntryMap(esdbEntry *entry);
 
 	QList<esdbTypeModule *> getTypeModules();
-	const QMap<int, esdbEntry *> *typeNameToEntryMap(QString name);
+    const QMap<int, esdbEntry *> *typeNameToEntryMap(QString name);
+    void getCurrentGroups(QString typeName, QStringList &groups);
 signals:
 	void abort();
 	void enterDeviceState(int);

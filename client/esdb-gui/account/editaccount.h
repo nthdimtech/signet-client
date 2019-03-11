@@ -39,9 +39,10 @@ class EditAccount : public EditEntryDialog
 	virtual void applyChanges(esdbEntry *);
 	virtual esdbEntry *createEntry(int id);
 	virtual void undoChanges();
+    QStringList m_groupList;
 public:
-	EditAccount(int id, QString entryName, QWidget *parent = 0);
-	EditAccount(account *generic, QWidget *parent = 0);
+    EditAccount(int id, QString entryName, QStringList groupList, QWidget *parent = 0);
+    EditAccount(account *generic, QStringList groupList, QWidget *parent = 0);
 	virtual ~EditAccount();
 public slots:
 	void browseUrl();

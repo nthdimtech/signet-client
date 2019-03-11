@@ -54,6 +54,10 @@ public:
 		return m_selectedEntry;
 	}
 
+    QString typeName() const {
+        return m_typeName;
+    }
+
 	void selectEntry(esdbEntry *entry);
 
 	virtual void entrySelected(esdbEntry *entry)

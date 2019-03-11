@@ -107,6 +107,18 @@ LoggedInWidget::typeData::~typeData()
 	actionBar->deleteLater();
 }
 
+void LoggedInWidget::getCurrentGroups(QString typeName, QStringList &groups)
+{
+    auto entryMap = typeNameToEntryMap(typeName);
+    if (entryMap) {
+        for (auto entry : *entryMap) {
+            if (!groups.contains(entry->getPath())) {
+                groups.append(entry->getPath());
+            }
+        }
+    }
+}
+
 LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, QWidget *parent) : QWidget(parent),
 	m_activeType(nullptr),
 	m_selectedEntry(nullptr),

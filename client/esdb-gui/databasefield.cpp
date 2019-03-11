@@ -16,25 +16,43 @@ extern "C" {
 DatabaseField::DatabaseField(const QString &name, int width, QList<QWidget *> &widgets, QWidget *parent) : QWidget(parent),
 	m_buttonWait(nullptr),
 	m_name(name),
-	m_signetdevCmdToken(-1)
+    m_signetdevCmdToken(-1),
+    m_fieldEdit(nullptr),
+    m_customEdit(nullptr)
 {
-	init(width, widgets);
+    init(width, widgets, false);
 }
 
+DatabaseField::~DatabaseField()
+{
+
+}
 
 DatabaseField::DatabaseField(const QString &name, int width, QWidget *middle, QWidget *parent) : QWidget(parent),
 	m_buttonWait(nullptr),
 	m_name(name),
-	m_signetdevCmdToken(-1)
+    m_signetdevCmdToken(-1),
+    m_fieldEdit(nullptr),
+    m_customEdit(nullptr)
 {
 
 	QList<QWidget *> widgets;
 	if (middle)
 		widgets.append(middle);
-	init(width, widgets);
+    init(width, widgets, false);
 }
 
-void DatabaseField::init(int width, QList<QWidget *> &widgets)
+
+DatabaseField::DatabaseField(const QString &name, QWidget *parent) : QWidget(parent),
+    m_buttonWait(nullptr),
+    m_name(name),
+    m_signetdevCmdToken(-1),
+    m_fieldEdit(nullptr),
+    m_customEdit(nullptr)
+{
+}
+
+void DatabaseField::init(int width, QList<QWidget *> &widgets, bool stretch)
 {
 	SignetApplication *app = SignetApplication::get();
 
@@ -46,27 +64,40 @@ void DatabaseField::init(int width, QList<QWidget *> &widgets)
 	type_button->setFocusPolicy(Qt::NoFocus);
 	connect(type_button, SIGNAL(clicked()), this, SLOT(typeFieldUi()));
 	type_button->setEnabled(!SignetApplication::get()->isDeviceEmulated());
+    type_button->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
+
 
 	QPushButton *copy_button = new QPushButton(QIcon(":/images/clipboard.png"),"");
 	copy_button->setToolTip("Copy");
-	copy_button->setFocusPolicy(Qt::NoFocus);
+    copy_button->setFocusPolicy(Qt::NoFocus);
+    copy_button->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
 	connect(copy_button, SIGNAL(clicked()), this, SLOT(copyFieldUi()));
 
-	m_fieldEdit = new QLineEdit();
-	m_fieldEdit->setMinimumWidth(width);
+    QWidget *editWidget;
+    if (!m_customEdit)  {
+        m_fieldEdit = new QLineEdit();
+        connect(m_fieldEdit, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
+        connect(m_fieldEdit, SIGNAL(textEdited(QString)), this, SIGNAL(textEdited(QString)));
+        m_fieldEdit->setReadOnly(SignetApplication::get()->isDeviceEmulated());
+        editWidget = m_fieldEdit;
+    } else {
+        editWidget = m_customEdit;
+    }
 
-	connect(m_fieldEdit, SIGNAL(editingFinished()), this, SIGNAL(editingFinished()));
-	connect(m_fieldEdit, SIGNAL(textEdited(QString)), this, SIGNAL(textEdited(QString)));
+    editWidget->setMinimumWidth(width);
 
-	QHBoxLayout *layout = new QHBoxLayout();
+    QHBoxLayout *layout = new QHBoxLayout();
 	layout->setContentsMargins(0,0,0,0);
 	QString capitalized_name = m_name;
 	capitalized_name[0] = capitalized_name[0].toUpper();
 	layout->addWidget(new QLabel(capitalized_name));
-	layout->addWidget(m_fieldEdit);
-	m_fieldEdit->setReadOnly(SignetApplication::get()->isDeviceEmulated());
+    layout->addWidget(editWidget);
+    if (stretch) {
+        layout->addStretch();
+    }
 
 	for (auto w : widgets) {
+        w->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed));
 		layout->addWidget(w);
 	}
 	layout->addWidget(copy_button);
@@ -81,13 +112,17 @@ QString DatabaseField::text() const
 
 void DatabaseField::setText(const QString &s)
 {
-	m_fieldEdit->setText(s);
+    m_fieldEdit->setText(s);
+}
+
+QLineEdit *DatabaseField::getEditWidget() {
+    return m_fieldEdit;
 }
 
 void DatabaseField::retryTypeData()
 {
-	if (m_buttonWait) {
-		m_buttonWait->resetTimeout();
+    if (m_buttonWait) {
+        m_buttonWait->resetTimeout();
 	}
 	::signetdev_button_wait(NULL, &m_signetdevCmdToken);
 }

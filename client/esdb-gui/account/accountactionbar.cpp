@@ -13,8 +13,10 @@
 
 AccountActionBar::AccountActionBar(LoggedInWidget *parent, bool writeEnabled, bool typeEnabled) :
 	EsdbActionBar(parent, "Account", writeEnabled, typeEnabled),
+    m_loggedInWidget(parent),
 	m_quickTypeState(QUICKTYPE_STATE_INITIAL),
-	m_quickTypeMode(false)
+    m_quickTypeMode(false)
+
 {
 	m_DeleteButton = addDeleteButton();
 	connect(m_DeleteButton, SIGNAL(pressed()), this, SLOT(deleteAccountUI()));
@@ -56,13 +58,15 @@ AccountActionBar::AccountActionBar(LoggedInWidget *parent, bool writeEnabled, bo
 void AccountActionBar::newAccountFinished(int)
 {
 	m_newAccountDlg->deleteLater();
-	m_newAccountDlg = NULL;
+    m_newAccountDlg = nullptr;
 	m_parent->finishTask(false);
 }
 
 void AccountActionBar::newInstanceUI(int id, const QString &name)
 {
-	m_newAccountDlg = new EditAccount(id, name, this);
+    QStringList groupList;
+    m_loggedInWidget->getCurrentGroups("Accounts", groupList);
+    m_newAccountDlg = new EditAccount(id, name, groupList, this);
 	QObject::connect(m_newAccountDlg, SIGNAL(entryCreated(esdbEntry *)), this, SLOT(entryCreated(esdbEntry *)));
 	QObject::connect(m_newAccountDlg, SIGNAL(finished(int)), this, SLOT(newAccountFinished(int)));
 	m_newAccountDlg->show();
@@ -324,7 +328,9 @@ void AccountActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 	account *acct = static_cast<account *>(entry);
 	switch (intent) {
 	case INTENT_OPEN_ENTRY: {
-		EditAccount *ea = new EditAccount(acct, m_parent);
+        QStringList groupList;
+        m_loggedInWidget->getCurrentGroups("Accounts", groupList);
+        EditAccount *ea = new EditAccount(acct, groupList, m_parent);
 		connect(ea, SIGNAL(abort()), this, SIGNAL(abort()));
 		connect(ea, SIGNAL(entryChanged(int)), m_parent, SLOT(entryChanged(int)));
 		connect(ea, SIGNAL(finished(int)), ea, SLOT(deleteLater()));

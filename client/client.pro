@@ -147,6 +147,7 @@ SOURCES += esdb-gui/esdbmodel.cpp \
     esdb-gui/genericfieldeditfactory.cpp \
     esdb-gui/genericfieldseditor.cpp \
     esdb-gui/typedescedit.cpp \
+    esdb-gui/groupdatabasefield.cpp \
     esdb-gui/account/editaccount.cpp \
     esdb-gui/account/accountactionbar.cpp \
     esdb-gui/bookmark/bookmarkactionbar.cpp \
@@ -155,7 +156,7 @@ SOURCES += esdb-gui/esdbmodel.cpp \
     esdb-gui/editentrydialog.cpp \
     esdb-gui/generic/editgeneric.cpp \
     esdb-gui/bookmark/editbookmark.cpp \
-    esdb-gui/generictype/editgenerictype.cpp \
+    esdb-gui/generictype/editgenerictype.cpp 
 
 HEADERS +=  esdb-gui/esdbmodel.h \
     esdb-gui/databasefield.h \
@@ -168,6 +169,7 @@ HEADERS +=  esdb-gui/esdbmodel.h \
     esdb-gui/genericfieldeditfactory.h \
     esdb-gui/genericfieldseditor.h \
     esdb-gui/typedescedit.h \
+    esdb-gui/groupdatabasefield.h \
     esdb-gui/account/editaccount.h \
     esdb-gui/account/accountactionbar.h \
     esdb-gui/bookmark/bookmarkactionbar.h \

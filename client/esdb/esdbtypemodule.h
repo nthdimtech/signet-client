@@ -28,14 +28,12 @@ public:
 	virtual esdbEntry *decodeEntry(const QVector<genericField> &fields, bool aliasMatch = true) const {
 		Q_UNUSED(fields);
 		Q_UNUSED(aliasMatch);
-		return NULL;
+        return nullptr;
 	}
 
 	esdbTypeModule(const QString &name);
 	esdbTypeModule();
-	virtual ~esdbTypeModule()
-	{
-	}
+    virtual ~esdbTypeModule();
 
 	virtual QString name() const
 	{

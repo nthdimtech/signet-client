@@ -21,22 +21,27 @@ extern "C" {
 #include "signetdev/host/signetdev.h"
 };
 
-EditAccount::EditAccount(int id, QString entryName, QWidget *parent) :
+EditAccount::EditAccount(int id, QString entryName, QStringList groupList, QWidget *parent) :
 	EditEntryDialog("Account", id, parent),
-	m_acct(NULL)
+    m_acct(nullptr),
+    m_groupList(groupList)
 {
 	setup(entryName);
 }
 
-EditAccount::EditAccount(account *acct, QWidget *parent) :
+EditAccount::EditAccount(account *acct, QStringList groupList, QWidget *parent) :
 	EditEntryDialog("Account", acct, parent),
-	m_acct(acct)
+    m_acct(acct),
+    m_groupList(groupList)
 {
 	setup(acct->acctName);
 	m_settingFields = true;
 	setAccountValues();
 	m_settingFields = false;
 }
+
+#include "groupdatabasefield.h"
+
 
 void EditAccount::setup(QString name)
 {
@@ -56,7 +61,7 @@ void EditAccount::setup(QString name)
 	m_accountNameWarning->hide();
 
     m_usernameField = new DatabaseField("username", 120, nullptr);
-    m_groupField = new DatabaseField("group", 120, nullptr);
+    m_groupField = new GroupDatabaseField(120, m_groupList ,nullptr);
     m_emailField = new DatabaseField("email", 120, nullptr);
 	m_passwordEdit = new PasswordEdit();
 	m_browseUrlButton = new QPushButton(QIcon(":/images/browse.png"),"");
@@ -76,7 +81,7 @@ void EditAccount::setup(QString name)
 	connect(m_emailField, SIGNAL(textEdited(QString)),
 		this, SLOT(edited()));
 	connect(m_urlField, SIGNAL(textEdited(QString)),
-		this, SLOT(textEdited()));
+        this, SLOT(edited()));
 	connect(m_genericFieldsEditor, SIGNAL(edited()),
 		this, SLOT(edited()));
 	connect(m_groupField, SIGNAL(textEdited(QString)),
