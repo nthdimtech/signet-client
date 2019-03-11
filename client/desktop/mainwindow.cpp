@@ -1695,34 +1695,55 @@ void MainWindow::enterDeviceState(int state)
 
 void MainWindow::openUi()
 {
-	QFileDialog fd(this);
+    QFileDialog *fd = new QFileDialog(this);
 	QStringList filters;
+    fd->setOption(QFileDialog::DontUseNativeDialog , true);
+    fd->setDirectory(m_settings.localBackupPath);
 
-	filters.append("*.sdb");
-	filters.append("*");
-	fd.setNameFilters(filters);
-	fd.setFileMode(QFileDialog::AnyFile);
-	fd.setAcceptMode(QFileDialog::AcceptOpen);
-	fd.setDirectory(m_settings.localBackupPath);
-	fd.setWindowModality(Qt::WindowModal);
-	if (!fd.exec())
-		return;
-	QStringList sl = fd.selectedFiles();
-	if (sl.empty()) {
-		return;
-	}
-	QString fn = sl.first();
-	if (signetdev_emulate_init(fn.toLatin1().data())) {
-		m_dbFilename = fn;
-		::signetdev_close_connection();
-		if (::signetdev_emulate_begin()) {
-			enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
-			enterDeviceState(SignetApplication::STATE_CONNECTING);
-			::signetdev_startup(nullptr, &m_signetdevCmdToken);
-		}
-	} else {
-		SignetApplication::messageBoxError(QMessageBox::Warning, "Open", "Database file not valid", this);
-	}
+    QDir backupPath(m_settings.localBackupPath);
+    if (backupPath.exists()) {
+        QStringList nameFilters;
+        nameFilters.push_back("*.sdb");
+        QFileInfoList files = backupPath.entryInfoList(nameFilters, QDir::Files, QDir::Time);
+        if (files.size()) {
+            QApplication::processEvents();
+            fd->selectFile(files.first().fileName());
+        }
+    }
+    filters.append("*.sdb");
+    filters.append("*");
+    fd->setNameFilters(filters);
+    fd->setFileMode(QFileDialog::AnyFile);
+    fd->setAcceptMode(QFileDialog::AcceptOpen);
+    fd->setWindowModality(Qt::WindowModal);
+    m_openFileDialog = fd;
+    connect(m_openFileDialog, SIGNAL(finished(int)), this, SLOT(openFileDialogFinished(int)));
+    m_openFileDialog->show();
+}
+
+void MainWindow::openFileDialogFinished(int rc)
+{
+    QFileDialog *fd = m_openFileDialog;
+    m_openFileDialog->deleteLater();
+    m_openFileDialog = nullptr;
+    if (!rc)
+        return;
+    QStringList sl = fd->selectedFiles();
+    if (sl.empty()) {
+        return;
+    }
+    QString fn = sl.first();
+    if (signetdev_emulate_init(fn.toLatin1().data())) {
+        m_dbFilename = fn;
+        ::signetdev_close_connection();
+        if (::signetdev_emulate_begin()) {
+            enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
+            enterDeviceState(SignetApplication::STATE_CONNECTING);
+            ::signetdev_startup(nullptr, &m_signetdevCmdToken);
+        }
+    } else {
+        SignetApplication::messageBoxError(QMessageBox::Warning, "Open", "Database file not valid", this);
+    }
 }
 
 void MainWindow::closeUi()

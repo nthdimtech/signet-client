@@ -46,7 +46,7 @@ class keePassImportController;
 class DatabaseImportController;
 class DatabaseImporter;
 class LoggedInWidget;
-
+class QFileDialog;
 struct fwSection {
 	QString name;
 	unsigned int lma;
@@ -180,7 +180,8 @@ private slots:
 	void importDone(bool success);
 	void closeUi();
 	void keyboardLayoutNotConfiguredDialogFinished(int rc);
-	void backupDatabasePromptDialogFinished(int rc);
+    void backupDatabasePromptDialogFinished(int rc);
+    void openFileDialogFinished(int rc);
 public slots:
 	void signetDevEvent(int);
 	void deviceOpened();
@@ -201,7 +202,10 @@ public slots:
 	void operationFinished(int);
 	void enterDeviceState(int);
 
-	void openUi();
+    void openUi();
+private:
+    QFileDialog *m_openFileDialog;
+public:
 	void logoutUi();
 	void changePasswordUi();
 	void eraseDeviceUi();
