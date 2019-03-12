@@ -5,7 +5,7 @@
 #include <QTimer>
 
 ButtonWaitDialog::ButtonWaitDialog(QString title, QString action, QWidget *parent, bool longPress) :
-	QMessageBox(QMessageBox::NoIcon, title, "", QMessageBox::Cancel, parent, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint | Qt::WindowStaysOnTopHint),
+    QMessageBox(QMessageBox::NoIcon, title, "", QMessageBox::Cancel, parent, Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint),
 	m_timeLeft(sTimeoutPeriod),
 	m_action(action),
 	m_longPress(longPress)

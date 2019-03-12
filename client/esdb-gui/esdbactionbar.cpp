@@ -71,17 +71,16 @@ void EsdbActionBar::openEntry(esdbEntry *entry)
 	}
 }
 
-void EsdbActionBar::accessEntry(esdbEntry *entry, int intent, QString message, bool waitDialog, bool deselect)
+void EsdbActionBar::accessEntry(esdbEntry *entry, int intent, QString message, bool backgroundApp, bool deselect)
 {
-	if (!waitDialog) {
-		m_buttonWaitDialog = nullptr;
-		background();
-	} else {
-		QString title = entry->getTitle();
-		m_buttonWaitDialog = new ButtonWaitDialog(title, message, m_parent);
-		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(accessAccountFinished(int)));
-		m_buttonWaitDialog->show();
-	}
+    QString title = entry->getTitle();
+    m_buttonWaitDialog = new ButtonWaitDialog(title, message, m_parent);
+    connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(accessAccountFinished(int)));
+    m_buttonWaitDialog->show();
+
+    if (backgroundApp) {
+        background();
+    }
 	m_accessDeselect = deselect;
 	m_parent->beginIDTask(entry->id, LoggedInWidget::ID_TASK_READ, intent, this);
 }

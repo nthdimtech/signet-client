@@ -18,7 +18,7 @@ class ButtonWaitDialog : public QMessageBox
 	// the timeout
 	const static int sTimeoutPeriod = 10;
 public:
-	ButtonWaitDialog(QString title, QString action, QWidget *parent = 0, bool longPress = false);
+    ButtonWaitDialog(QString title, QString action, QWidget *parent = nullptr, bool longPress = false);
 	void resetTimeout();
 public slots:
 	void signetdevTimerEvent(int);

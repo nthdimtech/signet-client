@@ -14,9 +14,7 @@
 AccountActionBar::AccountActionBar(LoggedInWidget *parent, bool writeEnabled, bool typeEnabled) :
 	EsdbActionBar(parent, "Account", writeEnabled, typeEnabled),
     m_loggedInWidget(parent),
-	m_quickTypeState(QUICKTYPE_STATE_INITIAL),
-    m_quickTypeMode(false)
-
+    m_quickTypeState(QUICKTYPE_STATE_INITIAL)
 {
 	m_DeleteButton = addDeleteButton();
 	connect(m_DeleteButton, SIGNAL(pressed()), this, SLOT(deleteAccountUI()));
@@ -129,9 +127,7 @@ void AccountActionBar::defaultAction(esdbEntry *entry)
 	QPoint p = r.bottomLeft();
 	p.setX(p.x() + 15);
 	p.setY(p.y() + 3);
-	m_quickTypeMode = true;
 	menu->exec(p);
-	m_quickTypeMode = false;
 }
 
 int AccountActionBar::esdbType()
@@ -159,17 +155,15 @@ void AccountActionBar::browseUrlUI()
 		QUrl url(entry->getUrl());
 		if (url.isValid() && !url.isEmpty()) {
 			m_quickTypeState = QUICKTYPE_STATE_BROWSE;
-			if (m_quickTypeMode) {
-				background();
-			}
-			browseUrl(entry);
+            background();
+            browseUrl(entry);
 		}
 	}
 }
 
 void AccountActionBar::accessAccountUI(bool typeData, bool username, bool password)
 {
-	account *acct = (account *)selectedEntry();
+    account *acct = static_cast<account *>(selectedEntry());
 	if (acct) {
 		accessAccount(acct, typeData, username, password);
 	}
@@ -212,7 +206,7 @@ void AccountActionBar::copyPassword()
 {
 	esdbEntry *entry = selectedEntry();
 	if (entry) {
-		accessAccount(static_cast<account *>(entry), false, false, true);
+        accessAccount(static_cast<account *>(entry), false, false, true);
 	}
 }
 
@@ -246,8 +240,8 @@ void AccountActionBar::accessAccount(account *acct, bool typeData, bool username
 		message.append("for ");
 		message.append(acct->acctName);
 	}
-	accessEntry(acct, doTypeData ? INTENT_TYPE_ENTRY : INTENT_COPY_ENTRY,
-		    message, !m_quickTypeMode, m_accessUsername && m_accessPassword && doTypeData);
+    accessEntry(acct, doTypeData ? INTENT_TYPE_ENTRY : INTENT_COPY_ENTRY,
+            message, true, m_accessUsername && m_accessPassword && doTypeData);
 }
 
 void AccountActionBar::typeAccountData(account *acct)
@@ -299,7 +293,7 @@ void AccountActionBar::typeAccountData(account *acct)
 		msg->deleteLater();
 		return;
 	} else {
-		::signetdev_type_w(NULL, &m_signetdevCmdToken,
+        ::signetdev_type_w(nullptr, &m_signetdevCmdToken,
 				       (u16 *)uKeys.data(), uKeys.length());
 	}
 }

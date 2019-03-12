@@ -35,7 +35,6 @@ protected:
 
 	void deleteEntry();
 	void openEntry(esdbEntry *entry);
-	void accessEntry(esdbEntry *entry, QString message, bool waitDialog);
 	void browseUrl(esdbEntry *entry);
 	ButtonWaitDialog *m_buttonWaitDialog;
 
@@ -45,7 +44,7 @@ protected:
 		INTENT_COPY_ENTRY,
 		INTENT_TYPE_ENTRY
 	};
-	void accessEntry(esdbEntry *entry, int intent, QString message, bool waitDialog, bool deselect);
+    void accessEntry(esdbEntry *entry, int intent, QString message, bool backgroundApp, bool deselect);
 public:
 	explicit EsdbActionBar(LoggedInWidget *parent, QString typeName, bool writeEnabled, bool typeEnabled);
 

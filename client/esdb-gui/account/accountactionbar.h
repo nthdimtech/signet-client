@@ -52,7 +52,6 @@ class AccountActionBar : public EsdbActionBar
 		QUICKTYPE_STATE_PASSWORD
 	} m_quickTypeState;
 
-	bool m_quickTypeMode;
 	void accessEntryComplete(esdbEntry *entry, int intent);
 	void accessAccountUI(bool typeData, bool username, bool password);
 	void accessAccount(account *acct, bool typeData, bool username, bool password);

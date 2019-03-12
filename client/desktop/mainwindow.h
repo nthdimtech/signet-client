@@ -197,15 +197,14 @@ public slots:
 	void connectionError();
 	void messageReceived(QString);
 	void open();
-	void abort();
+private:
+    QFileDialog *m_openFileDialog;
+public slots:
+    void abort();
 	void quit();
 	void operationFinished(int);
 	void enterDeviceState(int);
-
     void openUi();
-private:
-    QFileDialog *m_openFileDialog;
-public:
 	void logoutUi();
 	void changePasswordUi();
 	void eraseDeviceUi();
