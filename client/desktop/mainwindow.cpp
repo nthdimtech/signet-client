@@ -1706,7 +1706,6 @@ void MainWindow::openUi()
         nameFilters.push_back("*.sdb");
         QFileInfoList files = backupPath.entryInfoList(nameFilters, QDir::Files, QDir::Time);
         if (files.size()) {
-            QApplication::processEvents();
             fd->selectFile(files.first().fileName());
         }
     }
