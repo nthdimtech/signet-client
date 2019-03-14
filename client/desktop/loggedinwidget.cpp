@@ -20,6 +20,7 @@
 #include <QProgressBar>
 #include <QStackedWidget>
 #include <QStringList>
+#include <QDebug>
 
 #include "esdb.h"
 #include "esdbmodel.h"
@@ -132,7 +133,8 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	m_accountGroup(nullptr),
 	m_signetdevCmdToken(-1),
 	m_id(-1),
-	m_idTask(ID_TASK_NONE)
+    m_idTask(ID_TASK_NONE),
+    m_pendingAutoAction(false)
 {
 	m_genericIcon = QIcon(":images/generic-entry.png");
 	m_icon_accounts.append(
@@ -245,7 +247,8 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	m_activeType = m_typeData.at(m_activeTypeIndex);
 
 	SignetApplication *app = SignetApplication::get();
-	connect(app, SIGNAL(focusChanged(QWidget*,QWidget*)), this, SLOT(focusChanged(QWidget*,QWidget*)));
+    connect(app, SIGNAL(focusChanged(QWidget*,QWidget*)), this, SLOT(focusChanged(QWidget*,QWidget*)));
+    connect(app, SIGNAL(selectUrl(QString)), this, SLOT(selectUrl(QString)));
 
 	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)), this,
 		SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
@@ -473,7 +476,71 @@ void LoggedInWidget::expanded(QModelIndex index)
 void LoggedInWidget::collapsed(QModelIndex index)
 {
 	if (m_activeType)
-		m_activeType->model->expand(index, false);
+        m_activeType->model->expand(index, false);
+}
+
+int LoggedInWidget::scoreUrlMatch(const QUrl &a, const QUrl &b)
+{
+    int score = 0;
+    QStringList urlHostAparts = a.host().split(".");
+    QStringList urlHostBparts = b.host().split(".");
+
+    int hostMatches = 0;
+    for (int j = 0; j < std::min(urlHostAparts.size(), urlHostBparts.size()); j++) {
+        QString partA = urlHostAparts[urlHostAparts.size() - j - 1];
+        QString partB = urlHostBparts[urlHostBparts.size() - j - 1];
+        if (!QString::compare(partA, partB, Qt::CaseInsensitive)) {
+            hostMatches++;
+        } else if (j == 1) {
+            hostMatches = 0;
+            break;
+        } else if (j > 2){
+            break;
+        }
+    }
+
+    if (hostMatches) {
+        score += hostMatches;
+        //TODO: give some credit for partial path matches
+        if (!QString::compare(a.path(), b.path(), Qt::CaseInsensitive)) {
+            score++;
+            if (!QString::compare(a.scheme(), b.scheme(), Qt::CaseInsensitive)) {
+                score++;
+            }
+        }
+    }
+    return score;
+}
+
+void LoggedInWidget::selectUrl(QString url)
+{
+    QUrl selectedUrl(url, QUrl::TolerantMode);
+    qDebug() << "selectUrl" << url;
+    esdbEntry *highestScoreMatch = nullptr;
+    int highestScore = 0;
+    for (auto entry : *m_activeType->entries) {
+        QString entUrlStr = entry->getUrl();
+        QUrl entryUrl(entUrlStr, QUrl::TolerantMode);
+        if (!entryUrl.scheme().size()) {
+            entUrlStr = "http://" + entUrlStr;
+            entryUrl.setUrl(entUrlStr);
+        }
+        if (!entryUrl.isValid()) {
+            continue;
+        }
+
+        int score = scoreUrlMatch(selectedUrl, entryUrl);
+        if (score > highestScore) {
+            highestScoreMatch = entry;
+            highestScore = score;
+        }
+    }
+    if (highestScoreMatch) {
+        qDebug() << "Selecting :" << highestScoreMatch->getTitle();
+        m_searchListbox->setCurrentIndex(m_activeType->model->findEntry(highestScoreMatch));
+        selectEntry(highestScoreMatch);
+        m_pendingAutoAction = true;
+    }
 }
 
 void LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar)
@@ -684,6 +751,10 @@ void LoggedInWidget::focusChanged(QWidget *prev, QWidget *next)
 	if (next == m_filterEdit) {
 		m_filterEdit->setText(m_searchListbox->filterText());
 	}
+    if (m_pendingAutoAction) {
+        m_pendingAutoAction = false;
+        m_activeType->actionBar->defaultAction(selectedEntry());
+    }
 }
 
 EsdbActionBar *LoggedInWidget::getActiveActionBar()

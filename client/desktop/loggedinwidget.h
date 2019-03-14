@@ -40,6 +40,7 @@ class AspectRatioPixmapLabel;
 class NewAccount;
 class esdbGenericModule;
 class esdbGenericTypeModule;
+class QUrl;
 #include "signetapplication.h"
 #include "esdbtypemodule.h"
 #include "esdbaccountmodule.h"
@@ -154,6 +155,8 @@ class LoggedInWidget : public QWidget
 	bool m_writeEnabled;
 	bool m_typeEnabled;
 
+    bool m_pendingAutoAction;
+
 	void getEntryDone(int id, int code, block *, bool task);
 	int entryToIndex(esdbEntry *entry);
 	EsdbActionBar *getActionBarByEntry(esdbEntry *entry);
@@ -166,7 +169,8 @@ class LoggedInWidget : public QWidget
 	void deselectEntry();
 	void addGenericType(genericTypeDesc *genericTypeDesc_);
 	QList<typeData *> m_typeData;
-	typeData *m_miscTypeData;
+    typeData *m_miscTypeData;
+    int scoreUrlMatch(const QUrl &a, const QUrl &b);
 public:
 	enum ID_TASK {
 		ID_TASK_NONE,
@@ -212,6 +216,8 @@ public slots:
 	void signetDevEvent(int);
 	void expanded(QModelIndex index);
 	void collapsed(QModelIndex index);
+private slots:
+    void selectUrl(QString url);
 };
 
 #endif // LOGGEDINWIDGET_H

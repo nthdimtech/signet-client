@@ -19,6 +19,8 @@ class SignetDeviceManager;
 class QMessageBox;
 class QByteArray;
 class QString;
+class QWebSocketServer;
+class QWebSocket;
 
 struct signetdevCmdRespInfo {
 	void *param;
@@ -67,6 +69,8 @@ private:
 #ifndef Q_OS_ANDROID
 	SystemTray m_systray;
 	MainWindow *m_main_window;
+    QWebSocketServer *m_webSocketServer;
+    QList<QWebSocket *> m_openWebSockets;
 #else
 	QQmlApplicationEngine m_qmlEngine;
 	SignetDeviceManager *m_signetDeviceManager;
@@ -211,9 +215,15 @@ signals:
 	void signetdevReadCleartextPassword(signetdevCmdRespInfo info, cleartext_pass pass);
 	void signetdevEvent(int event_type);
 	void signetdevTimerEvent(int seconds_remaining);
+    void selectUrl(QString url);
 public slots:
 #ifndef Q_OS_ANDROID
 	void trayActivated(QSystemTrayIcon::ActivationReason reason);
+#endif
+private slots:
+#ifndef Q_OS_ANDROID
+    void newWebSocketConnection();
+    void webSocketTextMessageRecieved(QString message);
 #endif
 };
 

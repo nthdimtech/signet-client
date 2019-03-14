@@ -2,6 +2,8 @@
 
 #ifndef Q_OS_ANDROID
 #include "desktop/mainwindow.h"
+#include <QtWebSockets/QWebSocketServer>
+#include <QtWebSockets/QWebSocket>
 #else
 #include "android/signetdevicemanager.h"
 #endif
@@ -9,6 +11,7 @@
 #include <QMenu>
 #include <QDesktopWidget>
 #include <QApplication>
+#include <QDebug>
 
 extern "C" {
 #include "signetdev/host/signetdev.h"
@@ -225,6 +228,10 @@ void SignetApplication::init(bool startInTray, QString dbFilename)
 
 	connect(this, SIGNAL(connectionError()), m_main_window, SLOT(connectionError()));
 
+    m_webSocketServer = new QWebSocketServer("Cool", QWebSocketServer::NonSecureMode, this);
+    m_webSocketServer->listen(QHostAddress::LocalHost, 910);
+    connect(m_webSocketServer, SIGNAL(newConnection()), this, SLOT(newWebSocketConnection()));
+
 	QObject::connect(this, SIGNAL(messageReceived(QString)), m_main_window, SLOT(messageReceived(QString)));
 	QObject::connect(&m_systray, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
 			 this, SLOT(trayActivated(QSystemTrayIcon::ActivationReason)));
@@ -314,6 +321,25 @@ void SignetApplication::trayActivated(QSystemTrayIcon::ActivationReason reason)
 		break;
 	default:
 		break;
-	}
+    }
+}
+
+void SignetApplication::newWebSocketConnection()
+{
+    while (true) {
+        QWebSocket *nextConnection = m_webSocketServer->nextPendingConnection();
+        if (!nextConnection)
+            break;
+        qDebug() << "New websocket connection";
+        m_openWebSockets.append(nextConnection);
+        nextConnection->setParent(this);
+        connect(nextConnection, SIGNAL(textMessageReceived(QString)), this, SLOT(webSocketTextMessageRecieved(QString)));
+    }
+}
+
+void SignetApplication::webSocketTextMessageRecieved(QString message)
+{
+    qDebug() << message;
+    emit selectUrl(message);
 }
 #endif

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets network concurrent
+QT       += core gui widgets network concurrent websockets
 
 android {
 QT += quick androidextras
