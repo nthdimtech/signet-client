@@ -48,7 +48,10 @@ void EditAccount::setup(QString name)
 	m_accountNameEdit = new QLineEdit(name);
 	m_accountNameEdit->setReadOnly(SignetApplication::get()->isDeviceEmulated());
 
-	m_genericFieldsEditor = new GenericFieldsEditor(QList<fieldSpec>());
+    QList<fieldSpec> requiredGenericFields;
+    requiredGenericFields.push_back(fieldSpec(QString("Notes"), QString("text block")));
+
+    m_genericFieldsEditor = new GenericFieldsEditor(requiredGenericFields);
 
 	QBoxLayout *account_name_layout = new QBoxLayout(QBoxLayout::LeftToRight);
 	account_name_layout->addWidget(new QLabel("Account name"));

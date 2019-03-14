@@ -153,7 +153,15 @@ void GenericFieldsEditor::loadFields(genericFields &fields)
             }
         }
         if (!fieldFound) {
-            removeField(field->name());
+            for (auto spec : m_requiredFieldSpecs) {
+                if (spec.name == field->name()) {
+                    fieldFound = true;
+                    break;
+                }
+            }
+            if (!fieldFound) {
+                removeField(field->name());
+            }
         }
     }
 

@@ -129,7 +129,7 @@ void genericFieldEdit::typePressed()
 	m_buttonWait = new ButtonWaitDialog("Type " + m_name, "type " + m_name, (QWidget *)this->parent());
 	connect(m_buttonWait, SIGNAL(finished(int)), this, SLOT(typeFieldFinished(int)));
 	m_buttonWait->show();
-	::signetdev_button_wait(NULL, &m_signetdevCmdToken);
+    ::signetdev_button_wait(nullptr, &m_signetdevCmdToken);
 }
 
 void genericFieldEdit::typeFieldFinished(int rc)
@@ -138,7 +138,7 @@ void genericFieldEdit::typeFieldFinished(int rc)
 		::signetdev_cancel_button_wait();
 	}
 	m_buttonWait->deleteLater();
-	m_buttonWait = NULL;
+    m_buttonWait = nullptr;
 }
 
 void genericFieldEdit::signetdevCmdResp(signetdevCmdRespInfo info)
@@ -184,7 +184,7 @@ void genericFieldEdit::signetdevCmdResp(signetdevCmdRespInfo info)
 	default:
 		if (m_buttonWait)
 			m_buttonWait->done(QMessageBox::Ok);
-		abort();
+        abort();
 		return;
 	}
 }
