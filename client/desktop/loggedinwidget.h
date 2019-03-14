@@ -155,8 +155,6 @@ class LoggedInWidget : public QWidget
 	bool m_writeEnabled;
 	bool m_typeEnabled;
 
-    bool m_pendingAutoAction;
-
 	void getEntryDone(int id, int code, block *, bool task);
 	int entryToIndex(esdbEntry *entry);
 	EsdbActionBar *getActionBarByEntry(esdbEntry *entry);

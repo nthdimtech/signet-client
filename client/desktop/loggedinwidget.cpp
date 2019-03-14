@@ -133,8 +133,7 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	m_accountGroup(nullptr),
 	m_signetdevCmdToken(-1),
 	m_id(-1),
-    m_idTask(ID_TASK_NONE),
-    m_pendingAutoAction(false)
+    m_idTask(ID_TASK_NONE)
 {
 	m_genericIcon = QIcon(":images/generic-entry.png");
 	m_icon_accounts.append(
@@ -537,9 +536,10 @@ void LoggedInWidget::selectUrl(QString url)
     }
     if (highestScoreMatch) {
         qDebug() << "Selecting :" << highestScoreMatch->getTitle();
-        m_searchListbox->setCurrentIndex(m_activeType->model->findEntry(highestScoreMatch));
+        QModelIndex idx = m_activeType->model->findEntry(highestScoreMatch);
+        m_searchListbox->setCurrentIndex(idx);
+        m_searchListbox->scrollTo(idx);
         selectEntry(highestScoreMatch);
-        m_pendingAutoAction = true;
     }
 }
 
@@ -751,10 +751,6 @@ void LoggedInWidget::focusChanged(QWidget *prev, QWidget *next)
 	if (next == m_filterEdit) {
 		m_filterEdit->setText(m_searchListbox->filterText());
 	}
-    if (m_pendingAutoAction) {
-        m_pendingAutoAction = false;
-        m_activeType->actionBar->defaultAction(selectedEntry());
-    }
 }
 
 EsdbActionBar *LoggedInWidget::getActiveActionBar()
