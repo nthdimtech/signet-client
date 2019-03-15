@@ -35,23 +35,29 @@ public:
 	genericFields() {}
 	QList<genericField> m_fields;
 	void fromBlock(block *blk);
-	void clear() {
+	void clear()
+	{
 		m_fields.clear();
 	}
 	void toBlock(block *blk) const;
-	int fieldCount() const {
+	int fieldCount() const
+	{
 		return m_fields.count();
 	}
-	genericField getField(int i) const {
+	genericField getField(int i) const
+	{
 		return m_fields.at(i);
 	}
-	void replaceField(int i, const genericField &f) {
+	void replaceField(int i, const genericField &f)
+	{
 		m_fields.replace(i, f);
 	}
-	void removeField(int i) {
+	void removeField(int i)
+	{
 		m_fields.removeAt(i);
 	}
-	void addField(const genericField &f) {
+	void addField(const genericField &f)
+	{
 		m_fields.push_back(f);
 	}
 
@@ -59,7 +65,8 @@ public:
 
 	void getFields(QVector<genericField> &fields) const;
 
-	void upgrade(const genericFields_2 &f) {
+	void upgrade(const genericFields_2 &f)
+	{
 		m_fields = f.m_fields;
 	}
 };

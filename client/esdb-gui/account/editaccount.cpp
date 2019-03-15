@@ -23,16 +23,16 @@ extern "C" {
 
 EditAccount::EditAccount(int id, QString entryName, QStringList groupList, QWidget *parent) :
 	EditEntryDialog("Account", id, parent),
-    m_acct(nullptr),
-    m_groupList(groupList)
+        m_acct(nullptr),
+        m_groupList(groupList)
 {
 	setup(entryName);
 }
 
 EditAccount::EditAccount(account *acct, QStringList groupList, QWidget *parent) :
 	EditEntryDialog("Account", acct, parent),
-    m_acct(acct),
-    m_groupList(groupList)
+        m_acct(acct),
+        m_groupList(groupList)
 {
 	setup(acct->acctName);
 	m_settingFields = true;
@@ -48,7 +48,10 @@ void EditAccount::setup(QString name)
 	m_accountNameEdit = new QLineEdit(name);
 	m_accountNameEdit->setReadOnly(SignetApplication::get()->isDeviceEmulated());
 
-	m_genericFieldsEditor = new GenericFieldsEditor(QList<fieldSpec>());
+	QList<fieldSpec> requiredGenericFields;
+	requiredGenericFields.push_back(fieldSpec(QString("Notes"), QString("text block")));
+
+	m_genericFieldsEditor = new GenericFieldsEditor(requiredGenericFields);
 
 	QBoxLayout *account_name_layout = new QBoxLayout(QBoxLayout::LeftToRight);
 	account_name_layout->addWidget(new QLabel("Account name"));
@@ -60,15 +63,15 @@ void EditAccount::setup(QString name)
 	m_accountNameWarning->setStyleSheet("QLabel { color : red; }");
 	m_accountNameWarning->hide();
 
-    m_usernameField = new DatabaseField("username", 120, nullptr);
-    m_groupField = new GroupDatabaseField(120, m_groupList ,nullptr);
-    m_emailField = new DatabaseField("email", 120, nullptr);
+	m_usernameField = new DatabaseField("username", 120, nullptr);
+	m_groupField = new GroupDatabaseField(120, m_groupList,nullptr);
+	m_emailField = new DatabaseField("email", 120, nullptr);
 	m_passwordEdit = new PasswordEdit();
 	m_browseUrlButton = new QPushButton(QIcon(":/images/browse.png"),"");
 	m_browseUrlButton->setToolTip("Browse");
 	connect(m_browseUrlButton, SIGNAL(pressed()), this, SLOT(browseUrl()));
 
-    connect(m_usernameField, SIGNAL(editingFinished()), this, SLOT(usernameEditingFinished()));
+	connect(m_usernameField, SIGNAL(editingFinished()), this, SLOT(usernameEditingFinished()));
 
 	m_urlField = new DatabaseField("URL", 140, m_browseUrlButton);
 
@@ -81,7 +84,7 @@ void EditAccount::setup(QString name)
 	connect(m_emailField, SIGNAL(textEdited(QString)),
 		this, SLOT(edited()));
 	connect(m_urlField, SIGNAL(textEdited(QString)),
-        this, SLOT(edited()));
+	        this, SLOT(edited()));
 	connect(m_genericFieldsEditor, SIGNAL(edited()),
 		this, SLOT(edited()));
 	connect(m_groupField, SIGNAL(textEdited(QString)),
@@ -151,9 +154,9 @@ void EditAccount::applyChanges(esdbEntry *ent)
 
 void EditAccount::usernameEditingFinished()
 {
-    if (m_emailField->text().isEmpty() && isEmail(m_usernameField->text())) {
-        m_emailField->setText(m_usernameField->text());
-    }
+	if (m_emailField->text().isEmpty() && isEmail(m_usernameField->text())) {
+		m_emailField->setText(m_usernameField->text());
+	}
 }
 
 esdbEntry *EditAccount::createEntry(int id)

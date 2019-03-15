@@ -26,7 +26,7 @@ KeyboardLayoutTester::scancodeInfo KeyboardLayoutTester::s_scancodeSequence[] = 
 
 	{9 /*f*/, 5, 3},
 	{10 /*g*/, 6, 3},
-	{11 /*h*/, 7, 3},
+        {11 /*h*/, 7, 3},
 	{12 /*i*/, 9, 2},
 	{13 /*j*/, 8, 3},
 
@@ -184,7 +184,7 @@ void KeyboardLayoutTester::testInterrupted()
 {
 	stopTest();
 	QMessageBox *msg = new QMessageBox(QMessageBox::Information, "Keyboard layout configuration failed",
-					"Keyboard layout configuration interrupted. Try again.",
+	                                   "Keyboard layout configuration interrupted. Try again.",
 					   QMessageBox::Ok, this);
 	QObject::connect(msg, SIGNAL(finished(int)), this, SLOT(testInterruptedDialogFinished(int)));
 	msg->setWindowModality(Qt::WindowModal);
@@ -316,8 +316,8 @@ void KeyboardLayoutTester::showCurrentLayout()
 		const struct signetdev_key &k = m_prevLayout.at(i);
 		int j = 0;
 		while (s_scancodeSequence[j].code != k.phy_key[0].scancode
-				&&
-			s_scancodeSequence[j].code) {
+		       &&
+		       s_scancodeSequence[j].code) {
 			j++;
 		}
 		if (s_scancodeSequence[j].code == k.phy_key[0].scancode) {
@@ -343,7 +343,8 @@ void KeyboardLayoutTester::showCurrentLayout()
 	m_grid->setLayout(m_gridLayout);
 }
 
-void KeyboardLayoutTester::closeEvent(QCloseEvent *event) {
+void KeyboardLayoutTester::closeEvent(QCloseEvent *event)
+{
 	closing(m_applyOnClose);
 	event->accept();
 }
@@ -418,8 +419,7 @@ void KeyboardLayoutTester::doStartTest()
 #endif
 
 	QLayoutItem* item;
-	while ( ( item = m_gridLayout->takeAt( 0 ) ) != NULL )
-	{
+	while ( ( item = m_gridLayout->takeAt( 0 ) ) != NULL ) {
 		delete item->widget();
 		delete item;
 	}
@@ -533,7 +533,7 @@ void KeyboardLayoutTester::typeNextKey()
 		m_timeoutCount = 0;
 		m_scancodeNumChecking++;
 		if (!s_scancodeSequence[m_scancodeNumChecking].code ||
-				((m_modifierChecking & 0x40) && m_skipGeneratingRAlt)) {
+		    ((m_modifierChecking & 0x40) && m_skipGeneratingRAlt)) {
 			m_scancodeNumChecking = 0;
 			switch (m_modifierChecking) {
 			case 0:
@@ -563,9 +563,9 @@ void KeyboardLayoutTester::typeNextKey()
 				m_applyButton->setEnabled(true);
 				m_resetButton->setEnabled(true);
 				QMessageBox *msg = new QMessageBox(QMessageBox::Information,
-							       "Keyboard layout configuration",
-							       "Keyboard layout configuration successful",
-							       QMessageBox::Ok, this);
+				                                   "Keyboard layout configuration",
+				                                   "Keyboard layout configuration successful",
+				                                   QMessageBox::Ok, this);
 				msg->setWindowModality(Qt::WindowModal);
 				msg->exec();
 				msg->deleteLater();

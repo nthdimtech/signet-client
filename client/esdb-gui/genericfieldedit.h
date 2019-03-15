@@ -26,10 +26,12 @@ class genericFieldEdit : public QObject
 protected:
 	void createWidget(bool canRemove, QWidget *editWidget, bool outputEnable = true);
 	void createTallWidget(int rows, bool canRemove, QWidget *editWidget);
-	virtual void showContent() {
+	virtual void showContent()
+	{
 
 	}
-	virtual void hideContent() {
+	virtual void hideContent()
+	{
 
 	}
 public:
@@ -39,11 +41,13 @@ public:
 
 	virtual QString type() = 0;
 
-	QString name() const {
+	QString name() const
+	{
 		return m_name;
 	}
 
-	QString displayName() const {
+	QString displayName() const
+	{
 		if (m_name[0] == '.') {
 			QString nameCpy = m_name;
 			return nameCpy.remove(0,1);
@@ -52,25 +56,30 @@ public:
 		}
 	}
 
-	bool isSecretField() const {
+	bool isSecretField() const
+	{
 		return (m_name[0] == '.');
 	}
 
 	virtual void fromString(const QString &s) = 0;
 
-	QWidget *widget() const {
+	QWidget *widget() const
+	{
 		return m_widget;
 	}
 
-	QWidget *editWidget() const {
+	QWidget *editWidget() const
+	{
 		return m_editWidget;
 	}
 
-	virtual void setFocus() {
+	virtual void setFocus()
+	{
 		m_editWidget->setFocus();
 	}
 
-	virtual ~genericFieldEdit() {
+	virtual ~genericFieldEdit()
+	{
 	}
 
 	int m_signetdevCmdToken;

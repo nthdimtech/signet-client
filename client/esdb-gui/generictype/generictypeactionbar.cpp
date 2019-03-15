@@ -61,10 +61,10 @@ void GenericTypeActionBar::deletePressed()
 	int numEntriesOfType = entryMap->size();
 	if (numEntriesOfType > 0) {
 		QMessageBox *box = new QMessageBox(QMessageBox::Warning,
-						"Delete datatype",
-						"There are still entries with this data type. If you delete this data type these entries will move to the 'Misc' group.\n\n Delete this data type?",
-						QMessageBox::Yes | QMessageBox::No,
-						this);
+		                                   "Delete datatype",
+		                                   "There are still entries with this data type. If you delete this data type these entries will move to the 'Misc' group.\n\n Delete this data type?",
+		                                   QMessageBox::Yes | QMessageBox::No,
+		                                   this);
 		box->setWindowModality(Qt::WindowModal);
 		box->setAttribute(Qt::WA_DeleteOnClose);
 		box->show();
@@ -108,6 +108,7 @@ void GenericTypeActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 		connect(ogt, SIGNAL(entryChanged(int)), m_parent, SLOT(entryChanged(int)));
 		connect(ogt, SIGNAL(finished(int)), ogt, SLOT(deleteLater()));
 		ogt->show();
-	} break;
+	}
+	break;
 	}
 }

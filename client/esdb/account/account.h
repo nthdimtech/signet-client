@@ -168,19 +168,23 @@ struct account : public esdbEntry {
 	{
 	}
 
-	QString getTitle() const {
+	QString getTitle() const
+	{
 		return acctName;
 	}
-	QString getUrl() const {
+	QString getUrl() const
+	{
 		return url;
 	}
 	int matchQuality(const QString &search) const;
 
-	QString getPath() const {
+	QString getPath() const
+	{
 		return path;
 	}
 
-	void setTitle(const QString &title) {
+	void setTitle(const QString &title)
+	{
 		acctName = title;
 	}
 
@@ -198,7 +202,8 @@ struct account : public esdbEntry {
 
 	void getFields(QVector<genericField> &fields) const;
 
-	void setPath(QString &p) {
+	void setPath(QString &p)
+	{
 		path = p;
 	}
 

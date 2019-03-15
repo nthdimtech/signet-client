@@ -49,9 +49,9 @@ void CSVImporter::start()
 	if (!csvFile->open(QFile::ReadOnly)) {
 		csvFile->deleteLater();
 		auto mb = SignetApplication::messageBoxError(QMessageBox::Warning,
-						   databaseTypeName() + " Import",
-						   "Failed to open CSV file",
-						   m_parent);
+		                databaseTypeName() + " Import",
+		                "Failed to open CSV file",
+		                m_parent);
 		connect(mb, SIGNAL(finished(int)), this, SLOT(failedToOpenCSVDialogFinished(int)));
 		return;
 	}
@@ -86,7 +86,7 @@ void CSVImporter::start()
 
 	m_db->insert(t->name(), selectedType);
 
-	for (;iter != csvData.end(); iter++) {
+	for (; iter != csvData.end(); iter++) {
 		QVector<genericField> fields;
 		QStringList row = *iter;
 		for (int j = 0; j < row.length() && j < header.length(); j++) {

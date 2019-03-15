@@ -24,7 +24,8 @@ class KeePassUnlockDialog : public QDialog
 	QFile *m_databaseFile;
 public:
 	KeePassUnlockDialog(QFile *file, QWidget *parent);
-	Database *database() {
+	Database *database()
+	{
 		return m_keePassDatabase;
 	}
 public slots:

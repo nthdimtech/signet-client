@@ -36,7 +36,7 @@ protected:
 	QMap<QString, genericFieldEdit *> m_fieldEditMap;
 public:
 	GenericFieldsEditor(QList<fieldSpec> requiredFieldSpecs,
-				     QWidget *parent = 0, bool descEdit = false);
+	                    QWidget *parent = nullptr, bool descEdit = false);
 	void loadFields(genericFields &fields);
 	void saveFields(genericFields &fields);
 signals:

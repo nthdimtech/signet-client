@@ -16,10 +16,12 @@ class EsdbModelItem : public QObject
 {
 	int m_rank;
 public:
-	int rank() const {
+	int rank() const
+	{
 		return m_rank;
 	}
-	void setRank(int rank) {
+	void setRank(int rank)
+	{
 		m_rank = rank;
 	}
 
@@ -36,27 +38,32 @@ public:
 	bool LessThan(const EsdbModelItem *r, const EsdbModelItem *l);
 };
 
-class EsdbModelLeafItem : public EsdbModelItem {
+class EsdbModelLeafItem : public EsdbModelItem
+{
 	esdbEntry *m_item;
 	QIcon m_icon;
 public:
 	QString m_name;
 	EsdbModelGroupItem *m_parent;
-	esdbEntry *leafNode() {
+	esdbEntry *leafNode()
+	{
 		return m_item;
 	}
 
-	bool isLeafItem() {
+	bool isLeafItem()
+	{
 		return true;
 	}
 
-	QString name() {
+	QString name()
+	{
 		return m_name;
 	}
 
 	int row();
 
-	void setLeafEntry(esdbEntry *e) {
+	void setLeafEntry(esdbEntry *e)
+	{
 		m_item = e;
 		if (m_item) {
 			m_name = m_item->getTitle();
@@ -64,18 +71,21 @@ public:
 		}
 	}
 
-	int rowCount() {
+	int rowCount()
+	{
 		return 0;
 	}
 
-	EsdbModelItem *child(int row) {
+	EsdbModelItem *child(int row)
+	{
 		Q_UNUSED(row);
 		return NULL;
 	}
 
 	QVariant data(int role);
 
-	EsdbModelGroupItem *parent() {
+	EsdbModelGroupItem *parent()
+	{
 		return m_parent;
 	}
 	EsdbModelLeafItem(esdbEntry *item, int rank, EsdbModelGroupItem *parent) :
@@ -92,7 +102,8 @@ public:
 
 class EsdbModel;
 
-class EsdbModelGroupItem : public EsdbModelItem {
+class EsdbModelGroupItem : public EsdbModelItem
+{
 public:
 	QString m_name;
 	EsdbModelGroupItem *m_parent;
@@ -104,34 +115,42 @@ public:
 	QList<EsdbModelLeafItem *> m_hiddenItems;
 	void clearPointers();
 
-	QString name() {
+	QString name()
+	{
 		return m_name;
 	}
 
-	void expanded(bool e) {
+	void expanded(bool e)
+	{
 		m_expanded = e;
 	}
 
-	esdbEntry *leafNode() {
+	esdbEntry *leafNode()
+	{
 		return NULL;
 	}
-	int rowCount() {
+	int rowCount()
+	{
 		return m_items.size();
 	}
 
-	bool isLeafItem() {
+	bool isLeafItem()
+	{
 		return false;
 	}
 
-	bool isExpanded() {
+	bool isExpanded()
+	{
 		return m_expanded;
 	}
 
-	void setExpanded(bool expanded) {
+	void setExpanded(bool expanded)
+	{
 		m_expanded = expanded;
 	}
 
-	EsdbModelItem *child(int row) {
+	EsdbModelItem *child(int row)
+	{
 		if (row >= m_items.size()) {
 			return NULL;
 		} else {
@@ -139,7 +158,8 @@ public:
 		}
 	}
 
-	EsdbModelGroupItem *parent() {
+	EsdbModelGroupItem *parent()
+	{
 		return m_parent;
 	}
 
@@ -154,7 +174,8 @@ public:
 
 	QVariant data(int role);
 
-	void addItem(EsdbModelLeafItem *c) {
+	void addItem(EsdbModelLeafItem *c)
+	{
 		m_items.push_back(c);
 	}
 	int row();

@@ -17,7 +17,7 @@ DatabaseImportController::DatabaseImportController(DatabaseImporter *importer, L
 	m_skipAll(false),
 	m_updatePending(false),
 	m_useUpdateUids(useUpdateUids),
-	m_firstEntry(true)
+        m_firstEntry(true)
 {
 	importer->setParent(this);
 	connect(m_importer, SIGNAL(done(bool)), this, SLOT(importDone(bool)));
@@ -46,8 +46,8 @@ void DatabaseImportController::advanceDbTypeIter()
 QString DatabaseImportController::progressString()
 {
 	return "(" + QString::number(m_dbTypeIter - m_dbIter.value()->begin() + 1) +
-			"/" +
-		QString::number(m_dbIter.value()->size()) + ")";
+	       "/" +
+	       QString::number(m_dbIter.value()->size()) + ")";
 }
 
 bool DatabaseImportController::iteratorsAtEnd()
@@ -83,13 +83,13 @@ bool DatabaseImportController::nextEntry()
 			fullTitle.remove(0, 1);
 		}
 		QMessageBox *resolution = new QMessageBox(QMessageBox::Warning,
-							  m_importer->databaseTypeName() + " Import",
-							  "Entry \"" + fullTitle +
-							  "\" " +
-							  progressString() +
-							  " already exists",
-							  QMessageBox::NoButton,
-							  static_cast<QWidget *>(parent()));
+		                m_importer->databaseTypeName() + " Import",
+		                "Entry \"" + fullTitle +
+		                "\" " +
+		                progressString() +
+		                " already exists",
+		                QMessageBox::NoButton,
+		                static_cast<QWidget *>(parent()));
 		QPushButton *cancelButton = resolution->addButton("Cancel", QMessageBox::AcceptRole);
 		QPushButton *ovewriteAllButton = resolution->addButton("Overwrite All", QMessageBox::AcceptRole);
 		QPushButton *ovewriteButton = resolution->addButton("Overwrite", QMessageBox::AcceptRole);
@@ -111,7 +111,7 @@ bool DatabaseImportController::nextEntry()
 
 		if (clickedButton == ovewriteButton || clickedButton == ovewriteAllButton) {
 			overwrite = true;
-		} else if (clickedButton == renameButton){
+		} else if (clickedButton == renameButton) {
 			EntryRenameDialog *d = new EntryRenameDialog(importEntry->getTitle(), m_loggedInWidget);
 			d->setWindowTitle(m_importer->databaseTypeName() + " Import");
 			d->exec();
@@ -147,12 +147,12 @@ bool DatabaseImportController::nextEntry()
 	if (m_useUpdateUids) {
 		if (m_firstEntry) {
 			m_buttonWaitDialog = new ButtonWaitDialog(m_importer->databaseTypeName() + " Import",
-				"begin importing", (QWidget *)parent(), true);
+			                "begin importing", (QWidget *)parent(), true);
 		}
 	} else {
 		m_buttonWaitDialog = new ButtonWaitDialog(m_importer->databaseTypeName() + " Import",
-			"import \"" + fullTitle + "\" " +
-			progressString(), (QWidget *)parent());
+		                "import \"" + fullTitle + "\" " +
+		                progressString(), (QWidget *)parent());
 	}
 
 	if (m_buttonWaitDialog) {
@@ -167,16 +167,16 @@ bool DatabaseImportController::nextEntry()
 	m_entry->toBlock(&blk);
 	if (m_useUpdateUids) {
 		::signetdev_update_uids(nullptr, &m_signetdevCmdToken,
-					   m_entry->id,
-					   blk.data.size(),
-					   (const u8 *)blk.data.data(),
-					   (const u8 *)blk.mask.data(), 1);
+		                        m_entry->id,
+		                        blk.data.size(),
+		                        (const u8 *)blk.data.data(),
+		                        (const u8 *)blk.mask.data(), 1);
 	} else {
 		::signetdev_update_uid(nullptr, &m_signetdevCmdToken,
-					   m_entry->id,
-					   blk.data.size(),
-					   (const u8 *)blk.data.data(),
-					   (const u8 *)blk.mask.data());
+		                       m_entry->id,
+		                       blk.data.size(),
+		                       (const u8 *)blk.data.data(),
+		                       (const u8 *)blk.mask.data());
 	}
 	m_updatePending = true;
 	return true;

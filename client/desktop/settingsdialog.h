@@ -15,7 +15,7 @@ class QSpinBox;
 
 class SettingsDialog : public QDialog
 {
-Q_OBJECT
+	Q_OBJECT
 	bool m_initial;
 	QCheckBox *m_localBackups;
 	QLineEdit *m_localBackupPath;

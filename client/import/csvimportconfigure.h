@@ -13,8 +13,9 @@ class CSVImportConfigure : public QDialog
 	QComboBox *m_dataTypeCombo;
 	esdbTypeModule *m_typeModule;
 public:
-	CSVImportConfigure(CSVImporter *importer, QWidget *parent = NULL);
-	esdbTypeModule *typeModule() {
+	CSVImportConfigure(CSVImporter *importer, QWidget *parent = nullptr);
+	esdbTypeModule *typeModule()
+	{
 		return m_typeModule;
 	}
 private slots:

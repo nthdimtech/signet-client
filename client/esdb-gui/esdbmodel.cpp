@@ -42,7 +42,7 @@ void EsdbModelGroupItem::refreshEntry(EsdbModel *m, const QModelIndex &parent, e
 	} else {
 		int row = 0;
 		for (EsdbModelItem *item : m_items) {
-		       if (!item->isLeafItem()) {
+			if (!item->isLeafItem()) {
 				EsdbModelGroupItem *groupItem = (EsdbModelGroupItem *) item;
 				if (groupItem->name() == path.at(first)) {
 					if (path.at(0) == "Unsorted") {
@@ -53,8 +53,8 @@ void EsdbModelGroupItem::refreshEntry(EsdbModel *m, const QModelIndex &parent, e
 					groupItem->refreshEntry(m, m->createIndex(row, 0, groupItem), ent, rank, path, first + 1);
 					return;
 				}
-		       }
-		       row++;
+			}
+			row++;
 		}
 		EsdbModelGroupItem *groupItem = NULL;
 		QList<EsdbModelGroupItem *>::iterator iter = m_hiddenGroups.begin();
@@ -129,7 +129,8 @@ void EsdbModel::refresh(bool useGroups)
 	m_rootItem->sortItems();
 }
 
-class EsdbModelItemCompare {
+class EsdbModelItemCompare
+{
 public:
 	bool operator()(const EsdbModelItem *r, const EsdbModelItem *l)
 	{
@@ -307,7 +308,7 @@ QModelIndex EsdbModel::parent(const QModelIndex &child) const
 	EsdbModelItem *parentItem = childItem->parent();
 
 	if (parentItem == m_rootItem)
-	    return QModelIndex();
+		return QModelIndex();
 
 	return createIndex(parentItem->row(), 0, parentItem);
 }
@@ -390,7 +391,7 @@ void EsdbModel::expand(QModelIndex &index, bool expand)
 int EsdbModelLeafItem::row()
 {
 	if (m_parent)
-	    return m_parent->m_items.indexOf((EsdbModelItem*)(this));
+		return m_parent->m_items.indexOf((EsdbModelItem*)(this));
 
 	return 0;
 }
@@ -398,7 +399,7 @@ int EsdbModelLeafItem::row()
 int EsdbModelGroupItem::row()
 {
 	if (m_parent)
-	    return m_parent->m_items.indexOf((EsdbModelItem*)(this));
+		return m_parent->m_items.indexOf((EsdbModelItem*)(this));
 
 	return 0;
 }

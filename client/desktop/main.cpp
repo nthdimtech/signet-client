@@ -34,10 +34,10 @@ int main(int argc, char **argv)
 				i++;
 				if (i > 200) {
 					box = new QMessageBox(QMessageBox::Information, "Signet",
-									   "Existing signet client is not closing. Close it and try again",
-									   QMessageBox::Ok,
-									   NULL,
-									   Qt::WindowStaysOnTopHint);
+					                      "Existing signet client is not closing. Close it and try again",
+					                      QMessageBox::Ok,
+					                      NULL,
+					                      Qt::WindowStaysOnTopHint);
 					box->exec();
 					box->deleteLater();
 					box = NULL;

@@ -15,7 +15,7 @@
 BookmarkActionBar::BookmarkActionBar(esdbTypeModule *module, LoggedInWidget *parent, bool writeEnabled, bool typeEnabled) :
 	EsdbActionBar(parent, "Account", writeEnabled, typeEnabled),
 	m_newEntryDlg(nullptr),
-	m_module(module),
+        m_module(module),
 	m_browseButton(nullptr)
 {
 	if (module->hasUrl()) {
@@ -82,7 +82,8 @@ void BookmarkActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 		connect(eb, SIGNAL(entryChanged(int)), m_parent, SLOT(entryChanged(int)));
 		connect(eb, SIGNAL(finished(int)), eb, SLOT(deleteLater()));
 		eb->show();
-	} break;
+	}
+	break;
 	}
 }
 

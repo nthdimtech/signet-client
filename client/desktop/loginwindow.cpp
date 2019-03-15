@@ -30,7 +30,7 @@ LoginWindow::LoginWindow(QWidget *parent) : QWidget(parent),
 
 	QObject::connect(m_keyGenerator, SIGNAL(finished()), this, SLOT(keyGenerated()));
 	QObject::connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
-			 this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
+	                 this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 
 	QLayout *top_layout = new QBoxLayout(QBoxLayout::TopToBottom);
 	QLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight);
@@ -92,8 +92,8 @@ void LoginWindow::keyGenerated()
 			connect(m_buttonWait, SIGNAL(finished(int)), this, SLOT(loginFinished(int)));
 			m_buttonWait->show();
 			::signetdev_login(NULL, &m_signetdevCmdToken,
-						(u8 *)m_keyGenerator->getKey().data(),
-						m_keyGenerator->getKey().length(), 0);
+					  (u8 *)m_keyGenerator->getKey().data(),
+					  m_keyGenerator->getKey().length(), 0);
 		}
 	}
 }

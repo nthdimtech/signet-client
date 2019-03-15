@@ -13,8 +13,8 @@
 
 AccountActionBar::AccountActionBar(LoggedInWidget *parent, bool writeEnabled, bool typeEnabled) :
 	EsdbActionBar(parent, "Account", writeEnabled, typeEnabled),
-    m_loggedInWidget(parent),
-    m_quickTypeState(QUICKTYPE_STATE_INITIAL)
+        m_loggedInWidget(parent),
+        m_quickTypeState(QUICKTYPE_STATE_INITIAL)
 {
 	m_DeleteButton = addDeleteButton();
 	connect(m_DeleteButton, SIGNAL(pressed()), this, SLOT(deleteAccountUI()));
@@ -56,15 +56,15 @@ AccountActionBar::AccountActionBar(LoggedInWidget *parent, bool writeEnabled, bo
 void AccountActionBar::newAccountFinished(int)
 {
 	m_newAccountDlg->deleteLater();
-    m_newAccountDlg = nullptr;
+	m_newAccountDlg = nullptr;
 	m_parent->finishTask(false);
 }
 
 void AccountActionBar::newInstanceUI(int id, const QString &name)
 {
-    QStringList groupList;
-    m_loggedInWidget->getCurrentGroups("Accounts", groupList);
-    m_newAccountDlg = new EditAccount(id, name, groupList, this);
+	QStringList groupList;
+	m_loggedInWidget->getCurrentGroups("Accounts", groupList);
+	m_newAccountDlg = new EditAccount(id, name, groupList, this);
 	QObject::connect(m_newAccountDlg, SIGNAL(entryCreated(esdbEntry *)), this, SLOT(entryCreated(esdbEntry *)));
 	QObject::connect(m_newAccountDlg, SIGNAL(finished(int)), this, SLOT(newAccountFinished(int)));
 	m_newAccountDlg->show();
@@ -155,15 +155,15 @@ void AccountActionBar::browseUrlUI()
 		QUrl url(entry->getUrl());
 		if (url.isValid() && !url.isEmpty()) {
 			m_quickTypeState = QUICKTYPE_STATE_BROWSE;
-            background();
-            browseUrl(entry);
+			background();
+			browseUrl(entry);
 		}
 	}
 }
 
 void AccountActionBar::accessAccountUI(bool typeData, bool username, bool password)
 {
-    account *acct = static_cast<account *>(selectedEntry());
+	account *acct = static_cast<account *>(selectedEntry());
 	if (acct) {
 		accessAccount(acct, typeData, username, password);
 	}
@@ -206,7 +206,7 @@ void AccountActionBar::copyPassword()
 {
 	esdbEntry *entry = selectedEntry();
 	if (entry) {
-        accessAccount(static_cast<account *>(entry), false, false, true);
+		accessAccount(static_cast<account *>(entry), false, false, true);
 	}
 }
 
@@ -240,18 +240,18 @@ void AccountActionBar::accessAccount(account *acct, bool typeData, bool username
 		message.append("for ");
 		message.append(acct->acctName);
 	}
-    accessEntry(acct, doTypeData ? INTENT_TYPE_ENTRY : INTENT_COPY_ENTRY,
-            message, true, m_accessUsername && m_accessPassword && doTypeData);
+	accessEntry(acct, doTypeData ? INTENT_TYPE_ENTRY : INTENT_COPY_ENTRY,
+	            message, true, m_accessUsername && m_accessPassword && doTypeData);
 }
 
 void AccountActionBar::typeAccountData(account *acct)
 {
 	if (QApplication::focusWindow()) {
 		QMessageBox *box = SignetApplication::messageBoxError(
-				       QMessageBox::Warning,
-				       "Signet",
-				       "A destination text area must be selected for typing to start\n\n"
-				       "Click OK and try again.", m_buttonWaitDialog ? (QWidget *)m_buttonWaitDialog : (QWidget *)this);
+		                           QMessageBox::Warning,
+		                           "Signet",
+		                           "A destination text area must be selected for typing to start\n\n"
+		                           "Click OK and try again.", m_buttonWaitDialog ? (QWidget *)m_buttonWaitDialog : (QWidget *)this);
 		connect(box, SIGNAL(finished(int)), this, SLOT(retryTypeData()));
 		m_id = acct->id;
 		return;
@@ -277,9 +277,9 @@ void AccountActionBar::typeAccountData(account *acct)
 	}
 	if (!::signetdev_can_type_w((u16 *)uKeys.data(), uKeys.length())) {
 		QMessageBox *msg = new QMessageBox(QMessageBox::Warning,
-					"Cannot type data",
-					"Signet cannot type this data. It contains characters not present in your keyboard layout.",
-					QMessageBox::NoButton, this);
+		                                   "Cannot type data",
+		                                   "Signet cannot type this data. It contains characters not present in your keyboard layout.",
+		                                   QMessageBox::NoButton, this);
 		QPushButton *copyData = msg->addButton("Copy data", QMessageBox::AcceptRole);
 		msg->addButton("Cancel", QMessageBox::RejectRole);
 		msg->setWindowModality(Qt::WindowModal);
@@ -293,8 +293,8 @@ void AccountActionBar::typeAccountData(account *acct)
 		msg->deleteLater();
 		return;
 	} else {
-        ::signetdev_type_w(nullptr, &m_signetdevCmdToken,
-				       (u16 *)uKeys.data(), uKeys.length());
+		::signetdev_type_w(nullptr, &m_signetdevCmdToken,
+		                   (u16 *)uKeys.data(), uKeys.length());
 	}
 }
 
@@ -322,20 +322,23 @@ void AccountActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 	account *acct = static_cast<account *>(entry);
 	switch (intent) {
 	case INTENT_OPEN_ENTRY: {
-        QStringList groupList;
-        m_loggedInWidget->getCurrentGroups("Accounts", groupList);
-        EditAccount *ea = new EditAccount(acct, groupList, m_parent);
+		QStringList groupList;
+		m_loggedInWidget->getCurrentGroups("Accounts", groupList);
+		EditAccount *ea = new EditAccount(acct, groupList, m_parent);
 		connect(ea, SIGNAL(abort()), this, SIGNAL(abort()));
 		connect(ea, SIGNAL(entryChanged(int)), m_parent, SLOT(entryChanged(int)));
 		connect(ea, SIGNAL(finished(int)), ea, SLOT(deleteLater()));
 		ea->show();
-	} break;
+	}
+	break;
 	case INTENT_TYPE_ENTRY: {
 		typeAccountData(acct);
-	} break;
+	}
+	break;
 	case INTENT_COPY_ENTRY: {
 		copyAccountData(acct, m_accessUsername, m_accessPassword);
-	} break;
+	}
+	break;
 	}
 }
 

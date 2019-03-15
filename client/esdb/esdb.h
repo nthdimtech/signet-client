@@ -18,7 +18,7 @@ struct genericField {
 	genericField(QString _name, QString _type, QString _value) :
 		name(_name),
 		type(_type),
-		value(_value)
+	        value(_value)
 	{
 	}
 	genericField() {}
@@ -40,7 +40,8 @@ struct block {
 	void writeLongString(const QString &str, bool masked);
 	QByteArray data;
 	QByteArray mask;
-	block() {
+	block()
+	{
 		index = 0;
 	}
 };
@@ -85,7 +86,8 @@ struct esdbEntry {
 		return QString();
 	}
 
-	virtual void setTitle(const QString &t) {
+	virtual void setTitle(const QString &t)
+	{
 		Q_UNUSED(t);
 	}
 
@@ -94,7 +96,8 @@ struct esdbEntry {
 		return QString();
 	}
 
-	QString getFullTitle() const {
+	QString getFullTitle() const
+	{
 		QString path = getPath();
 		QString title = getTitle();
 		return path + "/" + title;
@@ -122,7 +125,8 @@ struct esdbEntry {
 		iconSet = false;
 	}
 
-	virtual void getFields(QVector<genericField> &fields) const {
+	virtual void getFields(QVector<genericField> &fields) const
+	{
 		Q_UNUSED(fields);
 	}
 

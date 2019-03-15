@@ -44,7 +44,7 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 #ifdef Q_OS_ANDROID
 	QApplication(argc, argv),
 #else
-	QtSingleApplication("signetdev-" + QString(USB_VENDOR_ID) + "-" + QString(USB_SIGNET_DESKTOP_PRODUCT_ID) ,argc, argv),
+        QtSingleApplication("signetdev-" + QString(USB_VENDOR_ID) + "-" + QString(USB_SIGNET_DESKTOP_PRODUCT_ID),argc, argv),
 #endif
 	m_signetAsyncListener(NULL)
 {
@@ -142,7 +142,8 @@ void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int c
 			QByteArray mask;
 			this_->signetdevReadAllUIdsResp(info, -1, data, mask);
 		}
-	} break;
+	}
+	break;
 	case SIGNETDEV_CMD_GET_RAND_BITS: {
 		signetdev_get_rand_bits_resp_data *resp = (signetdev_get_rand_bits_resp_data *)resp_data;
 		QByteArray data((const char *)resp->data, resp->size);
@@ -248,7 +249,7 @@ void SignetApplication::init(bool startInTray, QString dbFilename)
 #else
 	m_signetDeviceManager = new SignetDeviceManager(m_qmlEngine, this);
 	Q_UNUSED(startInTray);
-    Q_UNUSED(dbFilename);
+	Q_UNUSED(dbFilename);
 #endif
 }
 

@@ -18,7 +18,7 @@ TARGET = signet
 TEMPLATE = app
 QMAKE_CFLAGS += -std=c99
 QMAKE_CXXFLAGS += -std=c++11 -DQTCSV_STATIC_LIB
-
+DISTFILES += client.astylerc
 
 macx|linux-g++|win32:contains(QMAKE_HOST.arch, x86_64) {
 CONFIG += use_sse

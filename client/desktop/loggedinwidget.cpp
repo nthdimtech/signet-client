@@ -110,14 +110,14 @@ LoggedInWidget::typeData::~typeData()
 
 void LoggedInWidget::getCurrentGroups(QString typeName, QStringList &groups)
 {
-    auto entryMap = typeNameToEntryMap(typeName);
-    if (entryMap) {
-        for (auto entry : *entryMap) {
-            if (!groups.contains(entry->getPath())) {
-                groups.append(entry->getPath());
-            }
-        }
-    }
+	auto entryMap = typeNameToEntryMap(typeName);
+	if (entryMap) {
+		for (auto entry : *entryMap) {
+			if (!groups.contains(entry->getPath())) {
+				groups.append(entry->getPath());
+			}
+		}
+	}
 }
 
 LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, QWidget *parent) : QWidget(parent),
@@ -137,73 +137,73 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 {
 	m_genericIcon = QIcon(":images/generic-entry.png");
 	m_icon_accounts.append(
-	    iconAccount("facebook")
+	        iconAccount("facebook")
 	);
 	m_icon_accounts.append(
-	    iconAccount("kickstarter")
+	        iconAccount("kickstarter")
 	);
 	m_icon_accounts.append(
-	    iconAccount("twitter")
+	        iconAccount("twitter")
 	);
 	m_icon_accounts.append(
-	    iconAccount("linkedin")
+	        iconAccount("linkedin")
 	);
 	m_icon_accounts.append(
-	    iconAccount("patreon")
+	        iconAccount("patreon")
 	);
 	m_icon_accounts.append(
-	    iconAccount("gmail")
+	        iconAccount("gmail")
 	);
 	m_icon_accounts.append(
-	    iconAccount("github")
+	        iconAccount("github")
 	);
 	m_icon_accounts.append(
-	    iconAccount("paypal")
+	        iconAccount("paypal")
 	);
 	m_icon_accounts.append(
-	    iconAccount("apple")
+	        iconAccount("apple")
 	);
 	m_icon_accounts.append(
-	    iconAccount("macrofab")
+	        iconAccount("macrofab")
 	);
 	m_icon_accounts.append(
-	    iconAccount("fandango")
+	        iconAccount("fandango")
 	);
 	m_icon_accounts.append(
-	    iconAccount("indiegogo")
+	        iconAccount("indiegogo")
 	);
 	m_icon_accounts.append(
-	    iconAccount("slack")
+	        iconAccount("slack")
 	);
 	m_icon_accounts.append(
-	    iconAccount("qt","qt.io","qt.png")
+	        iconAccount("qt","qt.io","qt.png")
 	);
 	m_icon_accounts.append(
-	    iconAccount("instagram")
+	        iconAccount("instagram")
 	);
 	m_icon_accounts.append(
-	    iconAccount("Crowd Supply", "crowdsupply.com", "crowdsupply.png")
+	        iconAccount("Crowd Supply", "crowdsupply.com", "crowdsupply.png")
 	);
 	m_icon_accounts.append(
-	    iconAccount("chase","chase.com", "chase_bank.png")
+	        iconAccount("chase","chase.com", "chase_bank.png")
 	);
 	m_icon_accounts.append(
-	    iconAccount("dropbox")
+	        iconAccount("dropbox")
 	);
 	m_icon_accounts.append(
-	    iconAccount("tumblr")
+	        iconAccount("tumblr")
 	);
 	m_icon_accounts.append(
-	    iconAccount("steam")
+	        iconAccount("steam")
 	);
 	m_icon_accounts.append(
-	    iconAccount("amazon")
+	        iconAccount("amazon")
 	);
 	m_icon_accounts.append(
-	    iconAccount("microsoft")
+	        iconAccount("microsoft")
 	);
 	m_icon_accounts.append(
-	    iconAccount("reddit")
+	        iconAccount("reddit")
 	);
 
 	m_activeTypeIndex = 0;
@@ -583,7 +583,8 @@ esdbTypeModule *LoggedInWidget::esdbEntryToModule(esdbEntry *entry)
 		if (!module) {
 			module = m_miscTypeData->module;
 		}
-		} break;
+	}
+	break;
 	}
 	return module;
 }
@@ -652,7 +653,8 @@ void LoggedInWidget::signetdevCmdResp(signetdevCmdRespInfo info)
 			}
 			m_idTask = ID_TASK_NONE;
 		}
-		} break;
+	}
+	break;
 	default:
 		break;
 	}
@@ -803,7 +805,8 @@ esdbTypeModule *LoggedInWidget::getTypeModule(int type)
 	switch (type) {
 	case ESDB_TYPE_GENERIC: {
 		module = m_miscTypeData->module;
-		} break;
+	}
+	break;
 	case ESDB_TYPE_GENERIC_TYPE_DESC:
 		module = m_genericTypeModule;
 		break;
