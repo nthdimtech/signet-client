@@ -9,7 +9,7 @@ GroupDatabaseField::GroupDatabaseField(int width, QStringList currentGroups, QWi
 	QList<QWidget *> widgets;
 	m_groupCombo = new QComboBox();
 	m_groupCombo->setEditable(true);
-	m_groupCombo->setInsertPolicy(QComboBox::InsertAlphabetically);
+	m_groupCombo->setInsertPolicy(QComboBox::NoInsert);
 	m_groupCombo->insertItems(0, currentGroups);
 	m_groupCombo->setDuplicatesEnabled(false);
 	m_groupCombo->setEnabled(!SignetApplication::get()->isDeviceEmulated());
@@ -35,8 +35,7 @@ void GroupDatabaseField::setText(const QString &s)
 	if (idx != -1) {
 		m_groupCombo->setCurrentIndex(idx);
 	} else {
-		m_groupCombo->insertItem(0, s);
-		m_groupCombo->setCurrentIndex(0);
+		m_groupCombo->setEditText(s);
 	}
 	return;
 }
