@@ -26,24 +26,24 @@ EditGeneric::EditGeneric(generic *generic, genericTypeDesc *typeDesc, QWidget *p
 	EditEntryDialog(typeDesc->name, generic, parent),
 	m_generic(generic),
 	m_typeDesc(typeDesc),
-	m_fields(generic->fields)
+        m_fields(generic->fields)
 {
 	setup(generic->name);
 
-    bool hasNotes = false;
-    for (int i = 0; i < m_fields.fieldCount(); i++) {
-        if (!m_fields.getField(i).name.compare(QString("Notes"), Qt::CaseInsensitive)) {
-            hasNotes = true;
-            break;
-        }
-    }
-    if (!hasNotes) {
-        genericField f;
-        f.name = QString("Notes");
-        f.type = QString("text block");
-        f.value = QString();
-        m_fields.addField(f);
-    }
+	bool hasNotes = false;
+	for (int i = 0; i < m_fields.fieldCount(); i++) {
+		if (!m_fields.getField(i).name.compare(QString("Notes"), Qt::CaseInsensitive)) {
+			hasNotes = true;
+			break;
+		}
+	}
+	if (!hasNotes) {
+		genericField f;
+		f.name = QString("Notes");
+		f.type = QString("text block");
+		f.value = QString();
+		m_fields.addField(f);
+	}
 
 	m_settingFields = true;
 	m_genericFieldsEditor->loadFields(m_fields);
@@ -101,22 +101,22 @@ void EditGeneric::setup(QString name)
 	connect(m_genericNameEdit, SIGNAL(textEdited(QString)), this, SLOT(edited()));
 	connect(m_genericNameEdit, SIGNAL(textEdited(QString)), this, SLOT(entryNameEdited()));
 
-    QList<fieldSpec> requiredGenericFields = m_typeDesc->fields;
+	QList<fieldSpec> requiredGenericFields = m_typeDesc->fields;
 
-    if (!m_generic) {
-        bool hasNotes = false;
-        for (auto f : m_typeDesc->fields) {
-            if (!f.name.compare(QString("Notes"), Qt::CaseInsensitive)) {
-                hasNotes = true;
-                break;
-            }
-        }
-        if (!hasNotes) {
-             requiredGenericFields.push_back(fieldSpec(QString("Notes"), QString("text block")));
-        }
-    }
+	if (!m_generic) {
+		bool hasNotes = false;
+		for (auto f : m_typeDesc->fields) {
+			if (!f.name.compare(QString("Notes"), Qt::CaseInsensitive)) {
+				hasNotes = true;
+				break;
+			}
+		}
+		if (!hasNotes) {
+			requiredGenericFields.push_back(fieldSpec(QString("Notes"), QString("text block")));
+		}
+	}
 
-    m_genericFieldsEditor = new GenericFieldsEditor(requiredGenericFields);
+	m_genericFieldsEditor = new GenericFieldsEditor(requiredGenericFields);
 	connect(m_genericFieldsEditor, SIGNAL(edited()), this, SLOT(edited()));
 
 	m_settingFields = true;

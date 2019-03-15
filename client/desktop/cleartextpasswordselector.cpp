@@ -122,9 +122,9 @@ void cleartextPasswordSelector::signetdevCmdResp(signetdevCmdRespInfo info)
 		}
 	} else {
 		SignetApplication::messageBoxError(QMessageBox::Critical,
-						 "Save password slot",
-						 "Failed to delete password slot",
-						 this);
+		                                   "Save password slot",
+		                                   "Failed to delete password slot",
+		                                   this);
 	}
 }
 
@@ -154,10 +154,10 @@ void cleartextPasswordSelector::signetdevReadCleartextPassword(signetdevCmdRespI
 		}
 	} else {
 		QMessageBox *box = SignetApplication::messageBoxError(QMessageBox::Critical,
-								QString("Read password slot"),
-								QString("Failed to read password slot ") +
-									QString::number(m_index),
-								this);
+		                   QString("Read password slot"),
+		                   QString("Failed to read password slot ") +
+		                   QString::number(m_index),
+		                   this);
 		box->exec();
 	}
 }

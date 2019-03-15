@@ -20,7 +20,7 @@
 
 KeePassUnlockDialog::KeePassUnlockDialog(QFile *file, QWidget *parent) :
 	QDialog(parent),
-	m_keePassDatabase(NULL),
+        m_keePassDatabase(NULL),
 	m_databaseFile(file)
 {
 	QVBoxLayout *top = new QVBoxLayout();
@@ -87,9 +87,9 @@ void KeePassUnlockDialog::okayPressed()
 			k.addKey(f);
 		} else {
 			SignetApplication::messageBoxError(QMessageBox::Warning,
-								windowTitle(),
-								"Key file invalid",
-								this);
+			                                   windowTitle(),
+			                                   "Key file invalid",
+			                                   this);
 			m_keyFileCheckBox->setChecked(false);
 			m_keyPathEdit->setText("");
 			return;

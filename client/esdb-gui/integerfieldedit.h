@@ -12,7 +12,8 @@ public:
 	integerFieldEdit(const QString &name, bool canRemove);
 	QString toString() const;
 	void fromString(const QString &s);
-	QString type() {
+	QString type()
+	{
 		return QString("Integer");
 	}
 };

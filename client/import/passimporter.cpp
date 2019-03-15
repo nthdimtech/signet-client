@@ -27,9 +27,9 @@ void PassImporter::start()
 
 	if (!m_gpgId.size()) {
 		QMessageBox *box = SignetApplication::messageBoxError(QMessageBox::Critical,
-						   databaseTypeName() + " Import",
-						   "Couldn't find valid password store",
-						   m_parent);
+		                   databaseTypeName() + " Import",
+		                   "Couldn't find valid password store",
+		                   m_parent);
 		connect(box, SIGNAL(destroyed(QObject *)), this, SLOT(doneFail()));
 		return;
 	}
@@ -76,9 +76,9 @@ void PassImporter::traverse(QString path, QDir &dir)
 		int rc = p.exitCode();
 		if (rc != 0) {
 			QMessageBox *box = SignetApplication::messageBoxError(QMessageBox::Critical,
-							   databaseTypeName() + " Import",
-							   "Failed to decrypt " + accountName,
-							   m_parent);
+			                   databaseTypeName() + " Import",
+			                   "Failed to decrypt " + accountName,
+			                   m_parent);
 			box->exec();
 			box->deleteLater();
 		} else {
@@ -137,8 +137,8 @@ bool PassImporter::passphraseCheck(QString passphrase)
 
 	QString cmd;
 	cmd = "gpg --batch -r " + m_gpgId +
-			" -o " + tmpName +
-			" -e " + gpgIdPath();
+	      " -o " + tmpName +
+	      " -e " + gpgIdPath();
 	if (QProcess::execute(cmd)) {
 		return false;
 	}

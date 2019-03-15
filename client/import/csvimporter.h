@@ -12,16 +12,18 @@ struct esdbTypeModule;
 
 class CSVImporter : public DatabaseImporter
 {
-Q_OBJECT
+	Q_OBJECT
 	QWidget *m_parent;
 	QList<esdbTypeModule *> m_typeModules;
 public:
 	CSVImporter(QList<esdbTypeModule *> typeModules, QWidget *parent);
-	QString databaseTypeName() {
+	QString databaseTypeName()
+	{
 		return QString("CSV");
 	}
 
-	const QList<esdbTypeModule *> &typeModules() {
+	const QList<esdbTypeModule *> &typeModules()
+	{
 		return m_typeModules;
 	}
 

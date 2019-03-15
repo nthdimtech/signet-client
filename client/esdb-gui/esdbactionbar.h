@@ -23,13 +23,16 @@ protected:
 	QList<QPushButton *> m_allButtons;
 	QPushButton *addButton(const QString &tooltip, const QString &imagePath, bool writeOp = false, bool typeOp = false);
 	QPushButton *addButton(QPushButton *button, bool writeOp = false, bool typeOp = false);
-	QPushButton *addDeleteButton() {
+	QPushButton *addDeleteButton()
+	{
 		return addButton("Delete", ":/images/delete.png", true, false);
 	}
-	QPushButton *addOpenButton() {
+	QPushButton *addOpenButton()
+	{
 		return addButton("Open", ":/images/open.png");
 	}
-	QPushButton *addBrowseButton() {
+	QPushButton *addBrowseButton()
+	{
 		return addButton("Browse", ":/images/browse.png");
 	}
 
@@ -44,7 +47,7 @@ protected:
 		INTENT_COPY_ENTRY,
 		INTENT_TYPE_ENTRY
 	};
-    void accessEntry(esdbEntry *entry, int intent, QString message, bool backgroundApp, bool deselect);
+	void accessEntry(esdbEntry *entry, int intent, QString message, bool backgroundApp, bool deselect);
 public:
 	explicit EsdbActionBar(LoggedInWidget *parent, QString typeName, bool writeEnabled, bool typeEnabled);
 
@@ -53,9 +56,10 @@ public:
 		return m_selectedEntry;
 	}
 
-    QString typeName() const {
-        return m_typeName;
-    }
+	QString typeName() const
+	{
+		return m_typeName;
+	}
 
 	void selectEntry(esdbEntry *entry);
 

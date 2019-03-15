@@ -12,8 +12,8 @@
 CSVImportConfigure::CSVImportConfigure(CSVImporter *importer, QWidget *parent) :
 	QDialog(parent),
 	m_importer(importer),
-	m_dataTypeCombo(NULL),
-	m_typeModule(NULL)
+        m_dataTypeCombo(nullptr),
+        m_typeModule(nullptr)
 {
 	QVBoxLayout *top = new QVBoxLayout();
 	QHBoxLayout *dataType = new QHBoxLayout();

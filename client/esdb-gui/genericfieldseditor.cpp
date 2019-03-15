@@ -12,7 +12,7 @@
 #include <QComboBox>
 
 GenericFieldsEditor::GenericFieldsEditor(QList<fieldSpec> requiredFieldSpecs,
-					 QWidget *parent, bool descEdit) :
+                QWidget *parent, bool descEdit) :
 	QWidget(parent),
 	m_requiredFieldSpecs(requiredFieldSpecs),
 	m_descEdit(descEdit)
@@ -143,29 +143,29 @@ void GenericFieldsEditor::addNewFieldUI()
 
 void GenericFieldsEditor::loadFields(genericFields &fields)
 {
-    //Remove deleted fields
-    for (auto field : m_fieldEditMap) {
-        bool fieldFound = false;
-        for (int i = 0; i < fields.fieldCount(); i++) {
-            if (fields.getField(i).name == field->name()) {
-                fieldFound = true;
-                break;
-            }
-        }
-        if (!fieldFound) {
-            for (auto spec : m_requiredFieldSpecs) {
-                if (spec.name == field->name()) {
-                    fieldFound = true;
-                    break;
-                }
-            }
-            if (!fieldFound) {
-                removeField(field->name());
-            }
-        }
-    }
+	//Remove deleted fields
+	for (auto field : m_fieldEditMap) {
+		bool fieldFound = false;
+		for (int i = 0; i < fields.fieldCount(); i++) {
+			if (fields.getField(i).name == field->name()) {
+				fieldFound = true;
+				break;
+			}
+		}
+		if (!fieldFound) {
+			for (auto spec : m_requiredFieldSpecs) {
+				if (spec.name == field->name()) {
+					fieldFound = true;
+					break;
+				}
+			}
+			if (!fieldFound) {
+				removeField(field->name());
+			}
+		}
+	}
 
-    //Add an update existing fields
+	//Add an update existing fields
 	for (int i = 0; i < fields.fieldCount(); i++) {
 		auto genericField = fields.getField(i);
 		if (m_fieldEditMap.count(genericField.name)) {

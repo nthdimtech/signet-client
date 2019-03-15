@@ -21,7 +21,8 @@ protected:
 	database *m_db;
 public:
 	explicit DatabaseImporter(QObject *parent = 0);
-	database *getDatabase() {
+	database *getDatabase()
+	{
 		return m_db;
 	}
 

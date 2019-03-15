@@ -29,7 +29,7 @@ class AccountActionBar : public EsdbActionBar
 	QPushButton *m_browseUrlButton;
 	QPushButton *m_typeUsernameButton;
 	QPushButton *m_typePasswordButton;
-    LoggedInWidget *m_loggedInWidget;
+	LoggedInWidget *m_loggedInWidget;
 
 	int esdbType();
 

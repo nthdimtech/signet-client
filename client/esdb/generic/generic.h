@@ -61,13 +61,16 @@ struct generic : public esdbEntry {
 	void toBlock(block *blk) const;
 	generic(int id_) : esdbEntry(id_, ESDB_TYPE_GENERIC, 3, id_, 1) { }
 
-	QString getTitle() const {
+	QString getTitle() const
+	{
 		return name;
 	}
-	void setTitle(const QString &title) {
+	void setTitle(const QString &title)
+	{
 		name = title;
 	}
-	QString getUrl() const {
+	QString getUrl() const
+	{
 		return QString();
 	}
 

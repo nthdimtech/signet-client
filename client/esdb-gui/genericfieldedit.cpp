@@ -112,9 +112,9 @@ void genericFieldEdit::typePressed()
 	}
 	if (!::signetdev_can_type_w(m_keysToType.data(), m_keysToType.length())) {
 		QMessageBox *msg = new QMessageBox(QMessageBox::Warning,
-					"Cannot type data",
-					"Signet cannot type this data. It contains characters not present in your keyboard layout.",
-					QMessageBox::NoButton, m_editWidget);
+		                                   "Cannot type data",
+		                                   "Signet cannot type this data. It contains characters not present in your keyboard layout.",
+		                                   QMessageBox::NoButton, m_editWidget);
 		QPushButton *copyData = msg->addButton("Copy data", QMessageBox::AcceptRole);
 		msg->addButton("Cancel", QMessageBox::RejectRole);
 		msg->setWindowModality(Qt::WindowModal);
@@ -129,7 +129,7 @@ void genericFieldEdit::typePressed()
 	m_buttonWait = new ButtonWaitDialog("Type " + m_name, "type " + m_name, (QWidget *)this->parent());
 	connect(m_buttonWait, SIGNAL(finished(int)), this, SLOT(typeFieldFinished(int)));
 	m_buttonWait->show();
-    ::signetdev_button_wait(nullptr, &m_signetdevCmdToken);
+	::signetdev_button_wait(nullptr, &m_signetdevCmdToken);
 }
 
 void genericFieldEdit::typeFieldFinished(int rc)
@@ -138,7 +138,7 @@ void genericFieldEdit::typeFieldFinished(int rc)
 		::signetdev_cancel_button_wait();
 	}
 	m_buttonWait->deleteLater();
-    m_buttonWait = nullptr;
+	m_buttonWait = nullptr;
 }
 
 void genericFieldEdit::signetdevCmdResp(signetdevCmdRespInfo info)
@@ -157,10 +157,10 @@ void genericFieldEdit::signetdevCmdResp(signetdevCmdRespInfo info)
 			QString keys = toString();
 			if (QApplication::focusWindow()) {
 				QMessageBox *box = SignetApplication::messageBoxError(
-						       QMessageBox::Warning,
-						       "Signet",
-						       "A destination text area must be selected for typing to start\n\n"
-						       "Click OK and try again.", m_buttonWait ? (QWidget *)m_buttonWait : (QWidget *)this);
+				                           QMessageBox::Warning,
+				                           "Signet",
+				                           "A destination text area must be selected for typing to start\n\n"
+				                           "Click OK and try again.", m_buttonWait ? (QWidget *)m_buttonWait : (QWidget *)this);
 				connect(box, SIGNAL(finished(int)), this, SLOT(retryTypeData()));
 				break;
 			}
@@ -184,7 +184,7 @@ void genericFieldEdit::signetdevCmdResp(signetdevCmdRespInfo info)
 	default:
 		if (m_buttonWait)
 			m_buttonWait->done(QMessageBox::Ok);
-        abort();
+		abort();
 		return;
 	}
 }

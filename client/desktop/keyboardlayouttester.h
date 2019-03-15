@@ -66,7 +66,8 @@ class KeyboardLayoutTester : public QDialog
 	QLabel *m_configurationWarning;
 public:
 	explicit KeyboardLayoutTester(const QVector<struct signetdev_key> &currentLayout, QWidget *parent = 0);
-	const QVector<struct signetdev_key> &getLayout() {
+	const QVector<struct signetdev_key> &getLayout()
+	{
 		return m_prevLayout;
 	}
 	void startTest();

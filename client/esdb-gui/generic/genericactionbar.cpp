@@ -84,7 +84,8 @@ void GenericActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 		connect(og, SIGNAL(entryChanged(int)), m_parent, SLOT(entryChanged(int)));
 		connect(og, SIGNAL(finished(int)), og, SLOT(deleteLater()));
 		og->show();
-	} break;
+	}
+	break;
 	}
 }
 

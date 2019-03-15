@@ -33,7 +33,7 @@ ResetDevice::ResetDevice(bool destructive, QWidget *parent) :
 	m_passwordEdit_1(nullptr),
 	m_passwordEdit_2(nullptr),
 	m_passwordEdit_1Label(nullptr),
-	m_passwordEdit_2Label(nullptr),
+        m_passwordEdit_2Label(nullptr),
 	m_passwordWarningMessage(nullptr),
 	m_writeProgressLabel(nullptr),
 	m_writeProgressBar(nullptr),
@@ -155,10 +155,10 @@ void ResetDevice::keyGenerated()
 		       std::min((int)sizeof(unsigned int), sz - i));
 	}
 	::signetdev_begin_initialize_device(nullptr, &m_signetdevCmdToken,
-		(const u8 *)m_keyGenerator->getKey().data(), m_keyGenerator->getKey().length(),
-		(const u8 *)m_keyGenerator->getHashfn().data(), m_keyGenerator->getHashfn().length(),
-		(const u8 *)m_keyGenerator->getSalt().data(), m_keyGenerator->getSalt().length(),
-		rand_data, sizeof(rand_data));
+	                                    (const u8 *)m_keyGenerator->getKey().data(), m_keyGenerator->getKey().length(),
+	                                    (const u8 *)m_keyGenerator->getHashfn().data(), m_keyGenerator->getHashfn().length(),
+	                                    (const u8 *)m_keyGenerator->getSalt().data(), m_keyGenerator->getSalt().length(),
+	                                    rand_data, sizeof(rand_data));
 }
 
 void ResetDevice::reset()

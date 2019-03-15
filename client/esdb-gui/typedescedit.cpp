@@ -11,7 +11,7 @@ typeDescEdit::typeDescEdit(const QString &name, bool canRemove) :
 	m_typeEditCombo->addItem("Text block");
 	m_typeEditCombo->addItem("Integer");
 	connect(m_typeEditCombo, SIGNAL(currentIndexChanged(int)),
-			this, SIGNAL(edited()));
+	        this, SIGNAL(edited()));
 	createWidget(canRemove, m_typeEditCombo, false);
 }
 

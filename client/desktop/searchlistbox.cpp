@@ -73,7 +73,8 @@ void SearchListbox::keyPressEvent(QKeyEvent *event)
 				emit activated(index);
 			}
 		}
-	} break;
+	}
+	break;
 	default:
 		if (event->text().size()) {
 			m_filterText.append(event->text());

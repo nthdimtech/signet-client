@@ -7,14 +7,14 @@ class QComboBox;
 
 class GroupDatabaseField : public DatabaseField
 {
-    Q_OBJECT
-    QComboBox *m_groupCombo;
+	Q_OBJECT
+	QComboBox *m_groupCombo;
 public:
-    GroupDatabaseField(int width, QStringList currentGroups, QWidget *parent = nullptr);
-    virtual ~GroupDatabaseField();
-    virtual QString text() const;
-    virtual void setText(const QString &s);
-    virtual QLineEdit *getEditWidget();
+	GroupDatabaseField(int width, QStringList currentGroups, QWidget *parent = nullptr);
+	virtual ~GroupDatabaseField();
+	virtual QString text() const;
+	virtual void setText(const QString &s);
+	virtual QLineEdit *getEditWidget();
 };
 
 #endif

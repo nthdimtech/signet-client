@@ -80,9 +80,9 @@ void KeePassImporter::start()
 	if (!keePassFile->open(QFile::ReadOnly)) {
 		keePassFile->deleteLater();
 		auto mb = SignetApplication::messageBoxError(QMessageBox::Warning,
-						   databaseTypeName()+ " Import",
-						   "Failed to open KeePass database file",
-						   m_parent);
+		                databaseTypeName()+ " Import",
+		                "Failed to open KeePass database file",
+		                m_parent);
 		connect(mb, SIGNAL(finished(int)), this, SIGNAL(failedToOpenDatabaseDialogFinished(int)));
 		return;
 	}
@@ -101,9 +101,9 @@ void KeePassImporter::start()
 	keePassFile->deleteLater();
 	if (!m_keePassDatabase) {
 		QMessageBox *msg = new QMessageBox(QMessageBox::Warning,
-					databaseTypeName()+ " Import",
-					"Invalid credentials for KeePass database",
-					QMessageBox::NoButton, m_parent);
+		                                   databaseTypeName()+ " Import",
+		                                   "Invalid credentials for KeePass database",
+		                                   QMessageBox::NoButton, m_parent);
 		connect(msg, SIGNAL(finished(int)), this, SLOT(invalidCredientialsDialogFinished(int)));
 		msg->setWindowModality(Qt::WindowModal);
 		msg->setAttribute(Qt::WA_DeleteOnClose);

@@ -89,13 +89,13 @@ void cleartextPasswordEditor::savePressed()
 	switch (rc) {
 	case 1:
 		SignetApplication::messageBoxWarn("Save password slot",
-							 "Password is too long",
-							 this);
+		                                  "Password is too long",
+		                                  this);
 		return;
 	case 2:
 		SignetApplication::messageBoxWarn("Save password slot",
-							 "Password contains characters not found in keyboard layout",
-							 this);
+		                                  "Password contains characters not found in keyboard layout",
+		                                  this);
 		return;
 	}
 
@@ -120,9 +120,9 @@ void cleartextPasswordEditor::signetdevCmdResp(signetdevCmdRespInfo info)
 		close();
 	} else {
 		SignetApplication::messageBoxError(QMessageBox::Critical,
-						 "Save password slot",
-						 "Failed to save password slot",
-						 this);
+		                                   "Save password slot",
+		                                   "Failed to save password slot",
+		                                   this);
 	}
 }
 
@@ -140,10 +140,10 @@ void cleartextPasswordEditor::closeEvent(QCloseEvent *event)
 {
 	if (m_changesMade) {
 		QMessageBox *box = new QMessageBox(QMessageBox::Question, windowTitle(),
-					       "You have made changes. Do you want to save them",
-					       QMessageBox::Yes |
-					       QMessageBox::No,
-					       this);
+		                                   "You have made changes. Do you want to save them",
+		                                   QMessageBox::Yes |
+		                                   QMessageBox::No,
+		                                   this);
 		connect(box, SIGNAL(finished(int)), this, SLOT(saveOnCloseDialogFinished(int)));
 		box->setWindowModality(Qt::WindowModal);
 		box->setAttribute(Qt::WA_DeleteOnClose);

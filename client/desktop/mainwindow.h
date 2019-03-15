@@ -75,11 +75,13 @@ public:
 
 	static QString csvQuote(const QString &s);
 
-	localSettings *getSettings() {
+	localSettings *getSettings()
+	{
 		return &m_settings;
 	}
 
-	QString getDatabaseFileName() {
+	QString getDatabaseFileName()
+	{
 		return m_dbFilename;
 	}
 private:
@@ -180,8 +182,8 @@ private slots:
 	void importDone(bool success);
 	void closeUi();
 	void keyboardLayoutNotConfiguredDialogFinished(int rc);
-    void backupDatabasePromptDialogFinished(int rc);
-    void openFileDialogFinished(int rc);
+	void backupDatabasePromptDialogFinished(int rc);
+	void openFileDialogFinished(int rc);
 public slots:
 	void signetDevEvent(int);
 	void deviceOpened();
@@ -198,13 +200,13 @@ public slots:
 	void messageReceived(QString);
 	void open();
 private:
-    QFileDialog *m_openFileDialog;
+	QFileDialog *m_openFileDialog;
 public slots:
-    void abort();
+	void abort();
 	void quit();
 	void operationFinished(int);
 	void enterDeviceState(int);
-    void openUi();
+	void openUi();
 	void logoutUi();
 	void changePasswordUi();
 	void eraseDeviceUi();

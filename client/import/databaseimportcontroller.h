@@ -32,7 +32,8 @@ class DatabaseImportController : public QObject
 	bool m_firstEntry;
 public:
 	explicit DatabaseImportController(DatabaseImporter *importer, LoggedInWidget *parent, bool useUpdateUids);
-	DatabaseImporter *importer() {
+	DatabaseImporter *importer()
+	{
 		return m_importer;
 	}
 signals:

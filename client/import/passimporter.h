@@ -10,7 +10,7 @@ class databaseType;
 
 class PassImporter : public DatabaseImporter
 {
-Q_OBJECT
+	Q_OBJECT
 	QWidget *m_parent;
 	void traverse(QString path, QDir &dir);
 	static QString passwordStorePath();
@@ -19,7 +19,8 @@ Q_OBJECT
 	QString m_passphrase;
 	databaseType *m_accountType;
 public:
-	QString databaseTypeName() {
+	QString databaseTypeName()
+	{
 		return QString("Pass Database");
 	}
 	static QString getGPGId();

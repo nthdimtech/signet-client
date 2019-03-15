@@ -11,7 +11,7 @@ class databaseType;
 
 class KeePassImporter : public DatabaseImporter
 {
-Q_OBJECT
+	Q_OBJECT
 	QWidget *m_parent;
 	Database *m_keePassDatabase;
 	void traverse(QString path, Group *group);
@@ -20,7 +20,8 @@ Q_OBJECT
 public:
 	KeePassImporter(QWidget *parent = 0);
 
-	QString databaseTypeName() {
+	QString databaseTypeName()
+	{
 		return QString("KeePass 2.x Database");
 	}
 public slots:

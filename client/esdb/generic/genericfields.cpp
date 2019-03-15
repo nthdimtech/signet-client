@@ -32,8 +32,8 @@ void genericFields_2::fromBlock(block *blk)
 
 void genericFields::fromBlock(block *blk)
 {
-    u8 numFields = blk->readU8();
-    m_fields.clear();
+	u8 numFields = blk->readU8();
+	m_fields.clear();
 	for (int i = 0; i < numFields; i++) {
 		genericField fld;
 		blk->readString(fld.name);
@@ -45,19 +45,19 @@ void genericFields::fromBlock(block *blk)
 
 void genericFields::toBlock(block *blk) const
 {
-    u8 count = 0;
-    for (auto fld : m_fields) {
-        if (fld.value.size()) {
-            count++;
-        }
-    }
-    blk->writeU8(count);
+	u8 count = 0;
 	for (auto fld : m_fields) {
-        if (fld.value.size()) {
-            blk->writeString(fld.name, true);
-            blk->writeString(fld.type, true);
-            blk->writeLongString(fld.value, true);
-        }
+		if (fld.value.size()) {
+			count++;
+		}
+	}
+	blk->writeU8(count);
+	for (auto fld : m_fields) {
+		if (fld.value.size()) {
+			blk->writeString(fld.name, true);
+			blk->writeString(fld.type, true);
+			blk->writeLongString(fld.value, true);
+		}
 	}
 }
 

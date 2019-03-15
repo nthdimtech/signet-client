@@ -18,7 +18,8 @@ class EntryRenameDialog : public QDialog
 public:
 	EntryRenameDialog(QString initialName, QWidget *parent = 0);
 	QString newName();
-	bool isOkayPressed() {
+	bool isOkayPressed()
+	{
 		return m_okayPressed;
 	}
 public slots:

@@ -49,8 +49,8 @@ void EsdbActionBar::deleteEntry()
 		m_parent->selectEntry(nullptr);
 		int id = entry->id;
 		m_buttonWaitDialog = new ButtonWaitDialog("Delete " + m_typeName,
-			QString("delete " + m_typeName + " \"") + entry->getTitle() + QString("\""),
-			m_parent);
+		                QString("delete " + m_typeName + " \"") + entry->getTitle() + QString("\""),
+		                m_parent);
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(deleteEntryFinished(int)));
 		m_buttonWaitDialog->show();
 		m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_DELETE, INTENT_NONE, this);
@@ -62,9 +62,9 @@ void EsdbActionBar::openEntry(esdbEntry *entry)
 	if (entry) {
 		int id = entry->id;
 		m_buttonWaitDialog = new ButtonWaitDialog(
-		    "Open " + m_typeName.toLower(),
-		    "open " + m_typeName.toLower() +  " \"" + entry->getTitle() + "\"",
-		    m_parent);
+		        "Open " + m_typeName.toLower(),
+		        "open " + m_typeName.toLower() +  " \"" + entry->getTitle() + "\"",
+		        m_parent);
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(openEntryFinished(int)));
 		m_buttonWaitDialog->show();
 		m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, INTENT_OPEN_ENTRY, this);
@@ -73,14 +73,14 @@ void EsdbActionBar::openEntry(esdbEntry *entry)
 
 void EsdbActionBar::accessEntry(esdbEntry *entry, int intent, QString message, bool backgroundApp, bool deselect)
 {
-    QString title = entry->getTitle();
-    m_buttonWaitDialog = new ButtonWaitDialog(title, message, m_parent);
-    connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(accessAccountFinished(int)));
-    m_buttonWaitDialog->show();
+	QString title = entry->getTitle();
+	m_buttonWaitDialog = new ButtonWaitDialog(title, message, m_parent);
+	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(accessAccountFinished(int)));
+	m_buttonWaitDialog->show();
 
-    if (backgroundApp) {
-        background();
-    }
+	if (backgroundApp) {
+		background();
+	}
 	m_accessDeselect = deselect;
 	m_parent->beginIDTask(entry->id, LoggedInWidget::ID_TASK_READ, intent, this);
 }
@@ -119,7 +119,8 @@ void EsdbActionBar::idTaskComplete(bool error, int id, esdbEntry *entry, int tas
 		if (intent != INTENT_TYPE_ENTRY && m_buttonWaitDialog)
 			m_buttonWaitDialog->done(QMessageBox::Ok);
 		accessEntryComplete(entry, intent);
-	} if (entry && task == LoggedInWidget::ID_TASK_DELETE) {
+	}
+	if (entry && task == LoggedInWidget::ID_TASK_DELETE) {
 		deleteEntryComplete(entry);
 	} else {
 		if (m_buttonWaitDialog)

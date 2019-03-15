@@ -25,15 +25,16 @@ protected:
 public:
 	virtual esdbEntry *decodeEntry(int id, int revision, esdbEntry *prev, struct block *blk) const = 0;
 
-	virtual esdbEntry *decodeEntry(const QVector<genericField> &fields, bool aliasMatch = true) const {
+	virtual esdbEntry *decodeEntry(const QVector<genericField> &fields, bool aliasMatch = true) const
+	{
 		Q_UNUSED(fields);
 		Q_UNUSED(aliasMatch);
-        return nullptr;
+		return nullptr;
 	}
 
 	esdbTypeModule(const QString &name);
 	esdbTypeModule();
-    virtual ~esdbTypeModule();
+	virtual ~esdbTypeModule();
 
 	virtual QString name() const
 	{
