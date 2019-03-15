@@ -69,8 +69,10 @@ private:
 #ifndef Q_OS_ANDROID
 	SystemTray m_systray;
 	MainWindow *m_main_window;
-    QWebSocketServer *m_webSocketServer;
-    QList<QWebSocket *> m_openWebSockets;
+	QWebSocketServer *m_webSocketServer;
+	QList<QWebSocket *> m_openWebSockets;
+	QStringList m_webSocketOriginWhitelist;
+	static const int s_maxWebSocketConnections = 10;
 #else
 	QQmlApplicationEngine m_qmlEngine;
 	SignetDeviceManager *m_signetDeviceManager;
@@ -222,15 +224,15 @@ signals:
 	void signetdevReadCleartextPassword(signetdevCmdRespInfo info, cleartext_pass pass);
 	void signetdevEvent(int event_type);
 	void signetdevTimerEvent(int seconds_remaining);
-    void selectUrl(QString url);
+	void selectUrl(QString url);
 public slots:
 #ifndef Q_OS_ANDROID
 	void trayActivated(QSystemTrayIcon::ActivationReason reason);
 #endif
 private slots:
 #ifndef Q_OS_ANDROID
-    void newWebSocketConnection();
-    void webSocketTextMessageRecieved(QString message);
+	void newWebSocketConnection();
+	void webSocketTextMessageRecieved(QString message);
 #endif
 };
 
