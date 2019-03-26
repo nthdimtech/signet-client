@@ -133,7 +133,7 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	m_accountGroup(nullptr),
 	m_signetdevCmdToken(-1),
 	m_id(-1),
-    m_idTask(ID_TASK_NONE)
+        m_idTask(ID_TASK_NONE)
 {
 	m_genericIcon = QIcon(":images/generic-entry.png");
 	m_icon_accounts.append(
@@ -246,8 +246,8 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	m_activeType = m_typeData.at(m_activeTypeIndex);
 
 	SignetApplication *app = SignetApplication::get();
-    connect(app, SIGNAL(focusChanged(QWidget*,QWidget*)), this, SLOT(focusChanged(QWidget*,QWidget*)));
-    connect(app, SIGNAL(selectUrl(QString)), this, SLOT(selectUrl(QString)));
+	connect(app, SIGNAL(focusChanged(QWidget*,QWidget*)), this, SLOT(focusChanged(QWidget*,QWidget*)));
+	connect(app, SIGNAL(websocketMessage(int, QString)), this, SLOT(websocketMessage(int, QString)));
 
 	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)), this,
 		SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
@@ -475,72 +475,125 @@ void LoggedInWidget::expanded(QModelIndex index)
 void LoggedInWidget::collapsed(QModelIndex index)
 {
 	if (m_activeType)
-        m_activeType->model->expand(index, false);
+		m_activeType->model->expand(index, false);
 }
 
 int LoggedInWidget::scoreUrlMatch(const QUrl &a, const QUrl &b)
 {
-    int score = 0;
-    QStringList urlHostAparts = a.host().split(".");
-    QStringList urlHostBparts = b.host().split(".");
+	int score = 0;
+	QStringList urlHostAparts = a.host().split(".");
+	QStringList urlHostBparts = b.host().split(".");
 
-    int hostMatches = 0;
-    for (int j = 0; j < std::min(urlHostAparts.size(), urlHostBparts.size()); j++) {
-        QString partA = urlHostAparts[urlHostAparts.size() - j - 1];
-        QString partB = urlHostBparts[urlHostBparts.size() - j - 1];
-        if (!QString::compare(partA, partB, Qt::CaseInsensitive)) {
-            hostMatches++;
-        } else if (j == 1) {
-            hostMatches = 0;
-            break;
-        } else if (j > 2){
-            break;
-        }
-    }
+	int hostMatches = 0;
+	for (int j = 0; j < std::min(urlHostAparts.size(), urlHostBparts.size()); j++) {
+		QString partA = urlHostAparts[urlHostAparts.size() - j - 1];
+		QString partB = urlHostBparts[urlHostBparts.size() - j - 1];
+		if (!QString::compare(partA, partB, Qt::CaseInsensitive)) {
+			hostMatches++;
+		} else if (j == 1) {
+			hostMatches = 0;
+			break;
+		} else if (j > 2) {
+			break;
+		}
+	}
 
-    if (hostMatches) {
-        score += hostMatches;
-        //TODO: give some credit for partial path matches
-        if (!QString::compare(a.path(), b.path(), Qt::CaseInsensitive)) {
-            score++;
-            if (!QString::compare(a.scheme(), b.scheme(), Qt::CaseInsensitive)) {
-                score++;
-            }
-        }
-    }
-    return score;
+	if (hostMatches) {
+		score += hostMatches;
+		//TODO: give some credit for partial path matches
+		if (!QString::compare(a.path(), b.path(), Qt::CaseInsensitive)) {
+			score++;
+			if (!QString::compare(a.scheme(), b.scheme(), Qt::CaseInsensitive)) {
+				score++;
+			}
+		}
+	}
+	return score;
 }
 
-void LoggedInWidget::selectUrl(QString url)
-{
-    QUrl selectedUrl(url, QUrl::TolerantMode);
-    qDebug() << "selectUrl" << url;
-    esdbEntry *highestScoreMatch = nullptr;
-    int highestScore = 0;
-    for (auto entry : *m_activeType->entries) {
-        QString entUrlStr = entry->getUrl();
-        QUrl entryUrl(entUrlStr, QUrl::TolerantMode);
-        if (!entryUrl.scheme().size()) {
-            entUrlStr = "http://" + entUrlStr;
-            entryUrl.setUrl(entUrlStr);
-        }
-        if (!entryUrl.isValid()) {
-            continue;
-        }
+#include <QJsonArray>
+#include <QJsonValue>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include "account.h"
 
-        int score = scoreUrlMatch(selectedUrl, entryUrl);
-        if (score > highestScore) {
-            highestScoreMatch = entry;
-            highestScore = score;
-        }
-    }
-    if (highestScoreMatch) {
-        qDebug() << "Selecting :" << highestScoreMatch->getTitle();
-        QModelIndex idx = m_activeType->model->findEntry(highestScoreMatch);
-        m_searchListbox->setCurrentIndex(idx);
-        m_searchListbox->scrollTo(idx);
-        selectEntry(highestScoreMatch);
-    }
+void LoggedInWidget::websocketPageLoaded(int socketId, QString url, bool hasLoginForm, bool hasUsernameField, bool hasPasswordField)
+{
+	QUrl selectedUrl(url, QUrl::TolerantMode);
+	qDebug() << "websocketPageLoaded" << url << hasLoginForm << hasUsernameField << hasPasswordField;
+	esdbEntry *highestScoreMatch = nullptr;
+	QJsonArray matches;
+	int highestScore = 0;
+	for (auto entry : *m_activeType->entries) {
+		QString entUrlStr = entry->getUrl();
+		QUrl entryUrl(entUrlStr, QUrl::TolerantMode);
+		if (!entryUrl.scheme().size()) {
+			entUrlStr = "http://" + entUrlStr;
+			entryUrl.setUrl(entUrlStr);
+		}
+		if (!entryUrl.isValid()) {
+			continue;
+		}
+
+		int score = scoreUrlMatch(selectedUrl, entryUrl);
+		if (score > 0) {
+			QJsonObject match;
+			match.insert("path", QJsonValue(entry->getPath()));
+			match.insert("title", QJsonValue(entry->getTitle()));
+			if (m_activeType->module == getTypeModule(ESDB_TYPE_ACCOUNT)) {
+				auto *account = static_cast<struct account *>(entry);
+				match.insert("username", QJsonValue(account->userName));
+				match.insert("email", QJsonValue(account->email));
+			}
+			matches.append(match);
+			if (score > highestScore) {
+				highestScoreMatch = entry;
+				highestScore = score;
+			}
+		}
+	}
+	if (highestScoreMatch) {
+		qDebug() << "Selecting :" << highestScoreMatch->getTitle();
+		QModelIndex idx = m_activeType->model->findEntry(highestScoreMatch);
+		m_searchListbox->setCurrentIndex(idx);
+		m_searchListbox->scrollTo(idx);
+		selectEntry(highestScoreMatch);
+		QJsonDocument doc(matches);
+		SignetApplication::get()->websocketResponse(socketId, QString::fromUtf8(doc.toJson()));
+	}
+}
+
+void LoggedInWidget::websocketRequestFields(int socketId, const QString &path, const QString &title, const QStringList &requestedFields)
+{
+	Q_UNUSED(socketId);
+	qDebug() << "websocketRequestFields:" << path << ":" <<  title;
+}
+
+void LoggedInWidget::websocketMessage(int socketId, QString message)
+{
+	auto document = QJsonDocument::fromJson(message.toUtf8());
+	qDebug() << "LoggedInWidget message recieved" << message;
+	if (document.isObject()) {
+		auto obj = document.object();
+		QString msgType = obj["messageType"].toString();
+		if (msgType == QString("pageLoaded")) {
+			QString url = obj["url"].toString();
+			bool hasLoginForm = obj["hasLoginForm"].toBool();
+			bool hasUsernameField = obj["hasUsernameField"].toBool();
+			bool hasPasswordField = obj["hasPasswordField"].toBool();
+			websocketPageLoaded(socketId, url, hasLoginForm, hasUsernameField, hasPasswordField);
+		} else if (msgType == QString("requestFields")) {
+			QString path = obj["path"].toString();
+			QString title = obj["title"].toString();
+			QJsonArray requestedFields_ = obj["requestedFields"].toArray();
+			QStringList requestedFields;
+			for (auto r : requestedFields_) {
+				requestedFields.append(r.toString());
+			}
+			websocketRequestFields(socketId, path, title, requestedFields);
+		}
+	}
+
 }
 
 void LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar)
@@ -1042,9 +1095,9 @@ void LoggedInWidget::newEntryUI()
 	int id = getUnusedId();
 	if (id < 0) {
 		SignetApplication::messageBoxError(QMessageBox::Warning,
-						   "Account creation failed",
-						   "No space left on device",
-						   this);
+		                                   "Account creation failed",
+		                                   "No space left on device",
+		                                   this);
 		return;
 	}
 	QString entryName;

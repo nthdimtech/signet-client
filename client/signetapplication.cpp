@@ -48,8 +48,7 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 #endif
         m_signetAsyncListener(nullptr)
 {
-	m_webSocketOriginWhitelist.push_back(QString("moz-extension://21fd9166-3f21-47be-b686-9f1a35a333ca"));
-
+	m_nextSocketId = 0;
 	g_singleton = this;
 	qRegisterMetaType<signetdevCmdRespInfo>();
 	qRegisterMetaType<signetdev_startup_resp_data>();
@@ -66,6 +65,18 @@ void SignetApplication::generateScryptKey(const QString &password, QByteArray &k
 		      N, r, s,
 		      (u8 *)key.data(), key.size());
 
+}
+
+#include <websockethandler.h>
+
+void SignetApplication::websocketResponse(int socketId, const QString &response)
+{
+	Q_UNUSED(socketId);
+	for (auto socketHandler : m_openWebSockets) {
+		if (socketHandler->id() == socketId) {
+			socketHandler->websocketResponse(response);
+		}
+	}
 }
 
 void SignetApplication::generateKey(const QString &password, QByteArray &key, const QByteArray &hashfn, const QByteArray &salt, int keyLength)
@@ -327,6 +338,8 @@ void SignetApplication::trayActivated(QSystemTrayIcon::ActivationReason reason)
 	}
 }
 
+#include "websockethandler.h"
+
 void SignetApplication::newWebSocketConnection()
 {
 	while (true) {
@@ -334,21 +347,23 @@ void SignetApplication::newWebSocketConnection()
 		if (!nextConnection)
 			break;
 		bool acceptConnection = false;
-		if (m_webSocketOriginWhitelist.contains(nextConnection->origin())) {
+		if (m_webSocketOriginWhitelist.contains(nextConnection->origin()) || nextConnection->origin().startsWith(QString("moz-extension://"))) {
 			if (m_openWebSockets.size() < s_maxWebSocketConnections) {
 				qDebug() << "Accepting new websocket connection from " << nextConnection->origin();
 				acceptConnection = true;
 			} else {
 				qDebug() << "Rejecting new websocket connection from " << nextConnection->origin() << ": too many connections already";
 			}
-		} else if (m_openWebSockets.size() >= s_maxWebSocketConnections) {
+		} else {
 			qDebug() << "Rejecting new websocket connection from" << nextConnection->origin() << ": not on whitelist";
 		}
 
 		if (acceptConnection) {
-			m_openWebSockets.append(nextConnection);
-			nextConnection->setParent(this);
-			connect(nextConnection, SIGNAL(textMessageReceived(QString)), this, SLOT(webSocketTextMessageRecieved(QString)));
+			qDebug() << "New websocket connection";
+			auto *handler = new websocketHandler(nextConnection, m_nextSocketId++, this);
+			m_openWebSockets.append(handler);
+			connect(handler, SIGNAL(done(websocketHandler *)), this, SLOT(websocketHandlerDone(websocketHandler *)));
+			connect(handler, SIGNAL(websocketMessage(int, QString)), this, SIGNAL(websocketMessage(int, QString)));
 		} else {
 			nextConnection->close();
 			nextConnection->deleteLater();
@@ -356,9 +371,11 @@ void SignetApplication::newWebSocketConnection()
 	}
 }
 
-void SignetApplication::webSocketTextMessageRecieved(QString message)
+void SignetApplication::websocketHandlerDone(websocketHandler *handler)
 {
-	qDebug() << message;
-	emit selectUrl(message);
+	qDebug() << "Cleaning up websocket connection";
+	m_openWebSockets.removeOne(handler);
+	handler->deleteLater();
 }
+
 #endif

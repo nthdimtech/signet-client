@@ -167,8 +167,10 @@ class LoggedInWidget : public QWidget
 	void deselectEntry();
 	void addGenericType(genericTypeDesc *genericTypeDesc_);
 	QList<typeData *> m_typeData;
-    typeData *m_miscTypeData;
-    int scoreUrlMatch(const QUrl &a, const QUrl &b);
+	typeData *m_miscTypeData;
+	int scoreUrlMatch(const QUrl &a, const QUrl &b);
+	void websocketPageLoaded(int socketId, QString url, bool hasLoginForm, bool hasUsernameField, bool hasPasswordField);
+	void websocketRequestFields(int socketId, const QString &path, const QString &title, const QStringList &requestedFields);
 public:
 	enum ID_TASK {
 		ID_TASK_NONE,
@@ -215,7 +217,7 @@ public slots:
 	void expanded(QModelIndex index);
 	void collapsed(QModelIndex index);
 private slots:
-    void selectUrl(QString url);
+	void websocketMessage(int socketId, QString message);
 };
 
 #endif // LOGGEDINWIDGET_H
