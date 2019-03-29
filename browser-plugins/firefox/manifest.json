@@ -23,7 +23,7 @@
   "content_scripts": [{
 	"all_frames": true,
 	"matches": ["<all_urls>"],
-	"run_at": "document_end",
+	"run_at": "document_idle",
 	"js": ["content-scripts/autofill.js"]
   }],
   "icons": {

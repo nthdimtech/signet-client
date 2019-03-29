@@ -23,6 +23,8 @@ function createSocket() {
 			messageRespond(event.data);
 			if (messageRequest.method == "pageLoaded") {
 				pageInfo.get(messageRequest.data.tabId).pageMatches = JSON.parse(event.data);
+			} else if (messageRequest.method == "selectEntry") {
+				browser.tabs.sendMessage(messageRequest.tabId, event.data);
 			}
 			messageRespond = null;
 		} else {
@@ -63,9 +65,9 @@ var sendWebsocketMessage = function (data) {
 chrome.runtime.onMessage.addListener(function (req, sender, res) {
 	if (req.method == "pageLoaded") {
 		console.log("pageLoaded message recieved:", req.data, sender.tab.id);
+		messageRespond = res;
 		req.data.tabId = sender.tab.id;
 		pageInfo.set(req.data.tabId, req.data);
-		messageRespond = res;
 		messageRequest = req;
 		sendWebsocketMessage(req.data);
 		return true;
@@ -82,8 +84,7 @@ chrome.runtime.onMessage.addListener(function (req, sender, res) {
 		var querying = browser.tabs.query({currentWindow: true, active: true});
 		querying.then(
 			function(tabA) {
-				console.log("Current tab", tabA[0].id, pageInfo.get(tabA[0].id).pageMatches);
-				messageRespond(pageInfo.get(tabA[0].id).pageMatches);
+				messageRespond({tabId: tabA[0].id, pageMatches: pageInfo.get(tabA[0].id).pageMatches});
 				messageRespond = null;
 			}
 			,

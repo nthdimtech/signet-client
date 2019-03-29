@@ -1,5 +1,3 @@
-
-
 var usernameInput = null;
 var passwordInput = null;
 var submitInput = null;
@@ -108,3 +106,19 @@ if (submitInput != null && usernameInput != null) {
 	sendMessage("pageLoaded", data);
 }
 
+browser.runtime.onMessage.addListener(function (req, sender, res) {
+	var request = JSON.parse(req);
+	console.log("Page message from the background script:", request);
+	if (usernameInput != null && request.username != null) {
+		console.log("Setting username");
+		usernameInput.value = request.username;
+	}
+	if (passwordInput != null && request.password != null) {
+		console.log("Setting password");
+		passwordInput.value = request.password;
+	}
+	if (submitInput != null) {
+		submitInput.click();
+	}
+	return true;
+});
