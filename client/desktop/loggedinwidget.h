@@ -218,6 +218,10 @@ public slots:
 	void collapsed(QModelIndex index);
 private slots:
 	void websocketMessage(int socketId, QString message);
+private:
+	int m_socketId;
+	QStringList m_requestedFields;
+	void idTaskComplete(bool error, int id, esdbEntry *entry, enum ID_TASK task, int intent);
 };
 
 #endif // LOGGEDINWIDGET_H

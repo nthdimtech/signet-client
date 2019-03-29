@@ -23,7 +23,7 @@ extern "C" {
 #define DEFAULT_SCRYPT_R_VALUE 32
 #define DEFAULT_SCRIPT_P_VALUE 1
 
-SignetApplication *SignetApplication::g_singleton = NULL;
+SignetApplication *SignetApplication::g_singleton = nullptr;
 
 void SignetApplication::deviceOpenedS(void *this_)
 {

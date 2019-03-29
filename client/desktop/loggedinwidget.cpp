@@ -567,6 +567,20 @@ void LoggedInWidget::websocketRequestFields(int socketId, const QString &path, c
 {
 	Q_UNUSED(socketId);
 	qDebug() << "websocketRequestFields:" << path << ":" <<  title;
+
+	esdbEntry *matchingEntry = nullptr;
+
+	for (auto entry : *m_activeType->entries) {
+		if (entry->getPath() == path && entry->getTitle() == title) {
+			matchingEntry = entry;
+			break;
+		}
+	}
+	if (matchingEntry) {
+		m_requestedFields = requestedFields;
+		m_socketId = socketId;
+		beginIDTask(matchingEntry->id, ID_TASK_READ, 0, nullptr);
+	}
 }
 
 void LoggedInWidget::websocketMessage(int socketId, QString message)
@@ -596,8 +610,27 @@ void LoggedInWidget::websocketMessage(int socketId, QString message)
 
 }
 
+void LoggedInWidget::idTaskComplete(bool error, int id, esdbEntry *entry, enum ID_TASK task, int intent)
+{
+	if (!error && task == ID_TASK_READ && entry && intent == 0 /* TODO: magic number */) {
+		QVector<genericField> fields;
+		entry->getFields(fields);
+		QJsonObject response;
+		for (auto field : fields) {
+			if (m_requestedFields.contains(field.name.toLower())) {
+				response.insert(field.name.toLower(), field.value);
+			}
+		}
+		QJsonDocument doc(response);
+		SignetApplication::get()->websocketResponse(m_socketId, QString::fromUtf8(doc.toJson()));
+	}
+	m_socketId = -1;
+	m_requestedFields.clear();
+}
+
 void LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar)
 {
+	//TODO: validate that an ID task is not already pending
 	m_id = id;
 	m_idTask = task;
 	m_taskIntent = intent;
@@ -956,6 +989,8 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 					if (entry->type == ESDB_TYPE_GENERIC_TYPE_DESC) {
 						genericTypeDesc *genericTypeDesc_ = static_cast<genericTypeDesc *>(entry);
 						addGenericType(genericTypeDesc_);
+					} else {
+						idTaskComplete(false, id, entry, m_idTask, m_taskIntent);
 					}
 				}
 			} else if (m_populating) {

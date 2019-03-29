@@ -9,6 +9,10 @@ socket = null;
 
 messageRespond = null;
 
+messageRequest = null;
+
+var pageInfo = new Map([]);
+
 function createSocket() {
 	socket = new WebSocket(serverUrl);
 
@@ -17,6 +21,9 @@ function createSocket() {
 		if (messageRespond != null) {
 			console.debug("Forwarding message to content script");
 			messageRespond(event.data);
+			if (messageRequest.method == "pageLoaded") {
+				pageInfo.get(messageRequest.data.tabId).pageMatches = JSON.parse(event.data);
+			}
 			messageRespond = null;
 		} else {
 			console.debug("No response function");
@@ -44,16 +51,44 @@ function createSocket() {
 
 }
 
+var sendWebsocketMessage = function (data) {
+	if (socket != null && socket.readyState == WebSocket.OPEN) {
+		socket.send(JSON.stringify(data));
+	} else if (socket == null) {
+		dataSendOnOpen = data;
+		createSocket();
+	}
+}
+
 chrome.runtime.onMessage.addListener(function (req, sender, res) {
-	if (req.method == "page_loaded") {
-		console.log("Runtime message recieved:", req.data);
+	if (req.method == "pageLoaded") {
+		console.log("pageLoaded message recieved:", req.data, sender.tab.id);
+		req.data.tabId = sender.tab.id;
+		pageInfo.set(req.data.tabId, req.data);
 		messageRespond = res;
-		if (socket != null && socket.readyState == WebSocket.OPEN) {
-			socket.send(JSON.stringify(req.data));
-		} else if (socket == null) {
-			dataSendOnOpen = req.data;
-			createSocket();
-		}
+		messageRequest = req;
+		sendWebsocketMessage(req.data);
+		return true;
+	} else if (req.method == "selectEntry") {
+		console.log("selectEntry message recieved:", req.data);
+		messageRespond = res;
+		messageRequest = req;
+		sendWebsocketMessage(req.data);
+		return true;
+	} else if (req.method == "popupLoaded") {
+		console.log("popupLoaded message recieved:", req.data);
+		messageRespond = res;
+		messageRequest = req;
+		var querying = browser.tabs.query({currentWindow: true, active: true});
+		querying.then(
+			function(tabA) {
+				console.log("Current tab", tabA[0].id, pageInfo.get(tabA[0].id).pageMatches);
+				messageRespond(pageInfo.get(tabA[0].id).pageMatches);
+				messageRespond = null;
+			}
+			,
+			function () {
+			});
 		return true;
 	}
 });

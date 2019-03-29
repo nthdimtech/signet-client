@@ -4,16 +4,11 @@ var usernameInput = null;
 var passwordInput = null;
 var submitInput = null;
 
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-        if (request.path === 'background-to-page') {
-	}
-});
-
 var handleResponse = function(message) {
 	var msg = JSON.parse(message);
-	console.log("Content script got message:", msg);
-	if (msg.length > 0) {
-		if (usernameInput != null) {
+	console.log("Content script got message:", message);
+	if (msg.length == 1) {
+		if (usernameInput != null && msg[0].username != null) {
 			usernameInput.value = msg[0].username;
 		}
 	}
@@ -24,7 +19,7 @@ var handleError = function(error) {
 }
 
 var sendMessage = function(id, data) {
-	var sending = chrome.runtime.sendMessage({"path":'page-to-background', "method": id, "data" : data})
+	var sending = chrome.runtime.sendMessage({"path":'page-to-background', "method": id, "data" : data});
 	sending.then(handleResponse, handleError);
 }
 
@@ -100,14 +95,16 @@ for (i = 0; i < formTags.length; i++) {
 	}
 }
 
-
+var data = {messageType: "pageLoaded", url: window.location.href};
 if (submitInput != null && usernameInput != null) {
-	var data = {messageType: "pageLoaded", url: window.location.href, hasLoginForm: true, hasUsernameField: true};
+	data.hasLoginForm = true;
+	data.hasUsernameField = true;
 	if (passwordInput != null) {
 		data.hasPasswordField = true;
 	}
-	sendMessage("page_loaded", data);
+	sendMessage("pageLoaded", data);
 } else {
-	var data = {messageType: "pageLoaded", url: window.location.href, hasLoginForm: false};
-	sendMessage("page_loaded", data);
+	data.hasLoginForm = true;
+	sendMessage("pageLoaded", data);
 }
+
