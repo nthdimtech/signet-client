@@ -553,14 +553,17 @@ void LoggedInWidget::websocketPageLoaded(int socketId, QString url, bool hasLogi
 		}
 	}
 	if (highestScoreMatch) {
+		/*
 		qDebug() << "Selecting :" << highestScoreMatch->getTitle();
 		QModelIndex idx = m_activeType->model->findEntry(highestScoreMatch);
 		m_searchListbox->setCurrentIndex(idx);
 		m_searchListbox->scrollTo(idx);
 		selectEntry(highestScoreMatch);
-		QJsonDocument doc(matches);
-		SignetApplication::get()->websocketResponse(socketId, QString::fromUtf8(doc.toJson()));
+		*/
 	}
+	QJsonDocument doc(matches);
+	SignetApplication::get()->websocketResponse(socketId, QString::fromUtf8(doc.toJson()));
+
 }
 
 void LoggedInWidget::websocketRequestFields(int socketId, const QString &path, const QString &title, const QStringList &requestedFields)

@@ -11,7 +11,22 @@ messageRespond = null;
 
 messageRequest = null;
 
-var pageInfo = new Map([]);
+var tabInfo = new Map([]);
+
+var lastWebsocketMessage = null;
+var lastWebsocketMessageInfo = null;
+
+browser.webNavigation.onCommitted.addListener(
+	function (details) {
+		if (details.parentFrameId == -1) {
+			console.debug("onCommitted:", details.frameId, details.url);
+			var info = {messageType: "pageLoaded", url: details.url, pages: new Map([])};
+			tabInfo.set(details.tabId, info);
+			var data = {messageType: "pageLoaded", url: details.url};
+			sendWebsocketMessage(data, {tabId : details.tabId});
+		}
+	}
+);
 
 function createSocket() {
 	socket = new WebSocket(serverUrl);
@@ -21,14 +36,36 @@ function createSocket() {
 		if (messageRespond != null) {
 			console.debug("Forwarding message to content script");
 			messageRespond(event.data);
-			if (messageRequest.method == "pageLoaded") {
-				pageInfo.get(messageRequest.data.tabId).pageMatches = JSON.parse(event.data);
-			} else if (messageRequest.method == "selectEntry") {
-				browser.tabs.sendMessage(messageRequest.tabId, event.data);
-			}
 			messageRespond = null;
+			if (messageRequest.method == "selectEntry") {
+				var tab = tabInfo.get(messageRequest.tabId);
+				console.debug("Selecting from tab", tab);
+				tab.pages.forEach(function(val, key, map) {
+					if (val.hasLoginForm && val.hasUsernameField && val.hasPasswordField) {
+						event.data.url = val.url;
+						browser.tabs.sendMessage(messageRequest.tabId, event.data);
+						return;
+					}
+				});
+				tab.pages.forEach(function(val, key, map) {
+					if (val.hasLoginForm) {
+						event.data.url = val.url;
+						browser.tabs.sendMessage(messageRequest.tabId, event.data);
+						return;
+					}
+				});
+				tab.pages.forEach(function(val, key, map) {
+					if (val.hasUsernameField || val.hasPasswordField) {
+						event.data.url = val.url;
+						browser.tabs.sendMessage(messageRequest.tabId, event.data);
+					}
+				});
+			}
+		} else if (lastWebsocketMessage != null && lastWebsocketMessage.messageType == "pageLoaded" ) {
+			console.debug("Got matches", event.data, lastWebsocketMessageInfo.tabId);
+			tabInfo.get(lastWebsocketMessageInfo.tabId).pageMatches = JSON.parse(event.data);
 		} else {
-			console.debug("No response function");
+			console.debug("Unexpected websocket message");
 		}
 	};
 
@@ -43,6 +80,7 @@ function createSocket() {
 		if (dataSendOnOpen != null) {
 			console.debug("WebSocket sending URL on open", JSON.stringify(dataSendOnOpen));
 			socket.send(JSON.stringify(dataSendOnOpen));
+			lastWebsocketMessage = dataSendOnOpen;
 			dataSendOnOpen = null;
 		}
 	};
@@ -53,8 +91,10 @@ function createSocket() {
 
 }
 
-var sendWebsocketMessage = function (data) {
+var sendWebsocketMessage = function (data, info) {
+	lastWebsocketMessageInfo = info;
 	if (socket != null && socket.readyState == WebSocket.OPEN) {
+		lastWebsocketMessage = data;
 		socket.send(JSON.stringify(data));
 	} else if (socket == null) {
 		dataSendOnOpen = data;
@@ -65,12 +105,8 @@ var sendWebsocketMessage = function (data) {
 chrome.runtime.onMessage.addListener(function (req, sender, res) {
 	if (req.method == "pageLoaded") {
 		console.log("pageLoaded message recieved:", req.data, sender.tab.id);
-		messageRespond = res;
-		req.data.tabId = sender.tab.id;
-		pageInfo.set(req.data.tabId, req.data);
-		messageRequest = req;
-		sendWebsocketMessage(req.data);
-		return true;
+		tabInfo.get(sender.tab.id).pages.set(req.data.url, req.data);
+		return false;
 	} else if (req.method == "selectEntry") {
 		console.log("selectEntry message recieved:", req.data);
 		messageRespond = res;
@@ -84,7 +120,7 @@ chrome.runtime.onMessage.addListener(function (req, sender, res) {
 		var querying = browser.tabs.query({currentWindow: true, active: true});
 		querying.then(
 			function(tabA) {
-				messageRespond({tabId: tabA[0].id, pageMatches: pageInfo.get(tabA[0].id).pageMatches});
+				messageRespond({tabId: tabA[0].id, pageMatches: tabInfo.get(tabA[0].id).pageMatches});
 				messageRespond = null;
 			}
 			,

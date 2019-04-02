@@ -9,6 +9,7 @@ var genClickHandler = function (tabId, path, title) {
 		sendMessage("selectEntry", tabId, {messageType: "requestFields", "path": path, "title": title, requestedFields: ["username", "password"]}, function (response) {
 			console.log("selectEntry response:", response);	
 		});
+		window.close();
 	};
 }
 

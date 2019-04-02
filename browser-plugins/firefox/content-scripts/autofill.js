@@ -3,13 +3,15 @@ var passwordInput = null;
 var submitInput = null;
 
 var handleResponse = function(message) {
-	var msg = JSON.parse(message);
 	console.log("Content script got message:", message);
+	/*
+	var msg = JSON.parse(message);
 	if (msg.length == 1) {
+
 		if (usernameInput != null && msg[0].username != null) {
 			usernameInput.value = msg[0].username;
 		}
-	}
+	}*/
 }
 
 var handleError = function(error) {
