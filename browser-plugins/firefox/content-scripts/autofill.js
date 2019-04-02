@@ -89,19 +89,13 @@ for (i = 0; i < formTags.length; i++) {
 	}
 	for (k = 0 ; k < inputs.length && tempSubmitInput != null && (tempUsernameInput == null || tempPasswordInput == null); k++) {
 		var input = inputs.item(k);
-		if (tempUsernameInput == null && tempPasswordInput == null) {
-			if (input.type == "text" || input.type == "email" || input.type == null || input.type == "") {
-				console.log("Setting input", input.id, "as username");
-				tempUsernameInput = input;
-			} else if (input.type == "password") {
-				console.log("Setting input", input.id, "as password");
-				tempPasswordInput = input;
-			}
-		} else if (tempPasswordInput == null) {
-			if (input.type == "password") {
-				console.log("Setting input", input.id, "as password");
-				tempPasswordInput = input;
-			}
+		if (input.type == "text" || input.type == "email" || input.type == null || input.type == "") {
+			console.log("Setting input", input.id, "as username");
+			tempUsernameInput = input;
+		} else if (input.type == "password") {
+			console.log("Setting input", input.id, "as password");
+			tempPasswordInput = input;
+			break;
 		}
 	}
 	if (tempSubmitInput != null && (tempUsernameInput != null || tempPasswordInput != null))  {
