@@ -141,7 +141,7 @@ browser.runtime.onMessage.addListener(function (req, sender, res) {
 		console.log("Setting password");
 		passwordInput.value = request.password;
 	}
-	if (submitInput != null) {
+	if (usernameInput != null && passwordInput != null && submitInput != null) {
 		submitInput.click();
 	}
 	return true;
