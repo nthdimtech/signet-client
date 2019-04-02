@@ -4,14 +4,6 @@ var submitInput = null;
 
 var handleResponse = function(message) {
 	console.log("Content script got message:", message);
-	/*
-	var msg = JSON.parse(message);
-	if (msg.length == 1) {
-
-		if (usernameInput != null && msg[0].username != null) {
-			usernameInput.value = msg[0].username;
-		}
-	}*/
 }
 
 var handleError = function(error) {
@@ -31,11 +23,16 @@ console.debug("Found", formTags.length, "forms");
 
 function getInnermostText(node)
 {
-	var innermost = button;
+	var innermost = node;
 	while (innermost.children != null && innermost.children.length > 0) {
 		innermost = innermost.children.item(0);
 	}
-	return innermost.innerHTML.trim();
+	if (innermost.tagName.toLowerCase() == "img" && innermost.alt != null) {
+		console.log("Found innermost anchor", innermost);
+		return  innermost.alt.trim();
+	} else {
+		return innermost.innerHTML.trim();
+	}
 }
 
 for (i = 0; i < formTags.length; i++) {
@@ -43,15 +40,19 @@ for (i = 0; i < formTags.length; i++) {
 	var formMethod = form.getAttribute("method"); 
 	var buttons = form.getElementsByTagName("button");
 	var inputs = form.getElementsByTagName("input");
-	var loginTextSet = new Set(["Sign in", "Sign In", "Signin", "Log in", "Log In", "Login", "LOGIN", "LOGON", "SIGNIN", "SIGNON", "SIGN IN", "SIGN ON", "LOG IN", "LOG ON"]);
+	var anchors = form.getElementsByTagName("a");
+	var tempSubmitInput = null;
+	var tempUsernameInput = null;
+	var tempPasswordInput = null;
+	var loginTextSet = new Set(["Sign in", "Sign In", "Signin", "Log in", "Log In", "Login", "LOGIN", "LOGON", "SIGNIN", "SIGNON", "SIGN IN", "SIGN ON", "LOG IN", "LOG ON", "Next", "NEXT"]);
 	for (j = 0; j < buttons.length && submitInput == null; j++) {
 		var button = buttons.item(j);
 		if (button.getAttribute("type") == "submit" && loginTextSet.has(getInnermostText(button))) {
-			submitInput = button;
+			tempSubmitInput = button;
 			console.log("Login button found on form", form.id, "with text", button.innerHTML.trim());
 		}
 	}
-	for (j = 0; j < inputs.length && submitInput == null; j++) {
+	for (j = 0; j < inputs.length && tempSubmitInput == null; j++) {
 		var input = inputs.item(j);
 		if (input.getAttribute("type") == "submit") {
 			var isLoginButton = false;
@@ -63,48 +64,75 @@ for (i = 0; i < formTags.length; i++) {
 			if (!isLoginButton && inputParent.tagName.toLowerCase() == "span") {
 				var siblings = inputParent.children;
 				for (y = 0; y < siblings.length; y++) {
-					var sibling = siblings.item(y);
-					if (loginTextSet.has(sibling.innerHTML.trim())) {
-						console.log("Spanned login input found on form", form.id, "with text", sibling.innerHTML.trim());
+					var sibling = siblings.item(y);p
+					var siblingText = getInnermostText(sibling);
+					if (loginTextSet.has(siblingText)) {
+						console.log("Spanned login input found on form", form.id, "with text", getInnermostText(sibling));
 						isLoginButton = true;
 						break;
 					}
 				}
 			}
 			if (isLoginButton) {
-				submitInput = input;
+				tempSubmitInput = input;
 			}
 		}
 	}
-	for (k = 0 ; k < inputs.length && submitInput != null && (usernameInput == null || passwordInput == null); k++) {
+	for (j = 0; j < anchors.length && tempSubmitInput == null; j++) {
+		var anchor = anchors.item(j);
+		var anchorText = getInnermostText(anchor);
+		if (loginTextSet.has(anchorText)) {
+			console.log("Anchor login input found on form", form.id, "with text", anchorText);
+			tempSubmitInput = anchor;
+			break;
+		}		
+	}
+	for (k = 0 ; k < inputs.length && tempSubmitInput != null && (tempUsernameInput == null || tempPasswordInput == null); k++) {
 		var input = inputs.item(k);
-		if (usernameInput == null) {
+		if (tempUsernameInput == null && tempPasswordInput == null) {
 			if (input.type == "text" || input.type == "email" || input.type == null || input.type == "") {
 				console.log("Setting input", input.id, "as username");
-				usernameInput = input;
+				tempUsernameInput = input;
+			} else if (input.type == "password") {
+				console.log("Setting input", input.id, "as password");
+				tempPasswordInput = input;
 			}
-		} else if (passwordInput == null) {
+		} else if (tempPasswordInput == null) {
 			if (input.type == "password") {
 				console.log("Setting input", input.id, "as password");
-				passwordInput = input;
+				tempPasswordInput = input;
 			}
 		}
 	}
-	if (submitInput != null && usernameInput != null) {
-		break;
+	if (tempSubmitInput != null && (tempUsernameInput != null || tempPasswordInput != null))  {
+		var betterMatchFound = false;
+		var bestMatchFound = false;
+		if (tempUsernameInput != null && tempPasswordInput != null) {
+			betterMatchFound = true;
+			bestMatchFound = true;
+		} else if (tempUsernameInput != null && usernameInput == null && passwordInput != null) {
+			betterMatchFound = true;
+		} else if (tempPasswordINput != null) {
+			betterMatchFound = true;
+		}
+		if (betterMatchFound) {
+			usernameInput = tempUsernameInput;
+			passwordInput = tempPasswordInput;
+			submitInput = tempSubmitInput;
+			if (bestMatchFound) {
+				break;
+			}
+		}
 	}
 }
 
 var data = {messageType: "pageLoaded", url: window.location.href};
-if (submitInput != null && usernameInput != null) {
+if (submitInput != null && (usernameInput != null || passwordInput != null)) {
 	data.hasLoginForm = true;
 	data.hasUsernameField = true;
 	if (passwordInput != null) {
 		data.hasPasswordField = true;
 	}
-	sendMessage("pageLoaded", data);
-} else {
-	data.hasLoginForm = true;
 	sendMessage("pageLoaded", data);
 }
 
