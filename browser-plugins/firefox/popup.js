@@ -22,18 +22,18 @@ window.onload = function () {
 		console.log("Popup got message", response);
 		var pageMatches = response.pageMatches;
 		var tabId = response.tabId;
-		var navList = document.createElement("ol");
+		var table = document.createElement("table");
 		for (var i = 0; i < pageMatches.length; i++) {
 			var match = pageMatches[i];
-			var navItem = document.createElement("li");
+			var row = document.createElement("tr");
 			var navLink = document.createElement("a");
 			var fullTitle = match.path + "/" + match.title;
 			navLink.href = "#";
 			navLink.innerHTML = fullTitle;
 			navLink.onclick = genClickHandler(tabId, match.path, match.title);
-			navItem.appendChild(navLink);
-			navList.appendChild(navItem);
+			row.appendChild(navLink);
+			table.appendChild(row);
 		}
-		document.body.appendChild(navList);
+		document.body.appendChild(table);
 	});
 }
