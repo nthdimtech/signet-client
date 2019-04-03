@@ -347,7 +347,8 @@ void SignetApplication::newWebSocketConnection()
 		if (!nextConnection)
 			break;
 		bool acceptConnection = false;
-		if (m_webSocketOriginWhitelist.contains(nextConnection->origin()) || nextConnection->origin().startsWith(QString("moz-extension://"))) {
+		if (m_webSocketOriginWhitelist.contains(nextConnection->origin()) || nextConnection->origin().startsWith(QString("moz-extension://")) ||
+		    nextConnection->origin().startsWith(QString("chrome-extension://"))) {
 			if (m_openWebSockets.size() < s_maxWebSocketConnections) {
 				qDebug() << "Accepting new websocket connection from " << nextConnection->origin();
 				acceptConnection = true;

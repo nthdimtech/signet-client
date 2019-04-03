@@ -1,5 +1,9 @@
+if (typeof browser === "undefined") {
+	browser = chrome;
+}
+
 var sendMessage = function(id, tabId, data, response) {
-	chrome.runtime.sendMessage({"path":'page-to-background', "tabId": tabId,  "method": id, "data" : data}, response);
+	browser.runtime.sendMessage({"path":'page-to-background', "tabId": tabId,  "method": id, "data" : data}, response);
 }
 
 var genClickHandler = function (tabId, path, title) {

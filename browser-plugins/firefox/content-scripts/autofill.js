@@ -2,24 +2,19 @@ var usernameInput = null;
 var passwordInput = null;
 var submitInput = null;
 
-var handleResponse = function(message) {
-	console.log("Content script got message:", message);
-}
-
-var handleError = function(error) {
-	console.log("Content script got error:", error);
+if (typeof browser === "undefined") {
+	browser = chrome;
 }
 
 var sendMessage = function(id, data) {
-	var sending = chrome.runtime.sendMessage({"path":'page-to-background', "method": id, "data" : data});
-	sending.then(handleResponse, handleError);
+	browser.runtime.sendMessage({"path":'page-to-background', "method": id, "data" : data});
 }
 
 var formTags = document.getElementsByTagName("Form");
 
 var loginForm = null;
 
-console.debug("Found", formTags.length, "forms");
+console.log("Found", formTags.length, "forms");
 
 function getInnermostText(node)
 {
