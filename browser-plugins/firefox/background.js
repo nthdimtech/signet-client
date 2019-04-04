@@ -1,10 +1,10 @@
 // Load settings with the storage API.
 
-if (typeof browser === "undefined") {
+var isChrome = !!window.chrome;
+
+if (isChrome) {
 	browser = chrome;
 }
-
-var isChrome = !!window.chrome;
 
 const serverUrl = 'ws://localhost:910'
 
@@ -21,7 +21,6 @@ var tabInfo = new Map([]);
 var lastWebsocketMessage = null;
 var lastWebsocketMessageInfo = null;
 console.log("Starting background script");
-
 
 chrome.webNavigation['onBeforeNavigate'].addListener(
 	function (details) {
@@ -83,12 +82,14 @@ function createSocket() {
 
 	socket.onclose = function(event) {
 		console.log("WebSocket closed");
+		browser.browserAction.disable();
 		messageRespond = null;
 		socket = null;
 	};
 
 	socket.onopen = function(event) {
 		console.log("WebSocket opened");
+		browser.browserAction.enable();
 		if (dataSendOnOpen != null) {
 			console.log("WebSocket sending URL on open", JSON.stringify(dataSendOnOpen));
 			socket.send(JSON.stringify(dataSendOnOpen));
@@ -102,6 +103,8 @@ function createSocket() {
 	}
 
 }
+
+createSocket();
 
 var sendWebsocketMessage = function (data, info) {
 	lastWebsocketMessageInfo = info;

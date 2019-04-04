@@ -1,4 +1,6 @@
-if (typeof browser === "undefined") {
+var isChrome = !!window.chrome;
+
+if (isChrome) {
 	browser = chrome;
 }
 

@@ -2,7 +2,9 @@ var usernameInput = null;
 var passwordInput = null;
 var submitInput = null;
 
-if (typeof browser === "undefined") {
+var isChrome = !!window.chrome;
+
+if (isChrome) {
 	browser = chrome;
 }
 
@@ -59,7 +61,7 @@ for (i = 0; i < formTags.length; i++) {
 			if (!isLoginButton && inputParent.tagName.toLowerCase() == "span") {
 				var siblings = inputParent.children;
 				for (y = 0; y < siblings.length; y++) {
-					var sibling = siblings.item(y);p
+					var sibling = siblings.item(y);
 					var siblingText = getInnermostText(sibling);
 					if (loginTextSet.has(siblingText)) {
 						console.log("Spanned login input found on form", form.id, "with text", getInnermostText(sibling));
