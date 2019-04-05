@@ -17,22 +17,50 @@ messageRespond = null;
 messageRequest = null;
 
 var tabInfo = new Map([]);
+var activeTabId = null;
+
+var initTabInfo = function (tabId, tabUrl) {
+	tabInfo.set(tabId, {url: tabUrl, pages: new Map([])});
+};
+
+var activeTabChanged = function (tabId) {
+	console.log("Active tab changed ", tabId);
+	activeTabId = tabId;
+	if (activeTabId != null && (tabInfo.get(activeTabId) == null || tabInfo.get(activeTabId).pageMatches == null)) {
+		var getting = browser.tabs.get(activeTabId);
+		getting.then(function(tab) {
+			initTabInfo(tab.id, tab.url);
+			var data = {messageType: "pageLoaded", url: tab.url};
+			sendWebsocketMessage(data, {tabId : tab.id});
+		});
+	}
+}
+
+browser.tabs.onActivated.addListener(function (activeInfo) {
+	activeTabChanged(activeInfo.tabId);
+});
+
+var initialTabLocated = function(details) {
+	activeTabChanged(details.tabId);
+};
+
+if (isChrome) {
+	browser.tabs.query({currentWindow: true, active: true}, initialTabLocated);
+} else {
+	var querying = browser.tabs.query({currentWindow: true, active: true});
+	querying.then(initialTabLocated);
+}
+
 
 var lastWebsocketMessage = null;
 var lastWebsocketMessageInfo = null;
 console.log("Starting background script");
 
-chrome.webNavigation['onBeforeNavigate'].addListener(
-	function (details) {
-	}
-);
-
 chrome.webNavigation.onCommitted.addListener(
 	function (details) {
 		if (details.frameId == 0) {
 			console.log("onCommitted:", details.frameId, details.url);
-			var info = {messageType: "pageLoaded", url: details.url, pages: new Map([])};
-			tabInfo.set(details.tabId, info);
+			initTabInfo(details.tabId, details.url);
 			var data = {messageType: "pageLoaded", url: details.url};
 			sendWebsocketMessage(data, {tabId : details.tabId});
 		}
@@ -120,10 +148,14 @@ var sendWebsocketMessage = function (data, info) {
 browser.runtime.onMessage.addListener(function (req, sender, res) {
 	if (req.method == "pageLoaded") {
 		console.log("pageLoaded message recieved:", req.data, sender.tab.id);
+		var info = tabInfo.get(sender.tab.id);
+		if (info == null) {
+			initTabInfo(sender.tab.id, sender.tab.url);
+		}
 		tabInfo.get(sender.tab.id).pages.set(req.data.url, req.data);
 		return false;
-	} else if (req.method == "selectEntry") {
-		console.log("selectEntry message recieved:", req.data);
+	} else if (req.method == "selectEntry" || req.method == "showClient") {
+		console.log(req.method, "message recieved:", req.data);
 		messageRespond = res;
 		messageRequest = req;
 		sendWebsocketMessage(req.data);

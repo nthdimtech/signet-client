@@ -365,9 +365,25 @@ void SignetApplication::newWebSocketConnection()
 			m_openWebSockets.append(handler);
 			connect(handler, SIGNAL(done(websocketHandler *)), this, SLOT(websocketHandlerDone(websocketHandler *)));
 			connect(handler, SIGNAL(websocketMessage(int, QString)), this, SIGNAL(websocketMessage(int, QString)));
+			connect(handler, SIGNAL(websocketMessage(int, QString)), this, SLOT(websocketMessage_(int, QString)));
 		} else {
 			nextConnection->close();
 			nextConnection->deleteLater();
+		}
+	}
+}
+
+#include <QJsonDocument>
+#include <QJsonObject>
+
+void SignetApplication::websocketMessage_(int id, QString message)
+{
+	auto document = QJsonDocument::fromJson(message.toUtf8());
+	if (document.isObject()) {
+		auto obj = document.object();
+		QString msgType = obj["messageType"].toString();
+		if (msgType == "show" && m_main_window) {
+			m_main_window->open();
 		}
 	}
 }

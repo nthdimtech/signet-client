@@ -11,13 +11,23 @@ var sendMessage = function(id, tabId, data, response) {
 var genClickHandler = function (tabId, path, title) {
 	return function() {
 		console.log("Match selected:", path, title);
-		var data = {"path": path, "title": title};
 		sendMessage("selectEntry", tabId, {messageType: "requestFields", "path": path, "title": title, requestedFields: ["username", "password"]}, function (response) {
 			console.log("selectEntry response:", response);	
 		});
 		window.close();
 	};
 }
+
+var genShowClickHandler = function (tabId, path, title) {
+	return function() {
+		var data = {"path": path, "title": title};
+		sendMessage("showClient", tabId, {messageType: "show", "path": path, "title": title}, function (response) {
+			console.log("selectEntry response:", response);	
+		});
+		window.close();
+	};
+}
+
 
 window.onload = function () {
 	sendMessage("popupLoaded", 0, {"empty": "blah"}, function(response) {
@@ -33,6 +43,15 @@ window.onload = function () {
 			navLink.href = "#";
 			navLink.innerHTML = fullTitle;
 			navLink.onclick = genClickHandler(tabId, match.path, match.title);
+			row.appendChild(navLink);
+			table.appendChild(row);
+		}
+		if (pageMatches.length == 0) {
+			var row = document.createElement("tr");
+			var navLink = document.createElement("a");
+			navLink.href = "#";
+			navLink.innerHTML = "Show client";
+			navLink.onclick = genShowClickHandler(tabId, "", "");
 			row.appendChild(navLink);
 			table.appendChild(row);
 		}

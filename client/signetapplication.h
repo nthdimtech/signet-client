@@ -238,6 +238,7 @@ private slots:
 	void newWebSocketConnection();
 	void websocketHandlerDone(websocketHandler *handler);
 #endif
+	void websocketMessage_(int, QString);
 };
 
 #endif // SIGNETAPPLICATION_H
