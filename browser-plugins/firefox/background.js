@@ -165,7 +165,12 @@ browser.runtime.onMessage.addListener(function (req, sender, res) {
 		messageRespond = res;
 		messageRequest = req;
 		var tabLocated = function(tabA) {
-			messageRespond({tabId: tabA[0].id, pageMatches: tabInfo.get(tabA[0].id).pageMatches});
+			var pageMatches = tabInfo.get(tabA[0].id).pageMatches;
+			if (pageMatches == null) {
+				//TODO: need to figure out why we get here 
+				pageMatches = new Array([]);
+			}
+			messageRespond({tabId: tabA[0].id, "pageMatches": pageMatches});
 			messageRespond = null;
 		};
 		if (isChrome) {
