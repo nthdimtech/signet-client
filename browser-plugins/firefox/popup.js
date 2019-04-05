@@ -1,4 +1,4 @@
-var isChrome = !!window.chrome;
+var isChrome = false;
 
 if (isChrome) {
 	browser = chrome;

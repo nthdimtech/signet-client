@@ -2,7 +2,7 @@ var usernameInput = null;
 var passwordInput = null;
 var submitInput = null;
 
-var isChrome = !!window.chrome;
+var isChrome = false;
 
 if (isChrome) {
 	browser = chrome;

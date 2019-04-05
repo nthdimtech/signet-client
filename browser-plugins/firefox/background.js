@@ -1,6 +1,6 @@
 // Load settings with the storage API.
 
-var isChrome = !!window.chrome;
+var isChrome = false;
 
 if (isChrome) {
 	browser = chrome;
