@@ -20,7 +20,7 @@ var tabInfo = new Map([]);
 var activeTabId = null;
 
 var initTabInfo = function (tabId, tabUrl) {
-	tabInfo.set(tabId, {url: tabUrl, pages: new Map([])});
+	tabInfo.set(tabId, {url: tabUrl, pages: new Map()});
 };
 
 var updateBrowserActionStatus = function()
@@ -45,7 +45,6 @@ var updateBrowserActionStatus = function()
 						}
 					});
 					if (foundLoginForm) {
-						console.log("Login found!");
 						browser.browserAction.setIcon({path: "icons/icon-32-login.png"});
 					} else {
 						browser.browserAction.setIcon({path: "icons/icon-32-matches.png"});
@@ -63,15 +62,20 @@ var updateBrowserActionStatus = function()
 var activeTabChanged = function (tabId) {
 	console.log("Active tab changed ", tabId);
 	activeTabId = tabId;
+	if (activeTabId != null) {
+		if (tabInfo.get(activeTabId) == null) {
+			initTabInfo(activeTabId, "");
+			var getting = browser.tabs.get(activeTabId);
+			getting.then(function(tab) {
+				tabInfo.get(activeTabId).url = tab.url;
+				var data = {messageType: "pageLoaded", url: tab.url};
+				sendWebsocketMessage(data, {tabId : tab.id});
+			});
+		} else {
+			browser.tabs.sendMessage(activeTabId, JSON.stringify({method : "loadPage"}));
+		}
+	} 
 	updateBrowserActionStatus();
-	if (activeTabId != null && (tabInfo.get(activeTabId) == null || tabInfo.get(activeTabId).pageMatches == null)) {
-		var getting = browser.tabs.get(activeTabId);
-		getting.then(function(tab) {
-			initTabInfo(tab.id, tab.url);
-			var data = {messageType: "pageLoaded", url: tab.url};
-			sendWebsocketMessage(data, {tabId : tab.id});
-		});
-	}
 }
 
 browser.tabs.onActivated.addListener(function (activeInfo) {
@@ -88,7 +92,6 @@ if (isChrome) {
 	var querying = browser.tabs.query({currentWindow: true, active: true});
 	querying.then(initialTabLocated);
 }
-
 
 var lastWebsocketMessage = null;
 var lastWebsocketMessageInfo = null;
@@ -114,33 +117,38 @@ function createSocket() {
 			console.log("Forwarding message to content script");
 			messageRespond(event.data);
 			messageRespond = null;
+			var data = JSON.parse(event.data);
+			data.method = "fill";
 			if (messageRequest.method == "selectEntry") {
 				var tab = tabInfo.get(messageRequest.tabId);
 				console.log("Selecting from tab", tab);
 				tab.pages.forEach(function(val, key, map) {
 					if (val.hasLoginForm && val.hasUsernameField && val.hasPasswordField) {
-						event.data.url = val.url;
-						browser.tabs.sendMessage(messageRequest.tabId, event.data);
+						data.url = val.url;
+						browser.tabs.sendMessage(messageRequest.tabId, JSON.stringify(data));
 						return;
 					}
 				});
 				tab.pages.forEach(function(val, key, map) {
 					if (val.hasLoginForm) {
-						event.data.url = val.url;
-						browser.tabs.sendMessage(messageRequest.tabId, event.data);
+						data.url = val.url;
+						browser.tabs.sendMessage(messageRequest.tabId, JSON.stringify(data));
 						return;
 					}
 				});
 				tab.pages.forEach(function(val, key, map) {
 					if (val.hasUsernameField || val.hasPasswordField) {
-						event.data.url = val.url;
-						browser.tabs.sendMessage(messageRequest.tabId, event.data);
+						data.url = val.url;
+						browser.tabs.sendMessage(messageRequest.tabId, JSON.stringify(data));
 					}
 				});
 			}
 		} else if (lastWebsocketMessage != null && lastWebsocketMessage.messageType == "pageLoaded" ) {
 			console.log("Got matches", event.data, lastWebsocketMessageInfo.tabId);
-			tabInfo.get(lastWebsocketMessageInfo.tabId).pageMatches = JSON.parse(event.data);
+			var thisTabInfo = tabInfo.get(lastWebsocketMessageInfo.tabId);
+			thisTabInfo.pageMatches = JSON.parse(event.data);
+			thisTabInfo.pages = new Map();
+			browser.tabs.sendMessage(lastWebsocketMessageInfo.tabId, JSON.stringify({method : "loadPage"}));
 			updateBrowserActionStatus();
 		} else {
 			console.log("Unexpected websocket message");
@@ -187,12 +195,14 @@ var sendWebsocketMessage = function (data, info) {
 
 browser.runtime.onMessage.addListener(function (req, sender, res) {
 	if (req.method == "pageLoaded") {
-		console.log("pageLoaded message recieved:", req.data, sender.tab.id);
+		console.log("pageLoaded message recieved:", req.data, sender.tab.id, sender.frameId);
 		var info = tabInfo.get(sender.tab.id);
 		if (info == null) {
 			initTabInfo(sender.tab.id, sender.tab.url);
+			var data = {messageType: "pageLoaded", url: sender.tab.url};
+			sendWebsocketMessage(data, {tabId : sender.tab.id});
 		}
-		tabInfo.get(sender.tab.id).pages.set(req.data.url, req.data);
+		tabInfo.get(sender.tab.id).pages.set(sender.frameId, req.data);
 		updateBrowserActionStatus();
 		return false;
 	} else if (req.method == "selectEntry" || req.method == "showClient") {

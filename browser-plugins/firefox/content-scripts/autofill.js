@@ -16,8 +16,6 @@ var formTags = document.getElementsByTagName("Form");
 
 var loginForm = null;
 
-console.log("Found", formTags.length, "forms");
-
 function getInnermostText(node)
 {
 	var innermost = node;
@@ -129,17 +127,30 @@ if (submitInput != null && (usernameInput != null || passwordInput != null)) {
 
 browser.runtime.onMessage.addListener(function (req, sender, res) {
 	var request = JSON.parse(req);
-	console.log("Page message from the background script:", request);
-	if (usernameInput != null && request.username != null) {
-		console.log("Setting username");
-		usernameInput.value = request.username;
-	}
-	if (passwordInput != null && request.password != null) {
-		console.log("Setting password");
-		passwordInput.value = request.password;
-	}
-	if (usernameInput != null && passwordInput != null && submitInput != null) {
-		submitInput.click();
+	console.log("Handing message", req);
+	if (request.method == "loadPage") {
+		var data = {messageType: "pageLoaded", url: window.location.href};
+		if (submitInput != null && (usernameInput != null || passwordInput != null)) {
+			data.hasLoginForm = true;
+			data.hasUsernameField = true;
+			if (passwordInput != null) {
+				data.hasPasswordField = true;
+			}
+			sendMessage("pageLoaded", data);
+		}
+	} else if (request.method == "fill") {
+		console.log("Page message from the background script:", request);
+		if (usernameInput != null && request.username != null) {
+			console.log("Setting username");
+			usernameInput.value = request.username;
+		}
+		if (passwordInput != null && request.password != null) {
+			console.log("Setting password");
+			passwordInput.value = request.password;
+		}
+		if (usernameInput != null && passwordInput != null && submitInput != null) {
+			submitInput.click();
+		}
 	}
 	return true;
 });
