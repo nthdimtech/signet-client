@@ -23,9 +23,47 @@ var initTabInfo = function (tabId, tabUrl) {
 	tabInfo.set(tabId, {url: tabUrl, pages: new Map([])});
 };
 
+var updateBrowserActionStatus = function()
+{
+	if (socket == null || socket.readyState != WebSocket.OPEN) {
+		browser.browserAction.setIcon({path: "icons/icon-32.png"});
+		browser.browserAction.disable();
+	} else {
+		browser.browserAction.enable();
+		var activeTabInfo = tabInfo.get(activeTabId);
+		if (activeTabInfo == null) {
+			browser.browserAction.setIcon({path: "icons/icon-32.png"});
+		} else {
+			if (activeTabInfo.pageMatches != null && activeTabInfo.pageMatches.length > 0) {
+				//Show at least white ring
+				if (activeTabInfo.pages != null) {
+					var foundLoginForm = false;
+					console.log("pages", activeTabInfo.pages);
+					activeTabInfo.pages.forEach(function(val, key, map) {
+						if (val.hasLoginForm) {
+							foundLoginForm = true;
+						}
+					});
+					if (foundLoginForm) {
+						console.log("Login found!");
+						browser.browserAction.setIcon({path: "icons/icon-32-login.png"});
+					} else {
+						browser.browserAction.setIcon({path: "icons/icon-32-matches.png"});
+					}
+				} else {
+					browser.browserAction.setIcon({path: "icons/icon-32-matches.png"});
+				}
+			} else {
+				browser.browserAction.setIcon({path: "icons/icon-32.png"});
+			}
+		}
+	}
+};
+
 var activeTabChanged = function (tabId) {
 	console.log("Active tab changed ", tabId);
 	activeTabId = tabId;
+	updateBrowserActionStatus();
 	if (activeTabId != null && (tabInfo.get(activeTabId) == null || tabInfo.get(activeTabId).pageMatches == null)) {
 		var getting = browser.tabs.get(activeTabId);
 		getting.then(function(tab) {
@@ -103,6 +141,7 @@ function createSocket() {
 		} else if (lastWebsocketMessage != null && lastWebsocketMessage.messageType == "pageLoaded" ) {
 			console.log("Got matches", event.data, lastWebsocketMessageInfo.tabId);
 			tabInfo.get(lastWebsocketMessageInfo.tabId).pageMatches = JSON.parse(event.data);
+			updateBrowserActionStatus();
 		} else {
 			console.log("Unexpected websocket message");
 		}
@@ -113,11 +152,12 @@ function createSocket() {
 		browser.browserAction.disable();
 		messageRespond = null;
 		socket = null;
+		updateBrowserActionStatus();
 	};
 
 	socket.onopen = function(event) {
 		console.log("WebSocket opened");
-		browser.browserAction.enable();
+		updateBrowserActionStatus();
 		if (dataSendOnOpen != null) {
 			console.log("WebSocket sending URL on open", JSON.stringify(dataSendOnOpen));
 			socket.send(JSON.stringify(dataSendOnOpen));
@@ -153,6 +193,7 @@ browser.runtime.onMessage.addListener(function (req, sender, res) {
 			initTabInfo(sender.tab.id, sender.tab.url);
 		}
 		tabInfo.get(sender.tab.id).pages.set(req.data.url, req.data);
+		updateBrowserActionStatus();
 		return false;
 	} else if (req.method == "selectEntry" || req.method == "showClient") {
 		console.log(req.method, "message recieved:", req.data);
