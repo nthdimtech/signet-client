@@ -481,8 +481,15 @@ void LoggedInWidget::collapsed(QModelIndex index)
 int LoggedInWidget::scoreUrlMatch(const QUrl &a, const QUrl &b)
 {
 	int score = 0;
-	QStringList urlHostAparts = a.host().split(".");
-	QStringList urlHostBparts = b.host().split(".");
+	QString hostA = a.host();
+	QString hostB = b.host();
+
+	if (hostA.size() == 0 || hostB.size() == 0) {
+		return 0;
+	}
+
+	QStringList urlHostAparts = hostA.split(".");
+	QStringList urlHostBparts = hostB.split(".");
 
 	int hostMatches = 0;
 	for (int j = 0; j < std::min(urlHostAparts.size(), urlHostBparts.size()); j++) {
