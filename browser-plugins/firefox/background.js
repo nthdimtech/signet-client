@@ -216,12 +216,21 @@ browser.runtime.onMessage.addListener(function (req, sender, res) {
 		messageRespond = res;
 		messageRequest = req;
 		var tabLocated = function(tabA) {
-			var pageMatches = tabInfo.get(tabA[0].id).pageMatches;
+			var activeTabInfo = tabInfo.get(tabA[0].id);
+			var pageMatches = activeTabInfo.pageMatches;
 			if (pageMatches == null) {
 				//TODO: need to figure out why we get here 
 				pageMatches = new Array([]);
 			}
-			messageRespond({tabId: tabA[0].id, "pageMatches": pageMatches});
+
+			var foundLoginForm = false;
+			console.log("pages", activeTabInfo.pages);
+			activeTabInfo.pages.forEach(function(val, key, map) {
+				if (val.hasLoginForm) {
+					foundLoginForm = true;
+				}
+			});
+			messageRespond({tabId: tabA[0].id, "pageMatches": pageMatches, "hasLoginForm": foundLoginForm});
 			messageRespond = null;
 		};
 		if (isChrome) {

@@ -222,6 +222,8 @@ private:
 	int m_socketId;
 	QStringList m_requestedFields;
 	void idTaskComplete(bool error, int id, esdbEntry *entry, enum ID_TASK task, int intent);
+	esdbEntry *findEntryByPathAndTitle(QString path, QString title) const;
+	void websocketShow(int socketId, const QString &path, const QString &title);
 };
 
 #endif // LOGGEDINWIDGET_H

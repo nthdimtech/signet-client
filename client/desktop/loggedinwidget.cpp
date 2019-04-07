@@ -528,9 +528,7 @@ void LoggedInWidget::websocketPageLoaded(int socketId, QString url, bool hasLogi
 {
 	QUrl selectedUrl(url, QUrl::TolerantMode);
 	qDebug() << "websocketPageLoaded" << url << hasLoginForm << hasUsernameField << hasPasswordField;
-	esdbEntry *highestScoreMatch = nullptr;
 	QJsonArray matches;
-	int highestScore = 0;
 	for (auto entry : *m_activeType->entries) {
 		QString entUrlStr = entry->getUrl();
 		QUrl entryUrl(entUrlStr, QUrl::TolerantMode);
@@ -553,31 +551,15 @@ void LoggedInWidget::websocketPageLoaded(int socketId, QString url, bool hasLogi
 				match.insert("email", QJsonValue(account->email));
 			}
 			matches.append(match);
-			if (score > highestScore) {
-				highestScoreMatch = entry;
-				highestScore = score;
-			}
 		}
-	}
-	if (highestScoreMatch) {
-		/*
-		qDebug() << "Selecting :" << highestScoreMatch->getTitle();
-		QModelIndex idx = m_activeType->model->findEntry(highestScoreMatch);
-		m_searchListbox->setCurrentIndex(idx);
-		m_searchListbox->scrollTo(idx);
-		selectEntry(highestScoreMatch);
-		*/
 	}
 	QJsonDocument doc(matches);
 	SignetApplication::get()->websocketResponse(socketId, QString::fromUtf8(doc.toJson()));
 
 }
 
-void LoggedInWidget::websocketRequestFields(int socketId, const QString &path, const QString &title, const QStringList &requestedFields)
+esdbEntry *LoggedInWidget::findEntryByPathAndTitle(QString path, QString title) const
 {
-	Q_UNUSED(socketId);
-	qDebug() << "websocketRequestFields:" << path << ":" <<  title;
-
 	esdbEntry *matchingEntry = nullptr;
 
 	for (auto entry : *m_activeType->entries) {
@@ -586,6 +568,32 @@ void LoggedInWidget::websocketRequestFields(int socketId, const QString &path, c
 			break;
 		}
 	}
+	return matchingEntry;
+}
+
+void LoggedInWidget::websocketShow(int socketId, const QString &path, const QString &title)
+{
+	Q_UNUSED(socketId);
+	qDebug() << "websocketShow" << path << ":" <<  title;
+
+	esdbEntry *matchingEntry = findEntryByPathAndTitle(path, title);
+
+	if (matchingEntry) {
+		qDebug() << "Showing :" << matchingEntry->getTitle();
+		QModelIndex idx = m_activeType->model->findEntry(matchingEntry);
+		m_searchListbox->setCurrentIndex(idx);
+		m_searchListbox->scrollTo(idx);
+		selectEntry(matchingEntry);
+	}
+}
+
+void LoggedInWidget::websocketRequestFields(int socketId, const QString &path, const QString &title, const QStringList &requestedFields)
+{
+	Q_UNUSED(socketId);
+	qDebug() << "websocketRequestFields:" << path << ":" <<  title;
+
+	esdbEntry *matchingEntry = findEntryByPathAndTitle(path, title);
+
 	if (matchingEntry) {
 		m_requestedFields = requestedFields;
 		m_socketId = socketId;
@@ -615,6 +623,10 @@ void LoggedInWidget::websocketMessage(int socketId, QString message)
 				requestedFields.append(r.toString());
 			}
 			websocketRequestFields(socketId, path, title, requestedFields);
+		} else if (msgType == QString("show")) {
+			QString path = obj["path"].toString();
+			QString title = obj["title"].toString();
+			websocketShow(socketId, path, title);
 		}
 	}
 
