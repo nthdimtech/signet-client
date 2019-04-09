@@ -243,7 +243,7 @@ void SignetApplication::init(bool startInTray, QString dbFilename)
 	connect(this, SIGNAL(connectionError()), m_main_window, SLOT(connectionError()));
 
 	m_webSocketServer = new QWebSocketServer("Cool", QWebSocketServer::NonSecureMode, this);
-	m_webSocketServer->listen(QHostAddress::LocalHost, 910);
+	m_webSocketServer->listen(QHostAddress::LocalHost, 10910);
 	connect(m_webSocketServer, SIGNAL(newConnection()), this, SLOT(newWebSocketConnection()));
 
 	QObject::connect(this, SIGNAL(messageReceived(QString)), m_main_window, SLOT(messageReceived(QString)));

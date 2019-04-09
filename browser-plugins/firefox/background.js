@@ -7,7 +7,7 @@ if (typeof browser === 'undefined') {
 	browser = chrome;
 }
 
-const serverUrl = 'ws://localhost:910'
+const serverUrl = 'ws://localhost:10910'
 
 dataSendOnOpen = null;
 
