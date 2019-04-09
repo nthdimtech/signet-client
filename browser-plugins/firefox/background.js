@@ -2,7 +2,8 @@
 
 var isChrome = false;
 
-if (isChrome) {
+if (typeof browser === 'undefined') {
+	isChrome = true;
 	browser = chrome;
 }
 
@@ -65,12 +66,19 @@ var activeTabChanged = function (tabId) {
 	if (activeTabId != null) {
 		if (tabInfo.get(activeTabId) == null) {
 			initTabInfo(activeTabId, "");
-			var getting = browser.tabs.get(activeTabId);
-			getting.then(function(tab) {
+
+			var gotTab = function(tab) {
 				tabInfo.get(activeTabId).url = tab.url;
 				var data = {messageType: "pageLoaded", url: tab.url};
 				sendWebsocketMessage(data, {tabId : tab.id});
-			});
+			}
+
+			if (isChrome) {
+				browser.tabs.get(activeTabId, gotTab);
+			} else {
+				var getting = browser.tabs.get(activeTabId);
+				getting.then(gotTab);
+			}
 		} else {
 			browser.tabs.sendMessage(activeTabId, JSON.stringify({method : "loadPage"}));
 		}
@@ -220,7 +228,7 @@ browser.runtime.onMessage.addListener(function (req, sender, res) {
 			var pageMatches = activeTabInfo.pageMatches;
 			if (pageMatches == null) {
 				//TODO: need to figure out why we get here 
-				pageMatches = new Array([]);
+				pageMatches = new Array();
 			}
 
 			var foundLoginForm = false;

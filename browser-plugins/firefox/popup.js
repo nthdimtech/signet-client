@@ -1,6 +1,7 @@
 var isChrome = false;
 
-if (isChrome) {
+if (typeof browser === 'undefined') {
+	isChrome = true;
 	browser = chrome;
 }
 
