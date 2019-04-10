@@ -13,9 +13,7 @@
   "permissions": [
 	  "webNavigation",
 	  "storage",
-	  "tabs",
-	  "http://*/*",
-	  "https://*/*"
+	  "tabs"
   ],
   "background": {
     "scripts": [ "background.js" ]
