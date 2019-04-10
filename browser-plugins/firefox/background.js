@@ -201,6 +201,19 @@ var sendWebsocketMessage = function (data, info) {
 	}
 }
 
+var tabHasLoginForm = function (tabInfo) {
+	var foundLoginForm = false;
+	var pageMatches = tabInfo.pageMatches;
+	if (pageMatches != null) {
+		tabInfo.pages.forEach(function(val, key, map) {
+			if (val.hasLoginForm) {
+				foundLoginForm = true;
+			}
+		});
+	}
+	return foundLoginForm;
+};
+
 browser.runtime.onMessage.addListener(function (req, sender, res) {
 	if (req.method == "pageLoaded") {
 		console.log("pageLoaded message recieved:", req.data, sender.tab.id, sender.frameId);
@@ -225,21 +238,19 @@ browser.runtime.onMessage.addListener(function (req, sender, res) {
 		messageRequest = req;
 		var tabLocated = function(tabA) {
 			var activeTabInfo = tabInfo.get(tabA[0].id);
-			var pageMatches = activeTabInfo.pageMatches;
-			if (pageMatches == null) {
-				//TODO: need to figure out why we get here 
-				pageMatches = new Array();
-			}
-
-			var foundLoginForm = false;
-			console.log("pages", activeTabInfo.pages);
-			activeTabInfo.pages.forEach(function(val, key, map) {
-				if (val.hasLoginForm) {
-					foundLoginForm = true;
+			if (activeTabInfo == null) {
+				messageRespond({tabId: tabA[0].id, "pageMatches": new Array(), "hasLoginForm": false});
+				messageRespond = null;
+			} else {
+				var pageMatches = activeTabInfo.pageMatches;
+				if (pageMatches == null) {
+					//TODO: need to figure out why we get here 
+					pageMatches = new Array();
 				}
-			});
-			messageRespond({tabId: tabA[0].id, "pageMatches": pageMatches, "hasLoginForm": foundLoginForm});
-			messageRespond = null;
+				var foundLoginForm = tabHasLoginForm(activeTabInfo);
+				messageRespond({tabId: tabA[0].id, "pageMatches": pageMatches, "hasLoginForm": foundLoginForm});
+				messageRespond = null;
+			}
 		};
 		if (isChrome) {
 			browser.tabs.query({currentWindow: true, active: true}, tabLocated);
@@ -249,4 +260,28 @@ browser.runtime.onMessage.addListener(function (req, sender, res) {
 		}
 		return true;
 	}
+});
+
+
+browser.commands.onCommand.addListener(function(command) {
+	var isEnabled = browser.browserAction.isEnabled(new Object());
+	if (!isEnabled) {
+		return;
+	}
+	var activeTabInfo = tabInfo.get(activeTabId);
+	if (activeTabInfo != null) {
+		var pageMatches = activeTabInfo.pageMatches;
+		var foundLoginForm = tabHasLoginForm(activeTabInfo);
+		if (pageMatches != null && pageMatches.length == 1 && foundLoginForm) {
+			var match = pageMatches[0];
+			var path = pageMatches[0].path;
+			var title = pageMatches[0].title;
+			var data =  {messageType: "requestFields", "path": path, "title": title, requestedFields: ["username", "password"]};
+			messageRequest = {method: "selectEntry", tabId: activeTabId, "data": data};
+			messageRespond = function() {};
+			sendWebsocketMessage(messageRequest.data);
+			return;
+		}
+	}
+	browser.browserAction.openPopup();
 });

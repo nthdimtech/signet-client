@@ -12,7 +12,7 @@ var sendMessage = function(id, tabId, data, response) {
 var genClickHandler = function (tabId, path, title) {
 	return function() {
 		console.log("Match selected:", path, title);
-		sendMessage("selectEntry", tabId, {messageType: "requestFields", "path": path, "title": title, requestedFields: ["username", "password"]}, function (response) {
+		sendMessage("selectEntry", tabId, {messagetype: "requestfields", "path": path, "title": title, requestedfields: ["username", "password"]}, function (response) {
 			console.log("selectEntry response:", response);	
 		});
 		window.close();

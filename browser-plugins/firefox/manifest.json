@@ -31,5 +31,14 @@
     "gecko": {
       "strict_min_version": "50.0"
     }
+  },
+  "commands" : {
+    "login": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L"
+      },
+      "description": "Login to current webpage"
+    }
   }
 }
+
