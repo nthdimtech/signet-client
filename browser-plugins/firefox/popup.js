@@ -11,9 +11,7 @@ var sendMessage = function(id, tabId, data, response) {
 
 var genClickHandler = function (tabId, path, title) {
 	return function() {
-		console.log("Match selected:", path, title);
 		sendMessage("selectEntry", tabId, {messageType: "requestFields", "path": path, "title": title, requestedFields: ["username", "password"]}, function (response) {
-			console.log("selectEntry response:", response);	
 		});
 		window.close();
 	};
@@ -23,7 +21,6 @@ var genShowClickHandler = function (tabId, path, title) {
 	return function() {
 		var data = {"path": path, "title": title};
 		sendMessage("showClient", tabId, {messageType: "show", "path": path, "title": title}, function (response) {
-			console.log("selectEntry response:", response);	
 		});
 		window.close();
 	};
@@ -31,7 +28,6 @@ var genShowClickHandler = function (tabId, path, title) {
 
 window.onload = function () {
 	sendMessage("popupLoaded", 0, {"empty": "blah"}, function(response) {
-		console.log("Popup got message", response);
 		var pageMatches = response.pageMatches;
 		var tabId = response.tabId;
 		var table = document.createElement("table");

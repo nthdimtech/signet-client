@@ -39,7 +39,6 @@ var updateBrowserActionStatus = function()
 				//Show at least white ring
 				if (activeTabInfo.pages != null) {
 					var foundLoginForm = false;
-					console.log("pages", activeTabInfo.pages);
 					activeTabInfo.pages.forEach(function(val, key, map) {
 						if (val.hasLoginForm) {
 							foundLoginForm = true;
@@ -61,7 +60,6 @@ var updateBrowserActionStatus = function()
 };
 
 var activeTabChanged = function (tabId) {
-	console.log("Active tab changed ", tabId);
 	activeTabId = tabId;
 	if (activeTabId != null) {
 		if (tabInfo.get(activeTabId) == null) {
@@ -103,12 +101,10 @@ if (isChrome) {
 
 var lastWebsocketMessage = null;
 var lastWebsocketMessageInfo = null;
-console.log("Starting background script");
 
 chrome.webNavigation.onCommitted.addListener(
 	function (details) {
 		if (details.frameId == 0) {
-			console.log("onCommitted:", details.frameId, details.url);
 			initTabInfo(details.tabId, details.url);
 			var data = {messageType: "pageLoaded", url: details.url};
 			sendWebsocketMessage(data, {tabId : details.tabId});
@@ -120,16 +116,13 @@ function createSocket() {
 	socket = new WebSocket(serverUrl);
 
 	socket.onmessage = function(event) {
-		console.log("WebSocket message received:", JSON.parse(event.data));
 		if (messageRespond != null) {
-			console.log("Forwarding message to content script");
 			messageRespond(event.data);
 			messageRespond = null;
 			var data = JSON.parse(event.data);
 			data.method = "fill";
 			if (messageRequest.method == "selectEntry") {
 				var tab = tabInfo.get(messageRequest.tabId);
-				console.log("Selecting from tab", tab);
 				tab.pages.forEach(function(val, key, map) {
 					if (val.hasLoginForm && val.hasUsernameField && val.hasPasswordField) {
 						data.url = val.url;
@@ -152,7 +145,6 @@ function createSocket() {
 				});
 			}
 		} else if (lastWebsocketMessage != null && lastWebsocketMessage.messageType == "pageLoaded" ) {
-			console.log("Got matches", event.data, lastWebsocketMessageInfo.tabId);
 			var thisTabInfo = tabInfo.get(lastWebsocketMessageInfo.tabId);
 			thisTabInfo.pageMatches = JSON.parse(event.data);
 			thisTabInfo.pages = new Map();
@@ -175,7 +167,6 @@ function createSocket() {
 		console.log("WebSocket opened");
 		updateBrowserActionStatus();
 		if (dataSendOnOpen != null) {
-			console.log("WebSocket sending URL on open", JSON.stringify(dataSendOnOpen));
 			socket.send(JSON.stringify(dataSendOnOpen));
 			lastWebsocketMessage = dataSendOnOpen;
 			dataSendOnOpen = null;
@@ -183,7 +174,7 @@ function createSocket() {
 	};
 
 	socket.onerror = function(event) {
-		console.log("WebSocket error", event);
+		console.log("WebSocket error ", event);
 	}
 
 }
@@ -216,7 +207,6 @@ var tabHasLoginForm = function (tabInfo) {
 
 browser.runtime.onMessage.addListener(function (req, sender, res) {
 	if (req.method == "pageLoaded") {
-		console.log("pageLoaded message recieved:", req.data, sender.tab.id, sender.frameId);
 		var info = tabInfo.get(sender.tab.id);
 		if (info == null) {
 			initTabInfo(sender.tab.id, sender.tab.url);
@@ -227,13 +217,11 @@ browser.runtime.onMessage.addListener(function (req, sender, res) {
 		updateBrowserActionStatus();
 		return false;
 	} else if (req.method == "selectEntry" || req.method == "showClient") {
-		console.log(req.method, "message recieved:", req.data);
 		messageRespond = res;
 		messageRequest = req;
 		sendWebsocketMessage(req.data);
 		return true;
 	} else if (req.method == "popupLoaded") {
-		console.log("popupLoaded message recieved:", req.data);
 		messageRespond = res;
 		messageRequest = req;
 		var tabLocated = function(tabA) {

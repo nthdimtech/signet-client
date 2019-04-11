@@ -24,12 +24,13 @@ function getInnermostText(node)
 		innermost = innermost.children.item(0);
 	}
 	if (innermost.tagName.toLowerCase() == "img" && innermost.alt != null) {
-		console.log("Found innermost anchor", innermost);
 		return  innermost.alt.trim();
 	} else {
 		return innermost.innerHTML.trim();
 	}
 }
+
+var loginTextSet = new Set(["Sign in", "Sign In", "Signin", "Log in", "Log In", "Login", "LOGIN", "LOGON", "SIGNIN", "SIGNON", "SIGN IN", "SIGN ON", "LOG IN", "LOG ON", "Next", "NEXT"]);
 
 for (i = 0; i < formTags.length; i++) {
 	form = formTags.item(i);
@@ -40,12 +41,10 @@ for (i = 0; i < formTags.length; i++) {
 	var tempSubmitInput = null;
 	var tempUsernameInput = null;
 	var tempPasswordInput = null;
-	var loginTextSet = new Set(["Sign in", "Sign In", "Signin", "Log in", "Log In", "Login", "LOGIN", "LOGON", "SIGNIN", "SIGNON", "SIGN IN", "SIGN ON", "LOG IN", "LOG ON", "Next", "NEXT"]);
 	for (j = 0; j < buttons.length && submitInput == null; j++) {
 		var button = buttons.item(j);
 		if (button.getAttribute("type") == "submit" && loginTextSet.has(getInnermostText(button))) {
 			tempSubmitInput = button;
-			console.log("Login button found on form", form.id, "with text", button.innerHTML.trim());
 		}
 	}
 	for (j = 0; j < inputs.length && tempSubmitInput == null; j++) {
@@ -53,7 +52,6 @@ for (i = 0; i < formTags.length; i++) {
 		if (input.getAttribute("type") == "submit") {
 			var isLoginButton = false;
 			if (!isLoginButton && loginTextSet.has(input.value)) {
-				console.log("Login input found on form", form.id);
 				isLoginButton = true;
 			}
 			var inputParent = input.parentNode;
@@ -63,7 +61,6 @@ for (i = 0; i < formTags.length; i++) {
 					var sibling = siblings.item(y);
 					var siblingText = getInnermostText(sibling);
 					if (loginTextSet.has(siblingText)) {
-						console.log("Spanned login input found on form", form.id, "with text", getInnermostText(sibling));
 						isLoginButton = true;
 						break;
 					}
@@ -78,7 +75,6 @@ for (i = 0; i < formTags.length; i++) {
 		var anchor = anchors.item(j);
 		var anchorText = getInnermostText(anchor);
 		if (loginTextSet.has(anchorText)) {
-			console.log("Anchor login input found on form", form.id, "with text", anchorText);
 			tempSubmitInput = anchor;
 			break;
 		}		
@@ -86,10 +82,8 @@ for (i = 0; i < formTags.length; i++) {
 	for (k = 0 ; k < inputs.length && tempSubmitInput != null && (tempUsernameInput == null || tempPasswordInput == null); k++) {
 		var input = inputs.item(k);
 		if (input.type == "text" || input.type == "email" || input.type == null || input.type == "") {
-			console.log("Setting input", input.id, "as username");
 			tempUsernameInput = input;
 		} else if (input.type == "password") {
-			console.log("Setting input", input.id, "as password");
 			tempPasswordInput = input;
 			break;
 		}
@@ -128,7 +122,6 @@ if (submitInput != null && (usernameInput != null || passwordInput != null)) {
 
 browser.runtime.onMessage.addListener(function (req, sender, res) {
 	var request = JSON.parse(req);
-	console.log("Handing message", req);
 	if (request.method == "loadPage") {
 		var data = {messageType: "pageLoaded", url: window.location.href};
 		if (submitInput != null && (usernameInput != null || passwordInput != null)) {
@@ -140,13 +133,10 @@ browser.runtime.onMessage.addListener(function (req, sender, res) {
 			sendMessage("pageLoaded", data);
 		}
 	} else if (request.method == "fill") {
-		console.log("Page message from the background script:", request);
 		if (usernameInput != null && request.username != null) {
-			console.log("Setting username");
 			usernameInput.value = request.username;
 		}
 		if (passwordInput != null && request.password != null) {
-			console.log("Setting password");
 			passwordInput.value = request.password;
 		}
 		if (usernameInput != null && passwordInput != null && submitInput != null) {
