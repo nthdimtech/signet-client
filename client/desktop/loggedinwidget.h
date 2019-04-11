@@ -181,7 +181,7 @@ public:
 	explicit LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, QWidget *parent = 0);
 	~LoggedInWidget();
 	void finishTask(bool deselect = true);
-	void beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar);
+	bool beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar);
 	void getSelectedAccountRect(QRect &r);
 	int getUnusedId();
 	int getUnusedTypeId();
@@ -218,7 +218,9 @@ public slots:
 	void collapsed(QModelIndex index);
 private slots:
 	void websocketMessage(int socketId, QString message);
+	void readEntryFinished(int code);
 private:
+	ButtonWaitDialog *m_buttonWaitDialog;
 	int m_socketId;
 	QStringList m_requestedFields;
 	void idTaskComplete(bool error, int id, esdbEntry *entry, enum ID_TASK task, int intent);

@@ -133,7 +133,8 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	m_accountGroup(nullptr),
 	m_signetdevCmdToken(-1),
 	m_id(-1),
-        m_idTask(ID_TASK_NONE)
+        m_idTask(ID_TASK_NONE),
+        m_buttonWaitDialog(nullptr)
 {
 	m_genericIcon = QIcon(":images/generic-entry.png");
 	m_icon_accounts.append(
@@ -595,9 +596,27 @@ void LoggedInWidget::websocketRequestFields(int socketId, const QString &path, c
 	esdbEntry *matchingEntry = findEntryByPathAndTitle(path, title);
 
 	if (matchingEntry) {
-		m_requestedFields = requestedFields;
-		m_socketId = socketId;
-		beginIDTask(matchingEntry->id, ID_TASK_READ, 0, nullptr);
+		if (beginIDTask(matchingEntry->id, ID_TASK_READ, 0, nullptr)) {
+			m_requestedFields = requestedFields;
+			m_socketId = socketId;
+			m_buttonWaitDialog = new ButtonWaitDialog("Reading entry",
+			                QString("Read entry ") + matchingEntry->getTitle() + QString("\""),
+			                this);
+			connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(readEntryFinished(int)));
+			m_buttonWaitDialog->show();
+		}
+	}
+}
+
+void LoggedInWidget::readEntryFinished(int code)
+{
+	if (m_buttonWaitDialog) {
+		m_buttonWaitDialog->deleteLater();
+		m_buttonWaitDialog = nullptr;
+	}
+	if (code != QMessageBox::Ok) {
+		::signetdev_cancel_button_wait();
+		m_idTask = ID_TASK_NONE;
 	}
 }
 
@@ -634,6 +653,9 @@ void LoggedInWidget::websocketMessage(int socketId, QString message)
 
 void LoggedInWidget::idTaskComplete(bool error, int id, esdbEntry *entry, enum ID_TASK task, int intent)
 {
+	if (m_buttonWaitDialog)
+		m_buttonWaitDialog->done(QMessageBox::Ok);
+
 	if (!error && task == ID_TASK_READ && entry && intent == 0 /* TODO: magic number */) {
 		QVector<genericField> fields;
 		entry->getFields(fields);
@@ -650,23 +672,26 @@ void LoggedInWidget::idTaskComplete(bool error, int id, esdbEntry *entry, enum I
 	m_requestedFields.clear();
 }
 
-void LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar)
+bool LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar)
 {
 	//TODO: validate that an ID task is not already pending
-	m_id = id;
-	m_idTask = task;
-	m_taskIntent = intent;
-	m_taskActionBar = bar;
-	switch (m_idTask) {
-	case ID_TASK_DELETE:
-		::signetdev_update_uid(nullptr, &m_signetdevCmdToken, m_id, 0, nullptr, nullptr);
-		break;
-	case ID_TASK_READ:
-		::signetdev_read_uid(nullptr, &m_signetdevCmdToken, m_id, 0);
-		break;
-	default:
-		break;
+	if (m_idTask == ID_TASK_NONE) {
+		m_id = id;
+		m_idTask = task;
+		m_taskIntent = intent;
+		m_taskActionBar = bar;
+		switch (m_idTask) {
+		case ID_TASK_DELETE:
+			::signetdev_update_uid(nullptr, &m_signetdevCmdToken, m_id, 0, nullptr, nullptr);
+			return true;
+		case ID_TASK_READ:
+			::signetdev_read_uid(nullptr, &m_signetdevCmdToken, m_id, 0);
+			return true;
+		default:
+			break;
+		}
 	}
+	return false;
 }
 
 esdbTypeModule *LoggedInWidget::esdbEntryToModule(esdbEntry *entry)
@@ -738,7 +763,9 @@ void LoggedInWidget::signetdevCmdResp(signetdevCmdRespInfo info)
 	case SIGNETDEV_CMD_UPDATE_UID: {
 		if (m_idTask == ID_TASK_DELETE) {
 			EsdbActionBar *bar = getActiveActionBar();
-			bar->idTaskComplete(false, m_id, nullptr, m_idTask, m_taskIntent);
+			enum ID_TASK task = m_idTask;
+			m_idTask = ID_TASK_NONE;
+			bar->idTaskComplete(false, m_id, nullptr, task, m_taskIntent);
 			if (code == OKAY) {
 				auto iter = m_entries.find(m_id);
 				if (m_activeType->module == m_genericTypeModule) {
@@ -759,7 +786,6 @@ void LoggedInWidget::signetdevCmdResp(signetdevCmdRespInfo info)
 				m_activeType->entries->erase(m_activeType->entries->find(m_id));
 				populateEntryList(m_activeType, m_filterEdit->text());
 			}
-			m_idTask = ID_TASK_NONE;
 		}
 	}
 	break;
@@ -783,7 +809,6 @@ void LoggedInWidget::signetdevReadUIdResp(signetdevCmdRespInfo info, QByteArray 
 	b->data = data;
 	b->mask = mask;
 	getEntryDone(m_id, code, b, true);
-	m_idTask = ID_TASK_NONE;
 }
 
 void LoggedInWidget::getSelectedAccountRect(QRect &r)
@@ -979,6 +1004,8 @@ QList<esdbTypeModule *> LoggedInWidget::getTypeModules()
 void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 {
 	esdbEntry *entry = nullptr;
+	enum ID_TASK idTask  = m_idTask;
+	m_idTask = ID_TASK_NONE;
 
 	int exists = m_entries.count(id);
 
@@ -994,7 +1021,7 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 			emit abort();
 		}
 		if (bar)
-			bar->idTaskComplete(true, id, nullptr, m_idTask, m_taskIntent);
+			bar->idTaskComplete(true, id, nullptr, idTask, m_taskIntent);
 		return;
 	}
 
@@ -1006,13 +1033,13 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 			entry = module->decodeEntry(id, tmp.revision, entry, blk);
 			if (entry) {
 				if (bar) {
-					bar->idTaskComplete(false, id, entry, m_idTask, m_taskIntent);
+					bar->idTaskComplete(false, id, entry, idTask, m_taskIntent);
 				} else {
 					if (entry->type == ESDB_TYPE_GENERIC_TYPE_DESC) {
 						genericTypeDesc *genericTypeDesc_ = static_cast<genericTypeDesc *>(entry);
 						addGenericType(genericTypeDesc_);
 					} else {
-						idTaskComplete(false, id, entry, m_idTask, m_taskIntent);
+						idTaskComplete(false, id, entry, idTask, m_taskIntent);
 					}
 				}
 			} else if (m_populating) {
@@ -1171,6 +1198,7 @@ void LoggedInWidget::finishTask(bool deselect)
 	if (deselect) {
 		deselectEntry();
 	}
+	m_idTask = ID_TASK_NONE;
 }
 
 void LoggedInWidget::entryIconCheck(esdbEntry *entry)

@@ -10,6 +10,8 @@ class QPushButton;
 class LoggedInWidget;
 class ButtonWaitDialog;
 
+#include "loggedinwidget.h"
+
 class EsdbActionBar : public QWidget
 {
 	Q_OBJECT
@@ -87,7 +89,7 @@ public:
 		Q_UNUSED(entry);
 	}
 
-	void idTaskComplete(bool error, int id, esdbEntry *entry, int task, int intent);
+	void idTaskComplete(bool error, int id, esdbEntry *entry, enum LoggedInWidget::ID_TASK task, int intent);
 
 signals:
 	void background();
