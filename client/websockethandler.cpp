@@ -4,7 +4,6 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
-#include <QDebug>
 
 websocketHandler::websocketHandler(QWebSocket *socket, int socketId, QObject *parent) : QObject(parent),
         m_socketId(socketId),
@@ -22,12 +21,10 @@ void websocketHandler::websocketResponse(const QString &response)
 
 void websocketHandler::textMessageReceived(QString message)
 {
-	qDebug() << "Message recieved";
 	websocketMessage(m_socketId, message);
 }
 
 void websocketHandler::disconnected()
 {
-	qDebug() << "WebSocket disconnected";
 	done(this);
 }

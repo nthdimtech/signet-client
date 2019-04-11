@@ -11,7 +11,6 @@
 #include <QMenu>
 #include <QDesktopWidget>
 #include <QApplication>
-#include <QDebug>
 
 extern "C" {
 #include "signetdev/host/signetdev.h"
@@ -350,17 +349,11 @@ void SignetApplication::newWebSocketConnection()
 		if (m_webSocketOriginWhitelist.contains(nextConnection->origin()) || nextConnection->origin().startsWith(QString("moz-extension://")) ||
 		    nextConnection->origin().startsWith(QString("chrome-extension://"))) {
 			if (m_openWebSockets.size() < s_maxWebSocketConnections) {
-				qDebug() << "Accepting new websocket connection from " << nextConnection->origin();
 				acceptConnection = true;
-			} else {
-				qDebug() << "Rejecting new websocket connection from " << nextConnection->origin() << ": too many connections already";
 			}
-		} else {
-			qDebug() << "Rejecting new websocket connection from" << nextConnection->origin() << ": not on whitelist";
 		}
 
 		if (acceptConnection) {
-			qDebug() << "New websocket connection";
 			auto *handler = new websocketHandler(nextConnection, m_nextSocketId++, this);
 			m_openWebSockets.append(handler);
 			connect(handler, SIGNAL(done(websocketHandler *)), this, SLOT(websocketHandlerDone(websocketHandler *)));
@@ -390,7 +383,6 @@ void SignetApplication::websocketMessage_(int id, QString message)
 
 void SignetApplication::websocketHandlerDone(websocketHandler *handler)
 {
-	qDebug() << "Cleaning up websocket connection";
 	m_openWebSockets.removeOne(handler);
 	handler->deleteLater();
 }

@@ -20,8 +20,6 @@
 #include <QProgressBar>
 #include <QStackedWidget>
 #include <QStringList>
-#include <QDebug>
-
 #include "esdb.h"
 #include "esdbmodel.h"
 #include "aspectratiopixmaplabel.h"
@@ -528,7 +526,6 @@ int LoggedInWidget::scoreUrlMatch(const QUrl &a, const QUrl &b)
 void LoggedInWidget::websocketPageLoaded(int socketId, QString url, bool hasLoginForm, bool hasUsernameField, bool hasPasswordField)
 {
 	QUrl selectedUrl(url, QUrl::TolerantMode);
-	qDebug() << "websocketPageLoaded" << url << hasLoginForm << hasUsernameField << hasPasswordField;
 	QJsonArray matches;
 	for (auto entry : *m_activeType->entries) {
 		QString entUrlStr = entry->getUrl();
@@ -575,12 +572,10 @@ esdbEntry *LoggedInWidget::findEntryByPathAndTitle(QString path, QString title) 
 void LoggedInWidget::websocketShow(int socketId, const QString &path, const QString &title)
 {
 	Q_UNUSED(socketId);
-	qDebug() << "websocketShow" << path << ":" <<  title;
 
 	esdbEntry *matchingEntry = findEntryByPathAndTitle(path, title);
 
 	if (matchingEntry) {
-		qDebug() << "Showing :" << matchingEntry->getTitle();
 		QModelIndex idx = m_activeType->model->findEntry(matchingEntry);
 		m_searchListbox->setCurrentIndex(idx);
 		m_searchListbox->scrollTo(idx);
@@ -591,7 +586,6 @@ void LoggedInWidget::websocketShow(int socketId, const QString &path, const QStr
 void LoggedInWidget::websocketRequestFields(int socketId, const QString &path, const QString &title, const QStringList &requestedFields)
 {
 	Q_UNUSED(socketId);
-	qDebug() << "websocketRequestFields:" << path << ":" <<  title;
 
 	esdbEntry *matchingEntry = findEntryByPathAndTitle(path, title);
 
@@ -623,7 +617,6 @@ void LoggedInWidget::readEntryFinished(int code)
 void LoggedInWidget::websocketMessage(int socketId, QString message)
 {
 	auto document = QJsonDocument::fromJson(message.toUtf8());
-	qDebug() << "LoggedInWidget message recieved" << message;
 	if (document.isObject()) {
 		auto obj = document.object();
 		QString msgType = obj["messageType"].toString();
