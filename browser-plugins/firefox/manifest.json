@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Signet",
-  "author": "Nth Dimension",
+  "author": "Nth Dimension LLC",
   "version": "0.1.0",
   "browser_action": {
     "default_icon": {
@@ -29,7 +29,7 @@
   },
   "applications": {
     "gecko": {
-      "strict_min_version": "50.0"
+      "strict_min_version": "59.0"
     }
   },
   "commands" : {

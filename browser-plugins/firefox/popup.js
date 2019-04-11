@@ -56,7 +56,7 @@ window.onload = function () {
 					var navLink = document.createElement("a");
 					var fullTitle = match.path + "/" + match.title;
 					navLink.href = "#";
-					navLink.innerHTML = fullTitle;
+					navLink.textContent = fullTitle;
 					navLink.onclick = genClickHandler(tabId, match.path, match.title);
 					elem.appendChild(navLink);
 					list.appendChild(elem);
@@ -77,7 +77,7 @@ window.onload = function () {
 				var navLink = document.createElement("a");
 				var fullTitle = match.path + "/" + match.title;
 				navLink.href = "#";
-				navLink.innerHTML = fullTitle;
+				navLink.textContent = fullTitle;
 				navLink.onclick = genShowClickHandler(tabId, match.path, match.title);
 				elem.appendChild(navLink);
 				list.appendChild(elem);
