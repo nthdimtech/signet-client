@@ -5,7 +5,9 @@
   "version": "0.1.0",
   "browser_action": {
     "default_icon": {
-      "32": "icons/icon-32.png"
+      "32": "icons/icon-32.png",
+      "64": "icons/icon-64.png",
+      "128": "icons/icon-128.png"
     },
     "default_title": "Signet",
     "default_popup": "popup.html"
@@ -25,7 +27,9 @@
 	"js": ["content-scripts/autofill.js"]
   }],
   "icons": {
-    "32": "icons/icon-32.png"
+    "32": "icons/icon-32.png",
+    "64": "icons/icon-64.png",
+    "128": "icons/icon-128.png"
   },
   "applications": {
     "gecko": {
