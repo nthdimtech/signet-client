@@ -527,7 +527,9 @@ void LoggedInWidget::websocketPageLoaded(int socketId, QString url, bool hasLogi
 {
 	QUrl selectedUrl(url, QUrl::TolerantMode);
 	QJsonArray matches;
-	for (auto entry : *m_activeType->entries) {
+
+	auto entryMap = typeNameToEntryMap("Accounts");
+	for (auto entry : *entryMap) {
 		QString entUrlStr = entry->getUrl();
 		QUrl entryUrl(entUrlStr, QUrl::TolerantMode);
 		if (!entryUrl.scheme().size()) {
@@ -543,11 +545,9 @@ void LoggedInWidget::websocketPageLoaded(int socketId, QString url, bool hasLogi
 			QJsonObject match;
 			match.insert("path", QJsonValue(entry->getPath()));
 			match.insert("title", QJsonValue(entry->getTitle()));
-			if (m_activeType->module == getTypeModule(ESDB_TYPE_ACCOUNT)) {
-				auto *account = static_cast<struct account *>(entry);
-				match.insert("username", QJsonValue(account->userName));
-				match.insert("email", QJsonValue(account->email));
-			}
+			auto *account = static_cast<struct account *>(entry);
+			match.insert("username", QJsonValue(account->userName));
+			match.insert("email", QJsonValue(account->email));
 			matches.append(match);
 		}
 	}
@@ -556,27 +556,34 @@ void LoggedInWidget::websocketPageLoaded(int socketId, QString url, bool hasLogi
 
 }
 
-esdbEntry *LoggedInWidget::findEntryByPathAndTitle(QString path, QString title) const
-{
-	esdbEntry *matchingEntry = nullptr;
-
-	for (auto entry : *m_activeType->entries) {
-		if (entry->getPath() == path && entry->getTitle() == title) {
-			matchingEntry = entry;
-			break;
-		}
-	}
-	return matchingEntry;
-}
-
 void LoggedInWidget::websocketShow(int socketId, const QString &path, const QString &title)
 {
 	Q_UNUSED(socketId);
 
-	esdbEntry *matchingEntry = findEntryByPathAndTitle(path, title);
+	QString fullTitle = path + "/" + title;
+
+	int accountsIndex;
+	bool foundAccountsIndex = false;
+
+	for (int i = 0; i < m_typeData.size(); i++) {
+		if (m_typeData[i]->module->name() == "Accounts") {
+			accountsIndex = i;
+			foundAccountsIndex = true;
+		}
+	}
+
+	if (!foundAccountsIndex) {
+		return;
+	}
+
+	if (m_activeType->module->name() != "Accounts") {
+		m_viewSelector->setCurrentIndex(accountsIndex);
+	}
+
+	esdbEntry *matchingEntry = findEntry("Accounts", fullTitle);
 
 	if (matchingEntry) {
-		QModelIndex idx = m_activeType->model->findEntry(matchingEntry);
+		QModelIndex idx =m_typeData[accountsIndex]->model->findEntry(matchingEntry);
 		m_searchListbox->setCurrentIndex(idx);
 		m_searchListbox->scrollTo(idx);
 		selectEntry(matchingEntry);
@@ -587,14 +594,16 @@ void LoggedInWidget::websocketRequestFields(int socketId, const QString &path, c
 {
 	Q_UNUSED(socketId);
 
-	esdbEntry *matchingEntry = findEntryByPathAndTitle(path, title);
+	QString fullTitle = path + "/" + title;
+
+	esdbEntry *matchingEntry = findEntry("Accounts", fullTitle);
 
 	if (matchingEntry) {
 		if (beginIDTask(matchingEntry->id, ID_TASK_READ, 0, nullptr)) {
 			m_requestedFields = requestedFields;
 			m_socketId = socketId;
 			m_buttonWaitDialog = new ButtonWaitDialog("Reading entry",
-			                QString("Read entry ") + matchingEntry->getTitle() + QString("\""),
+			                QString("Read entry ") +  QString("\"") + matchingEntry->getTitle() + QString("\""),
 			                this);
 			connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(readEntryFinished(int)));
 			m_buttonWaitDialog->show();
@@ -925,7 +934,7 @@ EsdbActionBar *LoggedInWidget::getActionBarByEntry(esdbEntry *entry)
 	return bar;
 }
 
-esdbTypeModule *LoggedInWidget::getTypeModule(int type)
+esdbTypeModule *LoggedInWidget::getTypeModule(enum esdbTypes type)
 {
 	esdbTypeModule *module = nullptr;
 	switch (type) {
@@ -970,7 +979,7 @@ void LoggedInWidget::showEvent(QShowEvent *event)
 	m_filterEdit->setFocus();
 }
 
-const esdbEntry *LoggedInWidget::findEntry(QString type, QString name) const
+esdbEntry *LoggedInWidget::findEntry(QString type, QString name) const
 {
 	for (auto t : m_typeData) {
 		if (t->module->name() == type) {
@@ -1021,7 +1030,7 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 	if (blk && code == OKAY) {
 		esdbEntry_1 tmp(id);
 		tmp.fromBlock(blk);
-		esdbTypeModule *module = getTypeModule(tmp.type);
+		esdbTypeModule *module = getTypeModule(static_cast<enum esdbTypes>(tmp.type));
 		if (module) {
 			entry = module->decodeEntry(id, tmp.revision, entry, blk);
 			if (entry) {
@@ -1038,8 +1047,6 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 			} else if (m_populating) {
 				m_populatingCantRead++;
 			}
-		} else {
-
 		}
 	}
 

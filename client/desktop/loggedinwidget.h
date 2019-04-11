@@ -159,7 +159,7 @@ class LoggedInWidget : public QWidget
 	int entryToIndex(esdbEntry *entry);
 	EsdbActionBar *getActionBarByEntry(esdbEntry *entry);
 	EsdbActionBar *getActiveActionBar();
-	esdbTypeModule *getTypeModule(int type);
+	esdbTypeModule *getTypeModule(enum esdbTypes type);
 	void expandTreeItems();
 	bool selectFirstVisible();
 	bool selectFirstVisible(QModelIndex &parent);
@@ -185,7 +185,7 @@ public:
 	void getSelectedAccountRect(QRect &r);
 	int getUnusedId();
 	int getUnusedTypeId();
-	const esdbEntry *findEntry(QString type, QString name) const;
+	esdbEntry *findEntry(QString type, QString name) const;
 	const QMap<int, esdbEntry *> *entryToEntryMap(esdbEntry *entry);
 
 	QList<esdbTypeModule *> getTypeModules();
@@ -224,7 +224,6 @@ private:
 	int m_socketId;
 	QStringList m_requestedFields;
 	void idTaskComplete(bool error, int id, esdbEntry *entry, enum ID_TASK task, int intent);
-	esdbEntry *findEntryByPathAndTitle(QString path, QString title) const;
 	void websocketShow(int socketId, const QString &path, const QString &title);
 };
 

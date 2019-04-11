@@ -329,7 +329,7 @@ void EsdbModel::changed(bool useGroups)
 	emit layoutChanged();
 }
 
-QModelIndex EsdbModel::findEntry(EsdbModelGroupItem *g, esdbEntry *ent)
+QModelIndex EsdbModel::findEntry(EsdbModelGroupItem *g, const esdbEntry *ent) const
 {
 	int row = 0;
 	for (auto item : g->m_items) {
@@ -350,7 +350,7 @@ QModelIndex EsdbModel::findEntry(EsdbModelGroupItem *g, esdbEntry *ent)
 	return QModelIndex();
 }
 
-QModelIndex EsdbModel::findEntry(esdbEntry *ent)
+QModelIndex EsdbModel::findEntry(const esdbEntry *ent) const
 {
 	return findEntry(m_rootItem, ent);
 }
