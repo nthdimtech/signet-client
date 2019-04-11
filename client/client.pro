@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets network concurrent
+QT       += core gui widgets network concurrent websockets
 
 android {
 QT += quick androidextras
@@ -72,7 +72,8 @@ LIBS += -lhid -lsetupapi -lz -lgcrypt -lgpg-error
 #
 
 SOURCES += ../signet-base/signetdev/host/signetdev.c \
-    ../signet-base/signetdev/host/signetdev_emulate.c 
+    ../signet-base/signetdev/host/signetdev_emulate.c \ 
+    websockethandler.cpp
 
 macx|linux-g++ {
 HEADERS += import/passimporter.h \
@@ -128,7 +129,8 @@ HEADERS += esdb/esdb.h \
     esdb/generic/genericfields.h \
     esdb/generic/generictypedesc.h \
     esdb/generic/esdbgenericmodule.h \
-    esdb/generictype/esdbgenerictypemodule.h
+    esdb/generictype/esdbgenerictypemodule.h \
+    websockethandler.h
 
 
 win32|linux-g++|macx {

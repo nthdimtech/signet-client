@@ -1,0 +1,44 @@
+{
+  "manifest_version": 2,
+  "name": "Signet",
+  "author": "Nth Dimension",
+  "version": "0.1.0",
+  "browser_action": {
+    "default_icon": {
+      "32": "icons/icon-32.png"
+    },
+    "default_title": "Signet",
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+	  "webNavigation",
+	  "storage",
+	  "tabs"
+  ],
+  "background": {
+    "scripts": [ "background.js" ]
+  },
+  "content_scripts": [{
+	"all_frames": true,
+	"matches": ["<all_urls>"],
+	"run_at": "document_idle",
+	"js": ["content-scripts/autofill.js"]
+  }],
+  "icons": {
+    "32": "icons/icon-32.png"
+  },
+  "applications": {
+    "gecko": {
+      "strict_min_version": "50.0"
+    }
+  },
+  "commands" : {
+    "login": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L"
+      },
+      "description": "Login to current webpage"
+    }
+  }
+}
+

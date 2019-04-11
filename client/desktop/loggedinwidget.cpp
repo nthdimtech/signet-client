@@ -20,7 +20,6 @@
 #include <QProgressBar>
 #include <QStackedWidget>
 #include <QStringList>
-
 #include "esdb.h"
 #include "esdbmodel.h"
 #include "aspectratiopixmaplabel.h"
@@ -132,7 +131,8 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	m_accountGroup(nullptr),
 	m_signetdevCmdToken(-1),
 	m_id(-1),
-	m_idTask(ID_TASK_NONE)
+        m_idTask(ID_TASK_NONE),
+        m_buttonWaitDialog(nullptr)
 {
 	m_genericIcon = QIcon(":images/generic-entry.png");
 	m_icon_accounts.append(
@@ -246,6 +246,7 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 
 	SignetApplication *app = SignetApplication::get();
 	connect(app, SIGNAL(focusChanged(QWidget*,QWidget*)), this, SLOT(focusChanged(QWidget*,QWidget*)));
+	connect(app, SIGNAL(websocketMessage(int, QString)), this, SLOT(websocketMessage(int, QString)));
 
 	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)), this,
 		SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
@@ -476,22 +477,223 @@ void LoggedInWidget::collapsed(QModelIndex index)
 		m_activeType->model->expand(index, false);
 }
 
-void LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar)
+int LoggedInWidget::scoreUrlMatch(const QUrl &a, const QUrl &b)
 {
-	m_id = id;
-	m_idTask = task;
-	m_taskIntent = intent;
-	m_taskActionBar = bar;
-	switch (m_idTask) {
-	case ID_TASK_DELETE:
-		::signetdev_update_uid(nullptr, &m_signetdevCmdToken, m_id, 0, nullptr, nullptr);
-		break;
-	case ID_TASK_READ:
-		::signetdev_read_uid(nullptr, &m_signetdevCmdToken, m_id, 0);
-		break;
-	default:
-		break;
+	int score = 0;
+	QString hostA = a.host();
+	QString hostB = b.host();
+
+	if (hostA.size() == 0 || hostB.size() == 0) {
+		return 0;
 	}
+
+	QStringList urlHostAparts = hostA.split(".");
+	QStringList urlHostBparts = hostB.split(".");
+
+	int hostMatches = 0;
+	for (int j = 0; j < std::min(urlHostAparts.size(), urlHostBparts.size()); j++) {
+		QString partA = urlHostAparts[urlHostAparts.size() - j - 1];
+		QString partB = urlHostBparts[urlHostBparts.size() - j - 1];
+		if (!QString::compare(partA, partB, Qt::CaseInsensitive)) {
+			hostMatches++;
+		} else if (j == 1) {
+			hostMatches = 0;
+			break;
+		} else if (j > 2) {
+			break;
+		}
+	}
+
+	if (hostMatches) {
+		score += hostMatches;
+		//TODO: give some credit for partial path matches
+		if (!QString::compare(a.path(), b.path(), Qt::CaseInsensitive)) {
+			score++;
+			if (!QString::compare(a.scheme(), b.scheme(), Qt::CaseInsensitive)) {
+				score++;
+			}
+		}
+	}
+	return score;
+}
+
+#include <QJsonArray>
+#include <QJsonValue>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include "account.h"
+
+void LoggedInWidget::websocketPageLoaded(int socketId, QString url, bool hasLoginForm, bool hasUsernameField, bool hasPasswordField)
+{
+	QUrl selectedUrl(url, QUrl::TolerantMode);
+	QJsonArray matches;
+
+	auto entryMap = typeNameToEntryMap("Accounts");
+	for (auto entry : *entryMap) {
+		QString entUrlStr = entry->getUrl();
+		QUrl entryUrl(entUrlStr, QUrl::TolerantMode);
+		if (!entryUrl.scheme().size()) {
+			entUrlStr = "http://" + entUrlStr;
+			entryUrl.setUrl(entUrlStr);
+		}
+		if (!entryUrl.isValid()) {
+			continue;
+		}
+
+		int score = scoreUrlMatch(selectedUrl, entryUrl);
+		if (score > 0) {
+			QJsonObject match;
+			match.insert("path", QJsonValue(entry->getPath()));
+			match.insert("title", QJsonValue(entry->getTitle()));
+			auto *account = static_cast<struct account *>(entry);
+			match.insert("username", QJsonValue(account->userName));
+			match.insert("email", QJsonValue(account->email));
+			matches.append(match);
+		}
+	}
+	QJsonDocument doc(matches);
+	SignetApplication::get()->websocketResponse(socketId, QString::fromUtf8(doc.toJson()));
+
+}
+
+void LoggedInWidget::websocketShow(int socketId, const QString &path, const QString &title)
+{
+	Q_UNUSED(socketId);
+
+	QString fullTitle = path + "/" + title;
+
+	int accountsIndex;
+	bool foundAccountsIndex = false;
+
+	for (int i = 0; i < m_typeData.size(); i++) {
+		if (m_typeData[i]->module->name() == "Accounts") {
+			accountsIndex = i;
+			foundAccountsIndex = true;
+		}
+	}
+
+	if (!foundAccountsIndex) {
+		return;
+	}
+
+	if (m_activeType->module->name() != "Accounts") {
+		m_viewSelector->setCurrentIndex(accountsIndex);
+	}
+
+	esdbEntry *matchingEntry = findEntry("Accounts", fullTitle);
+
+	if (matchingEntry) {
+		QModelIndex idx =m_typeData[accountsIndex]->model->findEntry(matchingEntry);
+		m_searchListbox->setCurrentIndex(idx);
+		m_searchListbox->scrollTo(idx);
+		selectEntry(matchingEntry);
+	}
+}
+
+void LoggedInWidget::websocketRequestFields(int socketId, const QString &path, const QString &title, const QStringList &requestedFields)
+{
+	Q_UNUSED(socketId);
+
+	QString fullTitle = path + "/" + title;
+
+	esdbEntry *matchingEntry = findEntry("Accounts", fullTitle);
+
+	if (matchingEntry) {
+		if (beginIDTask(matchingEntry->id, ID_TASK_READ, 0, nullptr)) {
+			m_requestedFields = requestedFields;
+			m_socketId = socketId;
+			m_buttonWaitDialog = new ButtonWaitDialog("Reading entry",
+			                QString("Read entry ") +  QString("\"") + matchingEntry->getTitle() + QString("\""),
+			                this);
+			connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(readEntryFinished(int)));
+			m_buttonWaitDialog->show();
+		}
+	}
+}
+
+void LoggedInWidget::readEntryFinished(int code)
+{
+	if (m_buttonWaitDialog) {
+		m_buttonWaitDialog->deleteLater();
+		m_buttonWaitDialog = nullptr;
+	}
+	if (code != QMessageBox::Ok) {
+		::signetdev_cancel_button_wait();
+		m_idTask = ID_TASK_NONE;
+	}
+}
+
+void LoggedInWidget::websocketMessage(int socketId, QString message)
+{
+	auto document = QJsonDocument::fromJson(message.toUtf8());
+	if (document.isObject()) {
+		auto obj = document.object();
+		QString msgType = obj["messageType"].toString();
+		if (msgType == QString("pageLoaded")) {
+			QString url = obj["url"].toString();
+			bool hasLoginForm = obj["hasLoginForm"].toBool();
+			bool hasUsernameField = obj["hasUsernameField"].toBool();
+			bool hasPasswordField = obj["hasPasswordField"].toBool();
+			websocketPageLoaded(socketId, url, hasLoginForm, hasUsernameField, hasPasswordField);
+		} else if (msgType == QString("requestFields")) {
+			QString path = obj["path"].toString();
+			QString title = obj["title"].toString();
+			QJsonArray requestedFields_ = obj["requestedFields"].toArray();
+			QStringList requestedFields;
+			for (auto r : requestedFields_) {
+				requestedFields.append(r.toString());
+			}
+			websocketRequestFields(socketId, path, title, requestedFields);
+		} else if (msgType == QString("show")) {
+			QString path = obj["path"].toString();
+			QString title = obj["title"].toString();
+			websocketShow(socketId, path, title);
+		}
+	}
+
+}
+
+void LoggedInWidget::idTaskComplete(bool error, int id, esdbEntry *entry, enum ID_TASK task, int intent)
+{
+	if (m_buttonWaitDialog)
+		m_buttonWaitDialog->done(QMessageBox::Ok);
+
+	if (!error && task == ID_TASK_READ && entry && intent == 0 /* TODO: magic number */) {
+		QVector<genericField> fields;
+		entry->getFields(fields);
+		QJsonObject response;
+		for (auto field : fields) {
+			if (m_requestedFields.contains(field.name.toLower())) {
+				response.insert(field.name.toLower(), field.value);
+			}
+		}
+		QJsonDocument doc(response);
+		SignetApplication::get()->websocketResponse(m_socketId, QString::fromUtf8(doc.toJson()));
+	}
+	m_socketId = -1;
+	m_requestedFields.clear();
+}
+
+bool LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar)
+{
+	//TODO: validate that an ID task is not already pending
+	if (m_idTask == ID_TASK_NONE) {
+		m_id = id;
+		m_idTask = task;
+		m_taskIntent = intent;
+		m_taskActionBar = bar;
+		switch (m_idTask) {
+		case ID_TASK_DELETE:
+			::signetdev_update_uid(nullptr, &m_signetdevCmdToken, m_id, 0, nullptr, nullptr);
+			return true;
+		case ID_TASK_READ:
+			::signetdev_read_uid(nullptr, &m_signetdevCmdToken, m_id, 0);
+			return true;
+		default:
+			break;
+		}
+	}
+	return false;
 }
 
 esdbTypeModule *LoggedInWidget::esdbEntryToModule(esdbEntry *entry)
@@ -563,7 +765,9 @@ void LoggedInWidget::signetdevCmdResp(signetdevCmdRespInfo info)
 	case SIGNETDEV_CMD_UPDATE_UID: {
 		if (m_idTask == ID_TASK_DELETE) {
 			EsdbActionBar *bar = getActiveActionBar();
-			bar->idTaskComplete(false, m_id, nullptr, m_idTask, m_taskIntent);
+			enum ID_TASK task = m_idTask;
+			m_idTask = ID_TASK_NONE;
+			bar->idTaskComplete(false, m_id, nullptr, task, m_taskIntent);
 			if (code == OKAY) {
 				auto iter = m_entries.find(m_id);
 				if (m_activeType->module == m_genericTypeModule) {
@@ -584,7 +788,6 @@ void LoggedInWidget::signetdevCmdResp(signetdevCmdRespInfo info)
 				m_activeType->entries->erase(m_activeType->entries->find(m_id));
 				populateEntryList(m_activeType, m_filterEdit->text());
 			}
-			m_idTask = ID_TASK_NONE;
 		}
 	}
 	break;
@@ -608,7 +811,6 @@ void LoggedInWidget::signetdevReadUIdResp(signetdevCmdRespInfo info, QByteArray 
 	b->data = data;
 	b->mask = mask;
 	getEntryDone(m_id, code, b, true);
-	m_idTask = ID_TASK_NONE;
 }
 
 void LoggedInWidget::getSelectedAccountRect(QRect &r)
@@ -732,7 +934,7 @@ EsdbActionBar *LoggedInWidget::getActionBarByEntry(esdbEntry *entry)
 	return bar;
 }
 
-esdbTypeModule *LoggedInWidget::getTypeModule(int type)
+esdbTypeModule *LoggedInWidget::getTypeModule(enum esdbTypes type)
 {
 	esdbTypeModule *module = nullptr;
 	switch (type) {
@@ -777,7 +979,7 @@ void LoggedInWidget::showEvent(QShowEvent *event)
 	m_filterEdit->setFocus();
 }
 
-const esdbEntry *LoggedInWidget::findEntry(QString type, QString name) const
+esdbEntry *LoggedInWidget::findEntry(QString type, QString name) const
 {
 	for (auto t : m_typeData) {
 		if (t->module->name() == type) {
@@ -804,6 +1006,8 @@ QList<esdbTypeModule *> LoggedInWidget::getTypeModules()
 void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 {
 	esdbEntry *entry = nullptr;
+	enum ID_TASK idTask  = m_idTask;
+	m_idTask = ID_TASK_NONE;
 
 	int exists = m_entries.count(id);
 
@@ -819,30 +1023,30 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 			emit abort();
 		}
 		if (bar)
-			bar->idTaskComplete(true, id, nullptr, m_idTask, m_taskIntent);
+			bar->idTaskComplete(true, id, nullptr, idTask, m_taskIntent);
 		return;
 	}
 
 	if (blk && code == OKAY) {
 		esdbEntry_1 tmp(id);
 		tmp.fromBlock(blk);
-		esdbTypeModule *module = getTypeModule(tmp.type);
+		esdbTypeModule *module = getTypeModule(static_cast<enum esdbTypes>(tmp.type));
 		if (module) {
 			entry = module->decodeEntry(id, tmp.revision, entry, blk);
 			if (entry) {
 				if (bar) {
-					bar->idTaskComplete(false, id, entry, m_idTask, m_taskIntent);
+					bar->idTaskComplete(false, id, entry, idTask, m_taskIntent);
 				} else {
 					if (entry->type == ESDB_TYPE_GENERIC_TYPE_DESC) {
 						genericTypeDesc *genericTypeDesc_ = static_cast<genericTypeDesc *>(entry);
 						addGenericType(genericTypeDesc_);
+					} else {
+						idTaskComplete(false, id, entry, idTask, m_taskIntent);
 					}
 				}
 			} else if (m_populating) {
 				m_populatingCantRead++;
 			}
-		} else {
-
 		}
 	}
 
@@ -975,9 +1179,9 @@ void LoggedInWidget::newEntryUI()
 	int id = getUnusedId();
 	if (id < 0) {
 		SignetApplication::messageBoxError(QMessageBox::Warning,
-						   "Account creation failed",
-						   "No space left on device",
-						   this);
+		                                   "Account creation failed",
+		                                   "No space left on device",
+		                                   this);
 		return;
 	}
 	QString entryName;
@@ -994,6 +1198,7 @@ void LoggedInWidget::finishTask(bool deselect)
 	if (deselect) {
 		deselectEntry();
 	}
+	m_idTask = ID_TASK_NONE;
 }
 
 void LoggedInWidget::entryIconCheck(esdbEntry *entry)

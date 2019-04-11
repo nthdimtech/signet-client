@@ -2,6 +2,8 @@
 
 #ifndef Q_OS_ANDROID
 #include "desktop/mainwindow.h"
+#include <QtWebSockets/QWebSocketServer>
+#include <QtWebSockets/QWebSocket>
 #else
 #include "android/signetdevicemanager.h"
 #endif
@@ -20,7 +22,7 @@ extern "C" {
 #define DEFAULT_SCRYPT_R_VALUE 32
 #define DEFAULT_SCRIPT_P_VALUE 1
 
-SignetApplication *SignetApplication::g_singleton = NULL;
+SignetApplication *SignetApplication::g_singleton = nullptr;
 
 void SignetApplication::deviceOpenedS(void *this_)
 {
@@ -43,8 +45,9 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 #else
         QtSingleApplication("signetdev-" + QString(USB_VENDOR_ID) + "-" + QString(USB_SIGNET_DESKTOP_PRODUCT_ID),argc, argv),
 #endif
-	m_signetAsyncListener(NULL)
+        m_signetAsyncListener(nullptr)
 {
+	m_nextSocketId = 0;
 	g_singleton = this;
 	qRegisterMetaType<signetdevCmdRespInfo>();
 	qRegisterMetaType<signetdev_startup_resp_data>();
@@ -61,6 +64,18 @@ void SignetApplication::generateScryptKey(const QString &password, QByteArray &k
 		      N, r, s,
 		      (u8 *)key.data(), key.size());
 
+}
+
+#include <websockethandler.h>
+
+void SignetApplication::websocketResponse(int socketId, const QString &response)
+{
+	Q_UNUSED(socketId);
+	for (auto socketHandler : m_openWebSockets) {
+		if (socketHandler->id() == socketId) {
+			socketHandler->websocketResponse(response);
+		}
+	}
 }
 
 void SignetApplication::generateKey(const QString &password, QByteArray &key, const QByteArray &hashfn, const QByteArray &salt, int keyLength)
@@ -226,6 +241,10 @@ void SignetApplication::init(bool startInTray, QString dbFilename)
 
 	connect(this, SIGNAL(connectionError()), m_main_window, SLOT(connectionError()));
 
+	m_webSocketServer = new QWebSocketServer("Cool", QWebSocketServer::NonSecureMode, this);
+	m_webSocketServer->listen(QHostAddress::LocalHost, 10910);
+	connect(m_webSocketServer, SIGNAL(newConnection()), this, SLOT(newWebSocketConnection()));
+
 	QObject::connect(this, SIGNAL(messageReceived(QString)), m_main_window, SLOT(messageReceived(QString)));
 	QObject::connect(&m_systray, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
 			 this, SLOT(trayActivated(QSystemTrayIcon::ActivationReason)));
@@ -317,4 +336,55 @@ void SignetApplication::trayActivated(QSystemTrayIcon::ActivationReason reason)
 		break;
 	}
 }
+
+#include "websockethandler.h"
+
+void SignetApplication::newWebSocketConnection()
+{
+	while (true) {
+		QWebSocket *nextConnection = m_webSocketServer->nextPendingConnection();
+		if (!nextConnection)
+			break;
+		bool acceptConnection = false;
+		if (m_webSocketOriginWhitelist.contains(nextConnection->origin()) || nextConnection->origin().startsWith(QString("moz-extension://")) ||
+		    nextConnection->origin().startsWith(QString("chrome-extension://"))) {
+			if (m_openWebSockets.size() < s_maxWebSocketConnections) {
+				acceptConnection = true;
+			}
+		}
+
+		if (acceptConnection) {
+			auto *handler = new websocketHandler(nextConnection, m_nextSocketId++, this);
+			m_openWebSockets.append(handler);
+			connect(handler, SIGNAL(done(websocketHandler *)), this, SLOT(websocketHandlerDone(websocketHandler *)));
+			connect(handler, SIGNAL(websocketMessage(int, QString)), this, SIGNAL(websocketMessage(int, QString)));
+			connect(handler, SIGNAL(websocketMessage(int, QString)), this, SLOT(websocketMessage_(int, QString)));
+		} else {
+			nextConnection->close();
+			nextConnection->deleteLater();
+		}
+	}
+}
+
+#include <QJsonDocument>
+#include <QJsonObject>
+
+void SignetApplication::websocketMessage_(int id, QString message)
+{
+	auto document = QJsonDocument::fromJson(message.toUtf8());
+	if (document.isObject()) {
+		auto obj = document.object();
+		QString msgType = obj["messageType"].toString();
+		if (msgType == "show" && m_main_window) {
+			m_main_window->open();
+		}
+	}
+}
+
+void SignetApplication::websocketHandlerDone(websocketHandler *handler)
+{
+	m_openWebSockets.removeOne(handler);
+	handler->deleteLater();
+}
+
 #endif

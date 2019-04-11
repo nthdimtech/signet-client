@@ -52,8 +52,12 @@ void EsdbActionBar::deleteEntry()
 		                QString("delete " + m_typeName + " \"") + entry->getTitle() + QString("\""),
 		                m_parent);
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(deleteEntryFinished(int)));
-		m_buttonWaitDialog->show();
-		m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_DELETE, INTENT_NONE, this);
+		if (m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_DELETE, INTENT_NONE, this)) {
+			m_buttonWaitDialog->show();
+		} else {
+			m_buttonWaitDialog->deleteLater();
+			m_buttonWaitDialog = nullptr;
+		}
 	}
 }
 
@@ -66,8 +70,12 @@ void EsdbActionBar::openEntry(esdbEntry *entry)
 		        "open " + m_typeName.toLower() +  " \"" + entry->getTitle() + "\"",
 		        m_parent);
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(openEntryFinished(int)));
-		m_buttonWaitDialog->show();
-		m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, INTENT_OPEN_ENTRY, this);
+		if (m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, INTENT_OPEN_ENTRY, this)) {
+			m_buttonWaitDialog->show();
+		} else {
+			m_buttonWaitDialog->deleteLater();
+			m_buttonWaitDialog = nullptr;
+		}
 	}
 }
 
@@ -75,14 +83,20 @@ void EsdbActionBar::accessEntry(esdbEntry *entry, int intent, QString message, b
 {
 	QString title = entry->getTitle();
 	m_buttonWaitDialog = new ButtonWaitDialog(title, message, m_parent);
-	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(accessAccountFinished(int)));
-	m_buttonWaitDialog->show();
-
-	if (backgroundApp) {
-		background();
-	}
 	m_accessDeselect = deselect;
-	m_parent->beginIDTask(entry->id, LoggedInWidget::ID_TASK_READ, intent, this);
+	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(accessAccountFinished(int)));
+	if (m_parent->beginIDTask(entry->id, LoggedInWidget::ID_TASK_READ, intent, this)) {
+		m_buttonWaitDialog->show();
+
+		if (backgroundApp) {
+			background();
+		}
+		m_buttonWaitDialog->show();
+	} else {
+		m_buttonWaitDialog->deleteLater();
+		m_buttonWaitDialog = nullptr;
+	}
+
 }
 
 void EsdbActionBar::accessAccountFinished(int code)
@@ -107,7 +121,7 @@ void EsdbActionBar::openEntryFinished(int code)
 	m_parent->finishTask(true);
 }
 
-void EsdbActionBar::idTaskComplete(bool error, int id, esdbEntry *entry, int task, int intent)
+void EsdbActionBar::idTaskComplete(bool error, int id, esdbEntry *entry, enum LoggedInWidget::ID_TASK task, int intent)
 {
 	Q_UNUSED(id);
 	if (error) {

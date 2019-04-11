@@ -199,12 +199,12 @@ public:
 	int columnCount(const QModelIndex &parent = QModelIndex()) const;
 	QModelIndex parent(const QModelIndex &child) const;
 	QModelIndex index(int row);
-	QModelIndex findEntry(esdbEntry *ent);
+	QModelIndex findEntry(const esdbEntry *ent) const;
 	void expand(QModelIndex &index, bool expand);
 	void syncExpanded(QTreeView *v);
 	void createUnsortedGroups(QModelIndex idx, EsdbModelGroupItem *g);
 private:
-	QModelIndex findEntry(EsdbModelGroupItem *g, esdbEntry *ent);
+	QModelIndex findEntry(EsdbModelGroupItem *g, const esdbEntry *ent) const;
 	QList<esdbEntry *> *m_entries;
 	EsdbModelGroupItem *m_rootItem;
 	void syncExpanded(QTreeView *v, QModelIndex &index, EsdbModelGroupItem *group);

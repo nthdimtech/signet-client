@@ -40,6 +40,7 @@ class AspectRatioPixmapLabel;
 class NewAccount;
 class esdbGenericModule;
 class esdbGenericTypeModule;
+class QUrl;
 #include "signetapplication.h"
 #include "esdbtypemodule.h"
 #include "esdbaccountmodule.h"
@@ -158,7 +159,7 @@ class LoggedInWidget : public QWidget
 	int entryToIndex(esdbEntry *entry);
 	EsdbActionBar *getActionBarByEntry(esdbEntry *entry);
 	EsdbActionBar *getActiveActionBar();
-	esdbTypeModule *getTypeModule(int type);
+	esdbTypeModule *getTypeModule(enum esdbTypes type);
 	void expandTreeItems();
 	bool selectFirstVisible();
 	bool selectFirstVisible(QModelIndex &parent);
@@ -167,6 +168,9 @@ class LoggedInWidget : public QWidget
 	void addGenericType(genericTypeDesc *genericTypeDesc_);
 	QList<typeData *> m_typeData;
 	typeData *m_miscTypeData;
+	int scoreUrlMatch(const QUrl &a, const QUrl &b);
+	void websocketPageLoaded(int socketId, QString url, bool hasLoginForm, bool hasUsernameField, bool hasPasswordField);
+	void websocketRequestFields(int socketId, const QString &path, const QString &title, const QStringList &requestedFields);
 public:
 	enum ID_TASK {
 		ID_TASK_NONE,
@@ -177,11 +181,11 @@ public:
 	explicit LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, QWidget *parent = 0);
 	~LoggedInWidget();
 	void finishTask(bool deselect = true);
-	void beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar);
+	bool beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar);
 	void getSelectedAccountRect(QRect &r);
 	int getUnusedId();
 	int getUnusedTypeId();
-	const esdbEntry *findEntry(QString type, QString name) const;
+	esdbEntry *findEntry(QString type, QString name) const;
 	const QMap<int, esdbEntry *> *entryToEntryMap(esdbEntry *entry);
 
 	QList<esdbTypeModule *> getTypeModules();
@@ -212,6 +216,15 @@ public slots:
 	void signetDevEvent(int);
 	void expanded(QModelIndex index);
 	void collapsed(QModelIndex index);
+private slots:
+	void websocketMessage(int socketId, QString message);
+	void readEntryFinished(int code);
+private:
+	ButtonWaitDialog *m_buttonWaitDialog;
+	int m_socketId;
+	QStringList m_requestedFields;
+	void idTaskComplete(bool error, int id, esdbEntry *entry, enum ID_TASK task, int intent);
+	void websocketShow(int socketId, const QString &path, const QString &title);
 };
 
 #endif // LOGGEDINWIDGET_H
