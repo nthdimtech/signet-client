@@ -189,6 +189,14 @@ void genericFieldEdit::signetdevCmdResp(signetdevCmdRespInfo info)
 	}
 }
 
+void genericFieldEdit::retryTypeData()
+{
+	if (m_buttonWait) {
+		m_buttonWait->resetTimeout();
+	}
+	::signetdev_button_wait(NULL, &m_signetdevCmdToken);
+}
+
 void genericFieldEdit::secretCheckStateChanged(int state)
 {
 	if (state == Qt::Checked) {
