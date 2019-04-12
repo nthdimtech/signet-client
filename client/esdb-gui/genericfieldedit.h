@@ -15,6 +15,7 @@ class genericFieldEdit : public QObject
 {
 	Q_OBJECT
 	QString m_name;
+	QWidget *m_parent;
 	QWidget *m_widget;
 	QPushButton *m_copyButton;
 	QPushButton *m_typeButton;
@@ -35,7 +36,7 @@ protected:
 
 	}
 public:
-	genericFieldEdit(const QString &name);
+	genericFieldEdit(const QString &name, QWidget *parent);
 
 	virtual QString toString() const = 0;
 
@@ -95,6 +96,8 @@ signals:
 	void edited();
 	void editingFinished();
 	void remove(QString);
+private slots:
+	void retryTypeData();
 };
 
 #endif // GENERICFIELDEDIT_H

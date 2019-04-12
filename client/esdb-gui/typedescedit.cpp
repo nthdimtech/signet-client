@@ -2,8 +2,8 @@
 
 #include <QComboBox>
 
-typeDescEdit::typeDescEdit(const QString &name, bool canRemove) :
-	genericFieldEdit(name)
+typeDescEdit::typeDescEdit(const QString &name, bool canRemove, QWidget *parent) :
+        genericFieldEdit(name, parent)
 {
 	m_typeEditCombo = new QComboBox();
 	m_typeEditCombo->setEnabled(!SignetApplication::get()->isDeviceEmulated());

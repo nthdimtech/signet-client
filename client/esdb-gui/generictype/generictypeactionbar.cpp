@@ -67,6 +67,7 @@ void GenericTypeActionBar::deletePressed()
 		                                   this);
 		box->setWindowModality(Qt::WindowModal);
 		box->setAttribute(Qt::WA_DeleteOnClose);
+		QObject::connect(box, SIGNAL(finished(int)), this, SLOT(deleteConfirmDialogFinished(int)));
 		box->show();
 	} else {
 		deleteEntry();

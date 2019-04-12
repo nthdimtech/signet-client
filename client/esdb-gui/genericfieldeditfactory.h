@@ -4,6 +4,7 @@
 #include <QString>
 
 class genericFieldEdit;
+class QWidget;
 
 class genericFieldEditFactory
 {
@@ -11,7 +12,7 @@ class genericFieldEditFactory
 public:
 	genericFieldEditFactory();
 	genericFieldEdit *generate(const QString &fieldName, const QString &typeName,
-				   bool canRemove = true);
+	                           bool canRemove = true, QWidget *parent = nullptr);
 	static genericFieldEditFactory *get();
 };
 

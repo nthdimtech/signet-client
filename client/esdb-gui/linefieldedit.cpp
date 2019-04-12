@@ -13,8 +13,8 @@ void lineFieldEdit::hideContent()
 	m_lineEdit->setEchoMode(QLineEdit::Password);
 }
 
-lineFieldEdit::lineFieldEdit(const QString &name, bool canRemove) :
-	genericFieldEdit(name)
+lineFieldEdit::lineFieldEdit(const QString &name, bool canRemove, QWidget *parent) :
+        genericFieldEdit(name, parent)
 {
 	m_lineEdit = new QLineEdit();
 	m_lineEdit->setReadOnly(SignetApplication::get()->isDeviceEmulated());

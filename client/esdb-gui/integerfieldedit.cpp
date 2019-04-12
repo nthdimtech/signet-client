@@ -3,8 +3,8 @@
 #include <QSpinBox>
 #include <QString>
 
-integerFieldEdit::integerFieldEdit(const QString &name, bool canRemove) :
-	genericFieldEdit(name)
+integerFieldEdit::integerFieldEdit(const QString &name, bool canRemove, QWidget *parent) :
+        genericFieldEdit(name, parent)
 {
 	m_spinBoxEdit = new QSpinBox();
 	m_spinBoxEdit->setReadOnly(SignetApplication::get()->isDeviceEmulated());

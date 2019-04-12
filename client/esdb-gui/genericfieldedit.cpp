@@ -15,10 +15,11 @@ extern "C" {
 #include "signetdev/host/signetdev.h"
 }
 
-genericFieldEdit::genericFieldEdit(const QString &name) :
+genericFieldEdit::genericFieldEdit(const QString &name, QWidget *parent) :
 	m_name(name),
+        m_parent(parent),
 	m_widget(nullptr),
-	m_signetdevCmdToken(-1)
+        m_signetdevCmdToken(-1)
 {
 	SignetApplication *app = SignetApplication::get();
 	QObject::connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
@@ -126,7 +127,7 @@ void genericFieldEdit::typePressed()
 		msg->deleteLater();
 		return;
 	}
-	m_buttonWait = new ButtonWaitDialog("Type " + m_name, "type " + m_name, (QWidget *)this->parent());
+	m_buttonWait = new ButtonWaitDialog("Type " + m_name, "type " + m_name, m_parent);
 	connect(m_buttonWait, SIGNAL(finished(int)), this, SLOT(typeFieldFinished(int)));
 	m_buttonWait->show();
 	::signetdev_button_wait(nullptr, &m_signetdevCmdToken);
