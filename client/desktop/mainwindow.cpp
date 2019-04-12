@@ -298,7 +298,7 @@ QString MainWindow::csvQuote(const QString &s)
 
 void MainWindow::startOnlineHelp()
 {
-	QUrl url("https://nthdimtech.com/signet-help");
+	QUrl url("https://nthdimtech.com/signet");
 	QDesktopServices::openUrl(url);
 }
 
