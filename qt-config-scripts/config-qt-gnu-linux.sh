@@ -1,4 +1,4 @@
-#!/bin.bash
+#!/bin/bash
 $1/configure \
 -platform linux-g++ -static -opengl desktop \
 -opensource -confirm-license \
@@ -16,7 +16,6 @@ $1/configure \
 -skip qtwayland \
 -skip qtwebchannel \
 -skip qtwebengine \
--skip qtwebsockets \
 -skip qtwebview \
 -skip qtlocation \
 -skip qtfeedback \

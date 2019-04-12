@@ -24,7 +24,6 @@ $1/configure \
 -skip qtwebchannel \
 -skip qtwebengine \
 -skip qtwebglplugin \
--skip qtwebsockets \
 -skip qtwebview \
 -nomake examples -nomake tests \
 -no-iconv -no-gstreamer -no-glib -no-sql-ibase -no-sql-mysql -no-sql-odbc -no-sql-psql -no-sql-sqlite2 -no-dbus -no-fontconfig \
