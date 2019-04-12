@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Signet",
   "author": "Nth Dimension LLC",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "browser_action": {
     "default_icon": {
       "32": "icons/icon-32.png",
