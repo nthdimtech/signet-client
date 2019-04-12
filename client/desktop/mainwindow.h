@@ -170,13 +170,13 @@ private:
 	bool nativeEvent(const QByteArray &eventType, void *message, long *result);
 #endif
 	void startImport(DatabaseImporter *importer);
-	void settingDialogFinished(int rc);
 public:
 	bool connected() const
 	{
 		return m_connected;
 	}
 private slots:
+	void settingDialogFinished(int rc);
 	void restoreError();
 	void backupError();
 	void importDone(bool success);
