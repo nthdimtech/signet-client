@@ -1683,7 +1683,6 @@ void MainWindow::enterDeviceState(int state)
 		break;
 	}
 
-
 	bool fileActionsEnabled = (m_deviceState == SignetApplication::STATE_LOGGED_IN);
 	m_exportMenu->menuAction()->setVisible(fileActionsEnabled);
 	m_settingsAction->setVisible(fileActionsEnabled);

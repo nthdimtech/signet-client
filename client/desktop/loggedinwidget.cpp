@@ -676,7 +676,6 @@ void LoggedInWidget::idTaskComplete(bool error, int id, esdbEntry *entry, enum I
 
 bool LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar)
 {
-	//TODO: validate that an ID task is not already pending
 	if (m_idTask == ID_TASK_NONE) {
 		m_id = id;
 		m_idTask = task;

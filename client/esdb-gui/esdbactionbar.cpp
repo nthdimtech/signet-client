@@ -53,7 +53,8 @@ void EsdbActionBar::deleteEntry()
 		                m_parent);
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(deleteEntryFinished(int)));
 		if (m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_DELETE, INTENT_NONE, this)) {
-			m_buttonWaitDialog->show();
+			if (m_buttonWaitDialog)
+				m_buttonWaitDialog->show();
 		} else {
 			m_buttonWaitDialog->deleteLater();
 			m_buttonWaitDialog = nullptr;
@@ -71,7 +72,8 @@ void EsdbActionBar::openEntry(esdbEntry *entry)
 		        m_parent);
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(openEntryFinished(int)));
 		if (m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, INTENT_OPEN_ENTRY, this)) {
-			m_buttonWaitDialog->show();
+			if (m_buttonWaitDialog)
+				m_buttonWaitDialog->show();
 		} else {
 			m_buttonWaitDialog->deleteLater();
 			m_buttonWaitDialog = nullptr;
