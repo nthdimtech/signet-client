@@ -273,7 +273,6 @@ bool SignetApplication::isDeviceEmulated()
 QMessageBox *SignetApplication::messageBoxError(QMessageBox::Icon icon, const QString &title, const QString &text, QWidget *parent)
 {
 	QMessageBox *box = new QMessageBox(icon, title, text, QMessageBox::Ok, parent);
-	connect(box, SIGNAL(finished(int)), box, SLOT(deleteLater()));
 	box->setWindowModality(Qt::WindowModal);
 	box->setAttribute(Qt::WA_DeleteOnClose);
 	box->show();
@@ -283,7 +282,6 @@ QMessageBox *SignetApplication::messageBoxError(QMessageBox::Icon icon, const QS
 QMessageBox *SignetApplication::messageBoxWarn(const QString &title, const QString &text, QWidget *parent)
 {
 	QMessageBox *box = new QMessageBox(QMessageBox::Warning, title, text, QMessageBox::Ok, parent);
-	connect(box, SIGNAL(finished(int)), box, SLOT(deleteLater()));
 	box->setWindowModality(Qt::WindowModal);
 	box->setAttribute(Qt::WA_DeleteOnClose);
 	box->show();
