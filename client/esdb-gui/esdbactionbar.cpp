@@ -88,12 +88,12 @@ void EsdbActionBar::accessEntry(esdbEntry *entry, int intent, QString message, b
 	m_accessDeselect = deselect;
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(accessAccountFinished(int)));
 	if (m_parent->beginIDTask(entry->id, LoggedInWidget::ID_TASK_READ, intent, this)) {
-		m_buttonWaitDialog->show();
+		if (m_buttonWaitDialog)
+			m_buttonWaitDialog->show();
 
 		if (backgroundApp) {
 			background();
 		}
-		m_buttonWaitDialog->show();
 	} else {
 		m_buttonWaitDialog->deleteLater();
 		m_buttonWaitDialog = nullptr;
