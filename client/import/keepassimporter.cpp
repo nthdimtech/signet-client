@@ -122,6 +122,6 @@ void KeePassImporter::invalidCredientialsDialogFinished(int rc)
 {
 	Q_UNUSED(rc);
 	m_keePassDatabase->deleteLater();
-	m_keePassDatabase = NULL;
+	m_keePassDatabase = nullptr;
 	done(false);
 }

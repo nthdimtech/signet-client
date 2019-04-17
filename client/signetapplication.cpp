@@ -82,15 +82,15 @@ void SignetApplication::generateKey(const QString &password, QByteArray &key, co
 {
 	QByteArray s = password.toUtf8();
 	key.resize(keyLength);
-	memset(key.data(), 0, key.length());
+	memset(key.data(), 0, (size_t)key.length());
 
 	int fn = hashfn.at(0);
 
 	switch(fn) {
 	case 0: {
-		int N = DEFAULT_SCRYPT_N_VALUE;
-		int r = DEFAULT_SCRYPT_R_VALUE;
-		int p = DEFAULT_SCRIPT_P_VALUE;
+		unsigned int N = DEFAULT_SCRYPT_N_VALUE;
+		unsigned int r = DEFAULT_SCRYPT_R_VALUE;
+		unsigned int p = DEFAULT_SCRIPT_P_VALUE;
 		QByteArray actual_salt("rand", 4);
 		generateScryptKey(password, key, actual_salt, N, r, p);
 	}
@@ -109,7 +109,7 @@ void SignetApplication::generateKey(const QString &password, QByteArray &key, co
 	}
 }
 
-void SignetApplication::deviceEventS(void *cb_param, int event_type, void *data, int data_len)
+void SignetApplication::deviceEventS(void *cb_param, int event_type, const void *data, int data_len)
 {
 	Q_UNUSED(data_len);
 	SignetApplication *this_ = (SignetApplication *)cb_param;;
@@ -131,7 +131,7 @@ void SignetApplication::setAsyncListener(SignetAsyncListener *l)
 	m_signetAsyncListener = l;
 }
 
-void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int cmd_token, int cmd, int end_device_state, int messages_remaining, int resp_code, void *resp_data)
+void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int cmd_token, int cmd, int end_device_state, int messages_remaining, int resp_code, const void *resp_data)
 {
 	signetdevCmdRespInfo info;
 	info.param = cmd_user_param;
@@ -371,6 +371,7 @@ void SignetApplication::newWebSocketConnection()
 
 void SignetApplication::websocketMessage_(int id, QString message)
 {
+	Q_UNUSED(id);
 	auto document = QJsonDocument::fromJson(message.toUtf8());
 	if (document.isObject()) {
 		auto obj = document.object();
