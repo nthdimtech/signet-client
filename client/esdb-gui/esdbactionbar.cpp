@@ -126,6 +126,7 @@ void EsdbActionBar::openEntryFinished(int code)
 	m_parent->finishTask(true);
 }
 
+
 void EsdbActionBar::idTaskComplete(bool error, int id, esdbEntry *entry, enum LoggedInWidget::ID_TASK task, int intent)
 {
 	Q_UNUSED(id);

@@ -4,6 +4,7 @@
 
 #include <QThread>
 #include <QCommandLineParser>
+#include <QPushButton>
 
 int main(int argc, char **argv)
 {
@@ -16,8 +17,8 @@ int main(int argc, char **argv)
 		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Signet",
 						   "A Signet client is already running."
 						   "Only one instance of the client can run at the same time.",
-						   0,
-						   NULL,
+		                                   nullptr,
+		                                   nullptr,
 						   Qt::WindowStaysOnTopHint);
 		QPushButton *closeItButton = box->addButton("Replace running instance", QMessageBox::RejectRole);
 		box->addButton("Switch to running instance", QMessageBox::AcceptRole);
@@ -25,8 +26,8 @@ int main(int argc, char **argv)
 		box->exec();
 		QAbstractButton *clickedButton = box->clickedButton();
 		box->deleteLater();
-		box = NULL;
-		if (clickedButton == (QAbstractButton *)closeItButton) {
+		box = nullptr;
+		if (clickedButton == static_cast<QAbstractButton *>(closeItButton)) {
 			a.sendMessage("close");
 			int i = 0;
 			while(a.isRunning()) {
@@ -36,7 +37,7 @@ int main(int argc, char **argv)
 					box = new QMessageBox(QMessageBox::Information, "Signet",
 					                      "Existing signet client is not closing. Close it and try again",
 					                      QMessageBox::Ok,
-					                      NULL,
+					                      nullptr,
 					                      Qt::WindowStaysOnTopHint);
 					box->exec();
 					box->deleteLater();
@@ -72,6 +73,8 @@ int main(int argc, char **argv)
 	if (parser.isSet(file)) {
 		dbFile = parser.value(file);
 	}
+
+	a.setQuitOnLastWindowClosed(false);
 
 	a.init(startInTray, dbFile);
 	a.exec();

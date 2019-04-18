@@ -6,7 +6,6 @@
 #include <QBoxLayout>
 #include <QPushButton>
 #include <QComboBox>
-#include <QDebug>
 #include <QThread>
 #include <QListView>
 #include <QLineEdit>
@@ -30,6 +29,7 @@
 #include <QJsonArray>
 #include <QString>
 #include <QDesktopWidget>
+#include <QTextStream>
 
 #include "cleartextpasswordeditor.h"
 
@@ -801,7 +801,6 @@ void MainWindow::showEvent(QShowEvent *event)
 #endif
 }
 
-
 void MainWindow::messageReceived(QString message)
 {
 	if (message == QString("open")) {
@@ -842,6 +841,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 		m_settings.windowGeometry = saveGeometry();
 		saveSettings();
 		signetdev_close_connection();
+		SignetApplication::get()->quit();
 		event->accept();
 	} else {
 		emit hide();
