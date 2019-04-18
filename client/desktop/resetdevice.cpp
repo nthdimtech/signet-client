@@ -4,7 +4,6 @@
 #include <QPushButton>
 #include <QMessageBox>
 #include <QLabel>
-#include <QDebug>
 #include <QDialog>
 #include <QCoreApplication>
 #include <QProgressBar>

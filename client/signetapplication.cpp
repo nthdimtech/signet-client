@@ -141,7 +141,7 @@ void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int c
 	info.end_device_state = end_device_state;
 	info.messages_remaining = messages_remaining;
 
-	SignetApplication *this_ = (SignetApplication *)cb_param;
+	SignetApplication *this_ = static_cast<SignetApplication *>(cb_param);
 	switch(cmd) {
 	case SIGNETDEV_CMD_READ_ALL_UIDS: {
 		if (resp_data && resp_code == OKAY) {

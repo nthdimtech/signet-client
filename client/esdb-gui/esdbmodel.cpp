@@ -2,7 +2,6 @@
 #include "esdbtypemodule.h"
 
 #include <QModelIndex>
-#include <QDebug>
 #include <QIcon>
 #include <QTreeView>
 

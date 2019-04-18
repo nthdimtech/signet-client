@@ -1,6 +1,5 @@
 #include "loginwindow.h"
 #include <QtGui>
-#include <QDebug>
 #include <QBoxLayout>
 #include <QLabel>
 #include <QPushButton>
