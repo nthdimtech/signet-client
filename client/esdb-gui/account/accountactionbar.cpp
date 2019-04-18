@@ -350,8 +350,12 @@ void AccountActionBar::entryCreated(esdbEntry *entry)
 void AccountActionBar::retryTypeData()
 {
 	if (m_parent->beginIDTask(selectedEntry()->id, LoggedInWidget::ID_TASK_READ, INTENT_TYPE_ENTRY, this)) {
-		m_buttonWaitDialog->resetTimeout();
+		if (m_buttonWaitDialog) {
+			m_buttonWaitDialog->resetTimeout();
+		}
 	} else {
-		m_buttonWaitDialog->done(QMessageBox::Cancel);
+		if (m_buttonWaitDialog) {
+			m_buttonWaitDialog->done(QMessageBox::Cancel);
+		}
 	}
 }

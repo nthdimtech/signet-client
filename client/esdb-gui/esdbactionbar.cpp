@@ -11,9 +11,10 @@
 EsdbActionBar::EsdbActionBar(LoggedInWidget *parent, QString typeName, bool writeEnabled, bool typeEnabled) : QWidget(parent),
 	m_parent(parent),
 	m_writeEnabled(writeEnabled),
-	m_typeEnabled(typeEnabled),
+        m_typeEnabled(typeEnabled),
 	m_typeName(typeName),
-	m_selectedEntry(nullptr)
+        m_selectedEntry(nullptr),
+        m_buttonWaitDialog(nullptr)
 {
 	QHBoxLayout *l = new QHBoxLayout();
 	l->setAlignment(Qt::AlignLeft);
@@ -115,8 +116,10 @@ void EsdbActionBar::accessAccountFinished(int code)
 
 void EsdbActionBar::openEntryFinished(int code)
 {
-	m_buttonWaitDialog->deleteLater();
-	m_buttonWaitDialog = nullptr;
+	if (m_buttonWaitDialog) {
+		m_buttonWaitDialog->deleteLater();
+		m_buttonWaitDialog = nullptr;
+	}
 	if (code != QMessageBox::Ok) {
 		::signetdev_cancel_button_wait();
 	}
@@ -166,10 +169,12 @@ void EsdbActionBar::browseUrl(esdbEntry *entry)
 
 void EsdbActionBar::deleteEntryFinished(int code)
 {
+	if (m_buttonWaitDialog) {
+		m_buttonWaitDialog->deleteLater();
+		m_buttonWaitDialog = nullptr;
+	}
 	if (code != QMessageBox::Ok) {
 		::signetdev_cancel_button_wait();
 	}
-	m_buttonWaitDialog->deleteLater();
-	m_buttonWaitDialog = nullptr;
 	m_parent->finishTask();
 }
