@@ -600,6 +600,11 @@ void LoggedInWidget::websocketRequestFields(int socketId, const QString &path, c
 
 	if (matchingEntry) {
 		if (beginIDTask(matchingEntry->id, ID_TASK_READ, 0, nullptr)) {
+			if (window()->isVisible() && !(window()->windowState() & Qt::WindowMinimized)) {
+				m_backgroundAfterTask = false;
+			} else {
+				m_backgroundAfterTask = true;
+			}
 			m_requestedFields = requestedFields;
 			m_socketId = socketId;
 			m_buttonWaitDialog = new ButtonWaitDialog("Reading entry",
@@ -669,6 +674,9 @@ void LoggedInWidget::idTaskComplete(bool error, int id, esdbEntry *entry, enum I
 		}
 		QJsonDocument doc(response);
 		SignetApplication::get()->websocketResponse(m_socketId, QString::fromUtf8(doc.toJson()));
+		if (m_backgroundAfterTask) {
+			background();
+		}
 	}
 	m_socketId = -1;
 	m_requestedFields.clear();

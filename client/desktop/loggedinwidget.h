@@ -223,6 +223,7 @@ private:
 	ButtonWaitDialog *m_buttonWaitDialog;
 	int m_socketId;
 	QStringList m_requestedFields;
+	bool m_backgroundAfterTask;
 	void idTaskComplete(bool error, int id, esdbEntry *entry, enum ID_TASK task, int intent);
 	void websocketShow(int socketId, const QString &path, const QString &title);
 };

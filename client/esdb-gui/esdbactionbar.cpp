@@ -91,7 +91,6 @@ void EsdbActionBar::accessEntry(esdbEntry *entry, int intent, QString message, b
 	if (m_parent->beginIDTask(entry->id, LoggedInWidget::ID_TASK_READ, intent, this)) {
 		if (m_buttonWaitDialog)
 			m_buttonWaitDialog->show();
-
 		if (backgroundApp) {
 			background();
 		}
