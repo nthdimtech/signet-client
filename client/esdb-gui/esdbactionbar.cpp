@@ -91,9 +91,11 @@ void EsdbActionBar::accessEntry(esdbEntry *entry, int intent, QString message, b
 	if (m_parent->beginIDTask(entry->id, LoggedInWidget::ID_TASK_READ, intent, this)) {
 		if (m_buttonWaitDialog)
 			m_buttonWaitDialog->show();
+#ifndef Q_OS_MACOS
 		if (backgroundApp) {
 			background();
 		}
+#endif
 	} else {
 		m_buttonWaitDialog->deleteLater();
 		m_buttonWaitDialog = nullptr;

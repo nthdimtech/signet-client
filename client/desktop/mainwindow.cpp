@@ -826,7 +826,10 @@ void MainWindow::changePasswordUi()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+
+#ifndef Q_OS_MACOS
 	if (m_quitting) {
+#endif
 		switch (m_deviceState) {
 		case SignetApplication::STATE_CONNECTING:
 			enterDeviceState(SignetApplication::STATE_DISCONNECTED);
@@ -843,10 +846,12 @@ void MainWindow::closeEvent(QCloseEvent *event)
 		signetdev_close_connection();
 		SignetApplication::get()->quit();
 		event->accept();
+#ifndef Q_OS_MACOS
 	} else {
 		emit hide();
 		event->ignore();
 	}
+#endif
 }
 
 MainWindow::~MainWindow()
