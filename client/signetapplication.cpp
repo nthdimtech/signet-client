@@ -17,6 +17,10 @@ extern "C" {
 #include "crypto_scrypt.h"
 };
 
+#include "systemtray.h"
+
+#include <websockethandler.h>
+
 #define DEFAULT_SCRYPT_N_VALUE_LOG2 12
 #define DEFAULT_SCRYPT_N_VALUE (1<<DEFAULT_SCRYPT_N_VALUE_LOG2)
 #define DEFAULT_SCRYPT_R_VALUE 32
@@ -49,6 +53,7 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 {
 	m_nextSocketId = 0;
 	g_singleton = this;
+	m_systray = new SystemTray();
 	qRegisterMetaType<signetdevCmdRespInfo>();
 	qRegisterMetaType<signetdev_startup_resp_data>();
 	qRegisterMetaType<signetdev_get_progress_resp_data>();
@@ -65,8 +70,6 @@ void SignetApplication::generateScryptKey(const QString &password, QByteArray &k
 		      (u8 *)key.data(), key.size());
 
 }
-
-#include <websockethandler.h>
 
 void SignetApplication::websocketResponse(int socketId, const QString &response)
 {
@@ -246,15 +249,15 @@ void SignetApplication::init(bool startInTray, QString dbFilename)
 	connect(m_webSocketServer, SIGNAL(newConnection()), this, SLOT(newWebSocketConnection()));
 
 	QObject::connect(this, SIGNAL(messageReceived(QString)), m_main_window, SLOT(messageReceived(QString)));
-	QObject::connect(&m_systray, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
+	QObject::connect(m_systray, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
 			 this, SLOT(trayActivated(QSystemTrayIcon::ActivationReason)));
 	QObject::connect(this, SIGNAL(signetdevEvent(int)), m_main_window, SLOT(signetDevEvent(int)));
 
 	m_main_window->setWindowTitle("Signet");
 	QIcon app_icon = QIcon(":/images/signet.png");
 	m_main_window->setWindowIcon(app_icon);
-	m_systray.setIcon(app_icon);
-	m_systray.show();
+	m_systray->setIcon(app_icon);
+	m_systray->show();
 	if (!startInTray) {
 		m_main_window->show();
 	}
@@ -292,7 +295,8 @@ QMessageBox *SignetApplication::messageBoxWarn(const QString &title, const QStri
 SignetApplication::~SignetApplication()
 {
 #ifndef Q_OS_ANDROID
-	m_systray.hide();
+	if (m_systray)
+		delete m_systray;
 #endif
 }
 

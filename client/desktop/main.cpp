@@ -8,11 +8,11 @@
 
 int main(int argc, char **argv)
 {
-	SignetApplication a(argc, argv);
+	SignetApplication *app = new SignetApplication(argc, argv);
 
 	Crypto::init();
 
-	if (a.isRunning()) {
+	if (app->isRunning()) {
 		QIcon signetIcon = QIcon(":/images/signet.png");
 		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Signet",
 						   "A Signet client is already running."
@@ -28,9 +28,9 @@ int main(int argc, char **argv)
 		box->deleteLater();
 		box = nullptr;
 		if (clickedButton == static_cast<QAbstractButton *>(closeItButton)) {
-			a.sendMessage("close");
+			app->sendMessage("close");
 			int i = 0;
-			while(a.isRunning()) {
+			while(app->isRunning()) {
 				QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
 				i++;
 				if (i > 200) {
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 				QThread::usleep(100000);
 			}
 		} else {
-			a.sendMessage("open");
+			app->sendMessage("open");
 			return 0;
 		}
 		box->deleteLater();
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 	QCommandLineOption startInTrayOption("start-in-systray", "Start application minimized in the system tray");
 	parser.addOption(startInTrayOption);
 #endif
-	parser.process(a);
+	parser.process(*app);
 
 #ifdef Q_OS_UNIX
 	bool startInTray = parser.isSet(startInTrayOption);
@@ -74,12 +74,14 @@ int main(int argc, char **argv)
 		dbFile = parser.value(file);
 	}
 
-	a.setQuitOnLastWindowClosed(false);
+	app->setQuitOnLastWindowClosed(false);
 
-	a.init(startInTray, dbFile);
-	a.exec();
+	app->init(startInTray, dbFile);
+	app->exec();
 
 	signetdev_deinitialize_api();
+
+	delete app;
 
 	return 0;
 }

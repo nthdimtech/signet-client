@@ -7,7 +7,7 @@
 #include <qmetatype.h>
 #ifndef Q_OS_ANDROID
 #include <QtSingleApplication>
-#include "systemtray.h"
+class SystemTray;
 class MainWindow;
 #else
 #include <QApplication>
@@ -35,6 +35,8 @@ struct signetdevCmdRespInfo {
 extern "C" {
 #include "signetdev/host/signetdev.h"
 }
+
+#include "systemtray.h"
 
 Q_DECLARE_METATYPE(signetdevCmdRespInfo)
 Q_DECLARE_METATYPE(signetdev_startup_resp_data)
@@ -68,7 +70,7 @@ public:
 	}
 private:
 #ifndef Q_OS_ANDROID
-	SystemTray m_systray;
+	SystemTray *m_systray;
 	MainWindow *m_main_window;
 	QWebSocketServer *m_webSocketServer;
 	QList<websocketHandler *> m_openWebSockets;
