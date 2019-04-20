@@ -1043,11 +1043,11 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 			if (entry) {
 				if (bar) {
 					bar->idTaskComplete(false, id, entry, idTask, m_taskIntent);
-				} else if (task) {
+				} else {
 					if (entry->type == ESDB_TYPE_GENERIC_TYPE_DESC) {
 						genericTypeDesc *genericTypeDesc_ = static_cast<genericTypeDesc *>(entry);
 						addGenericType(genericTypeDesc_);
-					} else {
+					} else if (task) {
 						idTaskComplete(false, id, entry, idTask, m_taskIntent);
 					}
 				}
