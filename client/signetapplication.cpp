@@ -2,8 +2,10 @@
 
 #ifndef Q_OS_ANDROID
 #include "desktop/mainwindow.h"
+#ifdef WITH_BROWSER_PLUGINS
 #include <QtWebSockets/QWebSocketServer>
 #include <QtWebSockets/QWebSocket>
+#endif
 #else
 #include "android/signetdevicemanager.h"
 #endif
@@ -51,7 +53,9 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 #endif
         m_signetAsyncListener(nullptr)
 {
+#ifdef WITH_BROWSER_PLUGINS
 	m_nextSocketId = 0;
+#endif
 	g_singleton = this;
 	m_systray = new SystemTray();
 	qRegisterMetaType<signetdevCmdRespInfo>();
@@ -71,6 +75,7 @@ void SignetApplication::generateScryptKey(const QString &password, QByteArray &k
 
 }
 
+#ifdef WITH_BROWSER_PLUGINS
 void SignetApplication::websocketResponse(int socketId, const QString &response)
 {
 	Q_UNUSED(socketId);
@@ -80,6 +85,7 @@ void SignetApplication::websocketResponse(int socketId, const QString &response)
 		}
 	}
 }
+#endif
 
 void SignetApplication::generateKey(const QString &password, QByteArray &key, const QByteArray &hashfn, const QByteArray &salt, int keyLength)
 {
@@ -244,9 +250,11 @@ void SignetApplication::init(bool startInTray, QString dbFilename)
 
 	connect(this, SIGNAL(connectionError()), m_main_window, SLOT(connectionError()));
 
+#ifdef WITH_BROWSER_PLUGINS
 	m_webSocketServer = new QWebSocketServer("Cool", QWebSocketServer::NonSecureMode, this);
 	m_webSocketServer->listen(QHostAddress::LocalHost, 10910);
 	connect(m_webSocketServer, SIGNAL(newConnection()), this, SLOT(newWebSocketConnection()));
+#endif
 
 	QObject::connect(this, SIGNAL(messageReceived(QString)), m_main_window, SLOT(messageReceived(QString)));
 	QObject::connect(m_systray, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
@@ -339,6 +347,7 @@ void SignetApplication::trayActivated(QSystemTrayIcon::ActivationReason reason)
 	}
 }
 
+#ifdef WITH_BROWSER_PLUGINS
 #include "websockethandler.h"
 
 void SignetApplication::newWebSocketConnection()
@@ -389,5 +398,6 @@ void SignetApplication::websocketHandlerDone(websocketHandler *handler)
 	m_openWebSockets.removeOne(handler);
 	handler->deleteLater();
 }
+#endif
 
 #endif

@@ -169,8 +169,10 @@ class LoggedInWidget : public QWidget
 	QList<typeData *> m_typeData;
 	typeData *m_miscTypeData;
 	int scoreUrlMatch(const QUrl &a, const QUrl &b);
+#ifdef WITH_BROWSER_PLUGINS
 	void websocketPageLoaded(int socketId, QString url, bool hasLoginForm, bool hasUsernameField, bool hasPasswordField);
 	void websocketRequestFields(int socketId, const QString &path, const QString &title, const QStringList &requestedFields);
+#endif
 public:
 	enum ID_TASK {
 		ID_TASK_NONE,
@@ -217,15 +219,19 @@ public slots:
 	void expanded(QModelIndex index);
 	void collapsed(QModelIndex index);
 private slots:
+#ifdef WITH_BROWSER_PLUGINS
 	void websocketMessage(int socketId, QString message);
 	void readEntryFinished(int code);
+#endif
 private:
 	ButtonWaitDialog *m_buttonWaitDialog;
 	int m_socketId;
 	QStringList m_requestedFields;
 	bool m_backgroundAfterTask;
+#ifdef WITH_BROWSER_PLUGINS
 	void idTaskComplete(bool error, int id, esdbEntry *entry, enum ID_TASK task, int intent);
 	void websocketShow(int socketId, const QString &path, const QString &title);
+#endif
 };
 
 #endif // LOGGEDINWIDGET_H

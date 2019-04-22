@@ -246,7 +246,9 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 
 	SignetApplication *app = SignetApplication::get();
 	connect(app, SIGNAL(focusChanged(QWidget*,QWidget*)), this, SLOT(focusChanged(QWidget*,QWidget*)));
+#ifdef WITH_BROWSER_PLUGINS
 	connect(app, SIGNAL(websocketMessage(int, QString)), this, SLOT(websocketMessage(int, QString)));
+#endif
 
 	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)), this,
 		SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
@@ -523,6 +525,7 @@ int LoggedInWidget::scoreUrlMatch(const QUrl &a, const QUrl &b)
 #include <QJsonDocument>
 #include "account.h"
 
+#ifdef WITH_BROWSER_PLUGINS
 void LoggedInWidget::websocketPageLoaded(int socketId, QString url, bool hasLoginForm, bool hasUsernameField, bool hasPasswordField)
 {
 	QUrl selectedUrl(url, QUrl::TolerantMode);
@@ -553,7 +556,6 @@ void LoggedInWidget::websocketPageLoaded(int socketId, QString url, bool hasLogi
 	}
 	QJsonDocument doc(matches);
 	SignetApplication::get()->websocketResponse(socketId, QString::fromUtf8(doc.toJson()));
-
 }
 
 void LoggedInWidget::websocketShow(int socketId, const QString &path, const QString &title)
@@ -616,18 +618,6 @@ void LoggedInWidget::websocketRequestFields(int socketId, const QString &path, c
 	}
 }
 
-void LoggedInWidget::readEntryFinished(int code)
-{
-	if (m_buttonWaitDialog) {
-		m_buttonWaitDialog->deleteLater();
-		m_buttonWaitDialog = nullptr;
-	}
-	if (code != QMessageBox::Ok) {
-		::signetdev_cancel_button_wait();
-		m_idTask = ID_TASK_NONE;
-	}
-}
-
 void LoggedInWidget::websocketMessage(int socketId, QString message)
 {
 	auto document = QJsonDocument::fromJson(message.toUtf8());
@@ -658,6 +648,18 @@ void LoggedInWidget::websocketMessage(int socketId, QString message)
 
 }
 
+void LoggedInWidget::readEntryFinished(int code)
+{
+	if (m_buttonWaitDialog) {
+		m_buttonWaitDialog->deleteLater();
+		m_buttonWaitDialog = nullptr;
+	}
+	if (code != QMessageBox::Ok) {
+		::signetdev_cancel_button_wait();
+		m_idTask = ID_TASK_NONE;
+	}
+}
+
 void LoggedInWidget::idTaskComplete(bool error, int id, esdbEntry *entry, enum ID_TASK task, int intent)
 {
 	if (m_buttonWaitDialog)
@@ -681,6 +683,7 @@ void LoggedInWidget::idTaskComplete(bool error, int id, esdbEntry *entry, enum I
 	m_socketId = -1;
 	m_requestedFields.clear();
 }
+#endif
 
 bool LoggedInWidget::beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar)
 {
@@ -1047,9 +1050,12 @@ void LoggedInWidget::getEntryDone(int id, int code, block *blk, bool task)
 					if (entry->type == ESDB_TYPE_GENERIC_TYPE_DESC) {
 						genericTypeDesc *genericTypeDesc_ = static_cast<genericTypeDesc *>(entry);
 						addGenericType(genericTypeDesc_);
-					} else if (task) {
+					}
+#ifdef WITH_BROWSER_PLUGINS
+					else if (task) {
 						idTaskComplete(false, id, entry, idTask, m_taskIntent);
 					}
+#endif
 				}
 			} else if (m_populating) {
 				m_populatingCantRead++;

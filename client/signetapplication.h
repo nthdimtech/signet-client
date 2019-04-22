@@ -19,9 +19,12 @@ class SignetDeviceManager;
 class QMessageBox;
 class QByteArray;
 class QString;
+
+#ifdef WITH_BROWSER_PLUGINS
 class QWebSocketServer;
 class QWebSocket;
 class websocketHandler;
+#endif
 
 struct signetdevCmdRespInfo {
 	void *param;
@@ -72,11 +75,14 @@ private:
 #ifndef Q_OS_ANDROID
 	SystemTray *m_systray;
 	MainWindow *m_main_window;
+
+#ifdef WITH_BROWSER_PLUGINS
 	QWebSocketServer *m_webSocketServer;
 	QList<websocketHandler *> m_openWebSockets;
 	QStringList m_webSocketOriginWhitelist;
 	static const int s_maxWebSocketConnections = 10;
 	int m_nextSocketId;
+#endif
 #else
 	QQmlApplicationEngine m_qmlEngine;
 	SignetDeviceManager *m_signetDeviceManager;
@@ -103,7 +109,9 @@ public:
 		return m_qmlEngine;
 	}
 #else
+#ifdef WITH_BROWSER_PLUGINS
 	void websocketResponse(int socketId, const QString &response);
+#endif
 #endif
 	enum device_state {
 		STATE_INVALID,
@@ -230,17 +238,21 @@ signals:
 	void signetdevReadCleartextPassword(signetdevCmdRespInfo info, cleartext_pass pass);
 	void signetdevEvent(int event_type);
 	void signetdevTimerEvent(int seconds_remaining);
+#ifdef WITH_BROWSER_PLUGINS
 	void websocketMessage(int socketId, QString url);
+#endif
 public slots:
 #ifndef Q_OS_ANDROID
 	void trayActivated(QSystemTrayIcon::ActivationReason reason);
 #endif
 private slots:
 #ifndef Q_OS_ANDROID
+#ifdef WITH_BROWSER_PLUGINS
 	void newWebSocketConnection();
 	void websocketHandlerDone(websocketHandler *handler);
-#endif
 	void websocketMessage_(int, QString);
+#endif
+#endif
 };
 
 #endif // SIGNETAPPLICATION_H
