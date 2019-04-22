@@ -36,7 +36,7 @@ Once you have Brew, run:
 
 To build Signet run:
 
-	$ /usr/local/opt/qt5/bin/qmake client/client.pro
+	$ /usr/local/opt/qt5/bin/qmake client/client.pro CONFIG+=release CONFIG+=browser_plugins
 	$ make
 
 The build will create a `signet.app` folder that you can move or copy anywhere. For example:
