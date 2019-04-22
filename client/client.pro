@@ -6,7 +6,7 @@
 
 QT       += core gui widgets network concurrent
 
-browser_plugins {
+!without_browser_plugins {
 QT += websockets
 QMAKE_CFLAGS += -DWITH_BROWSER_PLUGINS
 QMAKE_CXXFLAGS += -DWITH_BROWSER_PLUGINS

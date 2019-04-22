@@ -16,7 +16,7 @@ If you are not on a Debian based system, build or install the equivalent librari
 
 To build simply run qmake and then make:
 
-	$ qmake client/client.pro CONFIG+=release CONFIG+=browser_plugins
+	$ qmake client/client.pro CONFIG+=release
 
 	$ make
 
@@ -36,7 +36,7 @@ Once you have Brew, run:
 
 To build Signet run:
 
-	$ /usr/local/opt/qt5/bin/qmake client/client.pro CONFIG+=release CONFIG+=browser_plugins
+	$ /usr/local/opt/qt5/bin/qmake client/client.pro CONFIG+=release
 	$ make
 
 The build will create a `signet.app` folder that you can move or copy anywhere. For example:
@@ -55,7 +55,7 @@ First install [MSYS2](http://www.msys2.org). MSYS2 will provide a build environm
 Now you can build:
 
 	$ export PATH=/mingw64/qt5-static/bin:$PATH
-	$ qmake client/client.pro CONFIG+=release CONFIG+=browser_plugins
+	$ qmake client/client.pro CONFIG+=release
 	$ mingw32-make
 
 This will build `Signet.exe` in the `release` subdirectory. This executable should be self contained and you can copy it anywhere and run it.
