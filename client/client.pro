@@ -80,7 +80,7 @@ LIBS += -lhid -lsetupapi -lz -lgcrypt -lgpg-error
 SOURCES += ../signet-base/signetdev/host/signetdev.c \
     ../signet-base/signetdev/host/signetdev_emulate.c
 
-browser_plugins {
+!without_browser_plugins {
 SOURCES += websockethandler.cpp
 HEADERS += websockethandler.h
 }
