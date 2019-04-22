@@ -58,15 +58,12 @@ QMAKE_INFO_PLIST = macos/Info.plist
 }
 
 linux-g++ {
-LIBS += -lgcrypt -lgpg-error -lz -lX11
+	linux_static_deps {
+		LIBS += -l:libgcrypt.a -l:libgpg-error.a -l:libz.a -lX11
+	} else {
+		LIBS += -lgcrypt -lgpg-error -lz -lX11
+	}
 }
-
-#
-# Note: Use this fragment instead of the one above when making a static build
-#
-#linux-g++ {
-#LIBS += -L/usr/local/lib64/lib -l:libgcrypt.a -l:libgpg-error.a -l:libz.a -lX11
-#}
 
 win32 {
 QMAKE_LFLAGS = -static
