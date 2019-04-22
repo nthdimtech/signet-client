@@ -16,7 +16,8 @@ If you are not on a Debian based system, build or install the equivalent librari
 
 To build simply run qmake and then make:
 
-	$ qmake client/client.pro
+	$ qmake client/client.pro CONFIG+=release CONFIG+=browser_plugins
+
 	$ make
 
 `make` will create a `signet` binary that you can move elsewhere.
@@ -54,7 +55,7 @@ First install [MSYS2](http://www.msys2.org). MSYS2 will provide a build environm
 Now you can build:
 
 	$ export PATH=/mingw64/qt5-static/bin:$PATH
-	$ qmake client/client.pro CONFIG+=release
+	$ qmake client/client.pro CONFIG+=release CONFIG+=browser_plugins
 	$ mingw32-make
 
 This will build `Signet.exe` in the `release` subdirectory. This executable should be self contained and you can copy it anywhere and run it.
