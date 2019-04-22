@@ -19,7 +19,7 @@ before_install:
   - if [ $TRAVIS_OS_NAME == osx ]; then brew update && brew install qt5 ; fi
 script:
   - if [ $TRAVIS_OS_NAME == linux ]; then qmake -spec linux-g++ client/client.pro && make; fi
-  - if [ $TRAVIS_OS_NAME == osx ]; then /usr/local/opt/qt5/bin/qmake client/client.pro && make; fi
+  - if [ $TRAVIS_OS_NAME == osx ]; then /usr/local/opt/qt5/bin/qmake client/client.pro CONFIG+=browser_plugins && make; fi
 
 notifications:
   email:
