@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui widgets network concurrent websockets
+QT       += core gui widgets network concurrent
 
 browser_plugins {
 QT += websockets
@@ -65,7 +65,7 @@ LIBS += -lgcrypt -lgpg-error -lz -lX11
 # Note: Use this fragment instead of the one above when making a static build
 #
 #linux-g++ {
-#LIBS += -l:libgcrypt.a -l:libgpg-error.a -l:libz.a -lX11
+#LIBS += -L/usr/local/lib64/lib -l:libgcrypt.a -l:libgpg-error.a -l:libz.a -lX11
 #}
 
 win32 {
