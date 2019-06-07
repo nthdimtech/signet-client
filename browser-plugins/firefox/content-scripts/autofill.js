@@ -96,7 +96,7 @@ for (i = 0; i < formTags.length; i++) {
 			bestMatchFound = true;
 		} else if (tempUsernameInput != null && usernameInput == null && passwordInput != null) {
 			betterMatchFound = true;
-		} else if (tempPasswordINput != null) {
+		} else if (tempPasswordInput != null) {
 			betterMatchFound = true;
 		}
 		if (betterMatchFound) {
