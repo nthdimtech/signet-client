@@ -1,4 +1,5 @@
 #!/bin/bash
+
 $1/configure \
 -platform win32-g++ -static -release -opengl desktop \
 -opensource -confirm-license \
