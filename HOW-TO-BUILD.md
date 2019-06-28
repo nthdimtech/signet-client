@@ -10,7 +10,7 @@ If you downloaded the source from an archive then the submodules are already inc
 
 If you are running a Debian-based system (Ubuntu, Linux Mint, etc.) then run the following command to install Signet's build dependencies
 
-	$ sudo apt-get install qt5-default libqt5websockets5-dev libqt5x11extras5-dev libgcrypt20-dev zlib1g-dev libx11-dev
+	$ sudo apt-get install qt5-default libqt5websockets5-dev libqt5x11extras5-dev libgcrypt20-dev zlib1g-dev libx11-dev libgl1-mesa-dev
 
 If you are not on a Debian based system, build or install the equivalent libraries for Qt5 (with Websockets and x11extras), zlib, libX11, and libgcrypt.
 
