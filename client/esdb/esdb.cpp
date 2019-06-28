@@ -89,21 +89,23 @@ void block::writeU16(u16 v)
 void block::writeString(const QString &str, bool masked)
 {
 	QByteArray x = str.toUtf8();
-	writeU8(x.size());
-	output_bytes_needed(index + 1 + x.size());
-	memcpy(data.data() + index, x.data(), x.size());
-	setMask(index, x.size(), masked);
-	index += x.size();
+	u8 sz = x.size() > 255 ? 255 : x.size();
+	writeU8(sz);
+	output_bytes_needed(index + 1 + sz);
+	memcpy(data.data() + index, x.data(), sz);
+	setMask(index, sz, masked);
+	index += sz;
 }
 
 void block::writeLongString(const QString &str, bool masked)
 {
 	QByteArray x = str.toUtf8();
-	writeU16(x.size());
-	output_bytes_needed(index + 1 + x.size());
-	memcpy(data.data() + index, x.data(), x.size());
-	setMask(index, x.size(), masked);
-	index += x.size();
+	u16 sz = x.size() > ((1<<16) - 1) ? ((1<<16) - 1) : x.size();
+	writeU16(sz);
+	output_bytes_needed(index + 1 + sz);
+	memcpy(data.data() + index, x.data(), sz);
+	setMask(index, sz, masked);
+	index += sz;
 }
 
 esdbEntry_1::~esdbEntry_1()
