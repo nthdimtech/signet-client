@@ -98,7 +98,7 @@ void GenericActionBar::newEntryFinished(int)
 {
 	m_newEntryDlg->deleteLater();
 	m_newEntryDlg = nullptr;
-	m_parent->finishTask(false);
+	m_parent->finishTask();
 }
 
 void GenericActionBar::entryCreated(esdbEntry *entry)

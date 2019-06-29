@@ -15,7 +15,6 @@ class ButtonWaitDialog;
 class EsdbActionBar : public QWidget
 {
 	Q_OBJECT
-	bool m_accessDeselect;
 protected:
 	LoggedInWidget *m_parent;
 	bool m_writeEnabled;
@@ -49,7 +48,7 @@ protected:
 		INTENT_COPY_ENTRY,
 		INTENT_TYPE_ENTRY
 	};
-	void accessEntry(esdbEntry *entry, int intent, QString message, bool backgroundApp, bool deselect);
+	void accessEntry(esdbEntry *entry, int intent, QString message, bool backgroundApp);
 public:
 	explicit EsdbActionBar(LoggedInWidget *parent, QString typeName, bool writeEnabled, bool typeEnabled);
 

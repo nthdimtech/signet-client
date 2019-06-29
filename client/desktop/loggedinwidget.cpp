@@ -585,7 +585,7 @@ void LoggedInWidget::websocketShow(int socketId, const QString &path, const QStr
 	esdbEntry *matchingEntry = findEntry("Accounts", fullTitle);
 
 	if (matchingEntry) {
-		QModelIndex idx =m_typeData[accountsIndex]->model->findEntry(matchingEntry);
+		QModelIndex idx = m_typeData[accountsIndex]->model->findEntry(matchingEntry);
 		m_searchListbox->setCurrentIndex(idx);
 		m_searchListbox->scrollTo(idx);
 		selectEntry(matchingEntry);
@@ -865,6 +865,8 @@ void LoggedInWidget::selectEntry(esdbEntry *entry)
 			m_filterEdit->setText(QString());
 			m_filterEdit->setFocus();
 		}
+		QModelIndex index = m_activeType->model->findEntry(m_selectedEntry);
+		m_searchListbox->scrollTo(index);
 	}
 }
 
@@ -1204,13 +1206,10 @@ void LoggedInWidget::newEntryUI()
 	getActiveActionBar()->newInstanceUI(id, entryName);
 }
 
-void LoggedInWidget::finishTask(bool deselect)
+void LoggedInWidget::finishTask()
 {
 	m_searchListbox->setFilterText(QString());
 	filterTextChanged(m_searchListbox->filterText());
-	if (deselect) {
-		deselectEntry();
-	}
 	m_idTask = ID_TASK_NONE;
 }
 

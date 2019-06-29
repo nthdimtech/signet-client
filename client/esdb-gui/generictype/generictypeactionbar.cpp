@@ -33,7 +33,7 @@ void GenericTypeActionBar::newInstanceUI(int id, const QString &name)
 
 void GenericTypeActionBar::editFinished()
 {
-	m_parent->finishTask(false);
+	m_parent->finishTask();
 }
 
 GenericTypeActionBar::GenericTypeActionBar(LoggedInWidget *parent, esdbTypeModule *module, bool writeEnabled, bool typeEnabled) :

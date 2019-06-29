@@ -182,7 +182,7 @@ public:
 	esdbTypeModule *esdbEntryToModule(esdbEntry *entry);
 	explicit LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, QWidget *parent = 0);
 	~LoggedInWidget();
-	void finishTask(bool deselect = true);
+	void finishTask();
 	bool beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar);
 	void getSelectedAccountRect(QRect &r);
 	int getUnusedId();

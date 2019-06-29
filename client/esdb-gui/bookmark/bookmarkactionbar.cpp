@@ -96,7 +96,7 @@ void BookmarkActionBar::newEntryFinished(int)
 {
 	m_newEntryDlg->deleteLater();
 	m_newEntryDlg = NULL;
-	m_parent->finishTask(false);
+	m_parent->finishTask();
 }
 
 void BookmarkActionBar::entryCreated(esdbEntry *entry)

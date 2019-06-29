@@ -82,11 +82,10 @@ void EsdbActionBar::openEntry(esdbEntry *entry)
 	}
 }
 
-void EsdbActionBar::accessEntry(esdbEntry *entry, int intent, QString message, bool backgroundApp, bool deselect)
+void EsdbActionBar::accessEntry(esdbEntry *entry, int intent, QString message, bool backgroundApp)
 {
 	QString title = entry->getTitle();
 	m_buttonWaitDialog = new ButtonWaitDialog(title, message, m_parent);
-	m_accessDeselect = deselect;
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(accessAccountFinished(int)));
 	if (m_parent->beginIDTask(entry->id, LoggedInWidget::ID_TASK_READ, intent, this)) {
 		if (m_buttonWaitDialog)
@@ -112,7 +111,7 @@ void EsdbActionBar::accessAccountFinished(int code)
 	if (code != QMessageBox::Ok) {
 		::signetdev_cancel_button_wait();
 	}
-	m_parent->finishTask(m_accessDeselect);
+	m_parent->finishTask();
 }
 
 void EsdbActionBar::openEntryFinished(int code)
@@ -124,7 +123,7 @@ void EsdbActionBar::openEntryFinished(int code)
 	if (code != QMessageBox::Ok) {
 		::signetdev_cancel_button_wait();
 	}
-	m_parent->finishTask(true);
+	m_parent->finishTask();
 }
 
 

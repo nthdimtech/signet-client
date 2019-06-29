@@ -57,7 +57,7 @@ void AccountActionBar::newAccountFinished(int)
 {
 	m_newAccountDlg->deleteLater();
 	m_newAccountDlg = nullptr;
-	m_parent->finishTask(false);
+	m_parent->finishTask();
 }
 
 void AccountActionBar::newInstanceUI(int id, const QString &name)
@@ -241,7 +241,7 @@ void AccountActionBar::accessAccount(account *acct, bool typeData, bool username
 		message.append(acct->acctName);
 	}
 	accessEntry(acct, doTypeData ? INTENT_TYPE_ENTRY : INTENT_COPY_ENTRY,
-	            message, true, m_accessUsername && m_accessPassword && doTypeData);
+	            message, true);
 }
 
 void AccountActionBar::typeAccountData(account *acct)
