@@ -16,18 +16,21 @@ AccountActionBar::AccountActionBar(LoggedInWidget *parent, bool writeEnabled, bo
         m_loggedInWidget(parent),
         m_quickTypeState(QUICKTYPE_STATE_INITIAL)
 {
-	m_DeleteButton = addDeleteButton();
-	connect(m_DeleteButton, SIGNAL(pressed()), this, SLOT(deleteAccountUI()));
-
-	m_openButton = addOpenButton();
-	connect(m_openButton, SIGNAL(pressed()), this, SLOT(openAccountUI()));
+	m_browseUrlButton = addBrowseButton();
+	connect(m_browseUrlButton, SIGNAL(pressed()), this, SLOT(browseUrlUI()));
 
 	m_loginButton = addButton(m_typeEnabled ? "Login" : "Copy username and password",
 				  ":/images/login.png");
 	connect(m_loginButton, SIGNAL(pressed()), this, SLOT(typeAccountUserPassUI()));
 
-	m_browseUrlButton = addBrowseButton();
-	connect(m_browseUrlButton, SIGNAL(pressed()), this, SLOT(browseUrlUI()));
+	QIcon user_icn = QIcon(":/images/user.png");
+	m_typeUsernameButton = new QPushButton(user_icn, "");
+	if (m_typeEnabled)
+		m_typeUsernameButton->setToolTip("Type username");
+	else
+		m_typeUsernameButton->setToolTip("Copy username");
+	addButton(m_typeUsernameButton);
+	connect(m_typeUsernameButton, SIGNAL(pressed()), this, SLOT(typeAccountUserUI()));
 
 	QIcon password_icn = QIcon(":/images/password.png");
 	m_typePasswordButton = new QPushButton(password_icn, "");
@@ -43,14 +46,11 @@ AccountActionBar::AccountActionBar(LoggedInWidget *parent, bool writeEnabled, bo
 	addButton(m_typePasswordButton);
 	connect(m_typePasswordButton, SIGNAL(pressed()), this, SLOT(typeAccountPassUI()));
 
-	QIcon user_icn = QIcon(":/images/user.png");
-	m_typeUsernameButton = new QPushButton(user_icn, "");
-	if (m_typeEnabled)
-		m_typeUsernameButton->setToolTip("Type username");
-	else
-		m_typeUsernameButton->setToolTip("Copy username");
-	addButton(m_typeUsernameButton);
-	connect(m_typeUsernameButton, SIGNAL(pressed()), this, SLOT(typeAccountUserUI()));
+	m_openButton = addOpenButton();
+	connect(m_openButton, SIGNAL(pressed()), this, SLOT(openAccountUI()));
+
+	m_DeleteButton = addDeleteButton();
+	connect(m_DeleteButton, SIGNAL(pressed()), this, SLOT(deleteAccountUI()));
 }
 
 void AccountActionBar::newAccountFinished(int)
