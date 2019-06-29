@@ -1,4 +1,9 @@
 #!/bin/bash
+
+#
+# Dependencies: build-essential libfreetype6-dev libharfbuzz-dev libgl1-mesa-dev libfontconfig-dev
+#
+
 $1/configure \
 -platform linux-g++ -static -opengl desktop \
 -opensource -confirm-license \
