@@ -56,7 +56,7 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 #ifdef WITH_BROWSER_PLUGINS
 	m_nextSocketId = 0;
 #endif
-	setStyleSheet("QPushButton {qproperty-iconSize: 32px;}");
+	setStyleSheet("QPushButton {qproperty-iconSize: 32px;}\n QAbstractItemView {qproperty-iconSize: 32px;}");
 	g_singleton = this;
 	m_systray = new SystemTray();
 	qRegisterMetaType<signetdevCmdRespInfo>();
