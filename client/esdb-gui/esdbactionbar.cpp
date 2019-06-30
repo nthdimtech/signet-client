@@ -88,12 +88,18 @@ void EsdbActionBar::accessEntry(esdbEntry *entry, int intent, QString message, b
 	m_buttonWaitDialog = new ButtonWaitDialog(title, message, m_parent);
 	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(accessAccountFinished(int)));
 	if (m_parent->beginIDTask(entry->id, LoggedInWidget::ID_TASK_READ, intent, this)) {
-		if (m_buttonWaitDialog)
-			m_buttonWaitDialog->show();
 #ifndef Q_OS_MACOS
 		if (backgroundApp) {
+			m_buttonWaitDialog->deleteLater();
+			m_buttonWaitDialog = nullptr;
 			background();
+		} else {
+			if (m_buttonWaitDialog)
+				m_buttonWaitDialog->show();
 		}
+#else
+		if (m_buttonWaitDialog)
+			m_buttonWaitDialog->show();
 #endif
 	} else {
 		m_buttonWaitDialog->deleteLater();
@@ -133,11 +139,15 @@ void EsdbActionBar::idTaskComplete(bool error, int id, esdbEntry *entry, enum Lo
 	if (error) {
 		if (m_buttonWaitDialog)
 			m_buttonWaitDialog->done(QMessageBox::Ok);
+		else
+			m_parent->finishTask();
 		return;
 	}
 	if (entry && task == LoggedInWidget::ID_TASK_READ) {
-		if (intent != INTENT_TYPE_ENTRY && m_buttonWaitDialog)
+		if (m_buttonWaitDialog)
 			m_buttonWaitDialog->done(QMessageBox::Ok);
+		else
+			m_parent->finishTask();
 		accessEntryComplete(entry, intent);
 	}
 	if (entry && task == LoggedInWidget::ID_TASK_DELETE) {
@@ -145,6 +155,8 @@ void EsdbActionBar::idTaskComplete(bool error, int id, esdbEntry *entry, enum Lo
 	} else {
 		if (m_buttonWaitDialog)
 			m_buttonWaitDialog->done(QMessageBox::Ok);
+		else
+			m_parent->finishTask();
 	}
 }
 

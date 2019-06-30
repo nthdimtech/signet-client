@@ -16,7 +16,7 @@ GroupDatabaseField::GroupDatabaseField(int width, QStringList currentGroups, QWi
 	m_groupCombo->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 	connect(m_groupCombo, SIGNAL(currentTextChanged(QString)), this, SIGNAL(textEdited(QString)));
 	m_customEdit = m_groupCombo;
-	m_customEdit->setSizePolicy(QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred));
+	m_customEdit->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred));
 	init(width, widgets, true);
 }
 

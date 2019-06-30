@@ -64,7 +64,7 @@ void EditAccount::setup(QString name)
 	m_accountNameWarning->hide();
 
 	m_usernameField = new DatabaseField("username", 120, nullptr);
-	m_groupField = new GroupDatabaseField(120, m_groupList,nullptr);
+	m_groupField = new GroupDatabaseField(120, m_groupList, nullptr);
 	m_emailField = new DatabaseField("email", 120, nullptr);
 	m_passwordEdit = new PasswordEdit();
 	m_browseUrlButton = new QPushButton(QIcon(":/images/browse.png"),"");

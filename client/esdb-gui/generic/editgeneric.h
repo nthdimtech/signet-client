@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QString>
+#include <QStringList>
 #include "signetapplication.h"
 
 class QLineEdit;
@@ -16,7 +17,7 @@ struct generic;
 struct block;
 struct genericTypeDesc;
 class GenericFieldsEditor;
-
+class GroupDatabaseField;
 struct signetdevCmdRespInfo;
 
 #include "genericfields.h"
@@ -30,16 +31,18 @@ class EditGeneric : public EditEntryDialog
 	generic *m_generic;
 	genericTypeDesc *m_typeDesc;
 	GenericFieldsEditor *m_genericFieldsEditor;
-
+	QStringList m_groupList;
+	GroupDatabaseField *m_groupField;
 	genericFields m_fields;
 	virtual QString entryName();
 	virtual void applyChanges(esdbEntry *);
 	virtual esdbEntry *createEntry(int id);
 	virtual void undoChanges();
 	void setup(QString name);
+	void setValues();
 public:
-	EditGeneric(genericTypeDesc *typeDesc, int id, QString entryName, QWidget *parent = 0);
-	EditGeneric(generic *generic, genericTypeDesc *typeDesc, QWidget *parent = 0);
+	EditGeneric(genericTypeDesc *typeDesc, int id, QString entryName, QStringList groupList, QWidget *parent = 0);
+	EditGeneric(generic *generic, genericTypeDesc *typeDesc, QStringList groupList, QWidget *parent = 0);
 	virtual ~EditGeneric();
 };
 

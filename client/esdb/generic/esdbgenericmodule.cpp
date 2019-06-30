@@ -33,27 +33,39 @@ esdbEntry *esdbGenericModule::decodeEntry(int id, int revision, esdbEntry *prev,
 		generic_1 rev_1(id);
 		generic_2 rev_2(id);
 		generic_3 rev_3(id);
+		generic_4 rev_4(id);
 		rev_1.fromBlock(blk);
 		rev_2.upgrade(rev_1);
 		rev_3.upgrade(rev_2);
-		g->upgrade(rev_3);
+		rev_4.upgrade(rev_3);
+		g->upgrade(rev_4);
 		break;
 	}
 	case 1: {
 		generic_2 rev_2(id);
 		generic_3 rev_3(id);
+		generic_4 rev_4(id);
 		rev_2.fromBlock(blk);
 		rev_3.upgrade(rev_2);
-		g->upgrade(rev_3);
+		rev_4.upgrade(rev_3);
+		g->upgrade(rev_4);
 	}
 	break;
 	case 2: {
 		generic_3 rev_3(id);
+		generic_4 rev_4(id);
 		rev_3.fromBlock(blk);
-		g->upgrade(rev_3);
+		rev_4.upgrade(rev_3);
+		g->upgrade(rev_4);
 	}
 	break;
-	case 3:
+	case 3: {
+		generic_4 rev_4(id);
+		rev_4.fromBlock(blk);
+		g->upgrade(rev_4);
+	}
+	break;
+	case 4:
 		g->fromBlock(blk);
 		break;
 	default:

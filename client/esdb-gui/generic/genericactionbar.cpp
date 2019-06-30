@@ -55,7 +55,9 @@ void GenericActionBar::browseUrlUI()
 
 void GenericActionBar::newInstanceUI(int id, const QString &name)
 {
-	m_newEntryDlg = new EditGeneric(m_typeDesc, id, name, this);
+	QStringList groupList;
+	m_parent->getCurrentGroups(m_module->name(), groupList);
+	m_newEntryDlg = new EditGeneric(m_typeDesc, id, name, groupList, this);
 	QObject::connect(m_newEntryDlg, SIGNAL(entryCreated(esdbEntry *)), this, SLOT(entryCreated(esdbEntry *)));
 	QObject::connect(m_newEntryDlg, SIGNAL(finished(int)), this, SLOT(newEntryFinished(int)));
 	m_newEntryDlg->show();
@@ -79,7 +81,9 @@ void GenericActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 		if (m_buttonWaitDialog) {
 			m_buttonWaitDialog->done(QMessageBox::Ok);
 		}
-		EditGeneric *og = new EditGeneric(g, m_typeDesc, m_parent);
+		QStringList groupList;
+		m_parent->getCurrentGroups(m_module->name(), groupList);
+		EditGeneric *og = new EditGeneric(g, m_typeDesc, groupList, m_parent);
 		connect(og, SIGNAL(abort()), this, SIGNAL(abort()));
 		connect(og, SIGNAL(entryChanged(int)), m_parent, SLOT(entryChanged(int)));
 		connect(og, SIGNAL(finished(int)), og, SLOT(deleteLater()));

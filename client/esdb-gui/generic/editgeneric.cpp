@@ -16,17 +16,19 @@
 #include "generic.h"
 #include "generictypedesc.h"
 #include "genericfieldseditor.h"
+#include "groupdatabasefield.h"
 
 extern "C" {
 #include "signetdev/host/signetdev.h"
 }
 
 
-EditGeneric::EditGeneric(generic *generic, genericTypeDesc *typeDesc, QWidget *parent) :
+EditGeneric::EditGeneric(generic *generic, genericTypeDesc *typeDesc, QStringList groupList, QWidget *parent) :
 	EditEntryDialog(typeDesc->name, generic, parent),
 	m_generic(generic),
 	m_typeDesc(typeDesc),
-        m_fields(generic->fields)
+        m_fields(generic->fields),
+	m_groupList(groupList)
 {
 	setup(generic->name);
 
@@ -46,15 +48,16 @@ EditGeneric::EditGeneric(generic *generic, genericTypeDesc *typeDesc, QWidget *p
 	}
 
 	m_settingFields = true;
-	m_genericFieldsEditor->loadFields(m_fields);
+	setValues();
 	m_settingFields = false;
 }
 
 
-EditGeneric::EditGeneric(genericTypeDesc *typeDesc, int id, QString entryName, QWidget *parent) :
+EditGeneric::EditGeneric(genericTypeDesc *typeDesc, int id, QString entryName, QStringList groupList, QWidget *parent) :
 	EditEntryDialog(typeDesc->name, id, parent),
 	m_generic(nullptr),
-	m_typeDesc(typeDesc)
+	m_typeDesc(typeDesc),
+	m_groupList(groupList)
 
 {
 	setup(entryName);
@@ -71,14 +74,14 @@ void EditGeneric::applyChanges(esdbEntry *e)
 	g->name = entryName();
 	g->fields = m_fields;
 	g->typeId = m_typeDesc->typeId;
+	g->path = m_groupField->text();
 	m_genericFieldsEditor->saveFields(g->fields);
 }
 
 void EditGeneric::undoChanges()
 {
 	if (m_generic) {
-		m_genericNameEdit->setText(m_generic->name);
-		m_genericFieldsEditor->loadFields(m_fields);
+		setValues();
 	}
 }
 
@@ -89,10 +92,19 @@ esdbEntry *EditGeneric::createEntry(int id)
 	return g;
 }
 
+void EditGeneric::setValues()
+{
+	m_genericNameEdit->setText(m_generic->name);
+	m_genericFieldsEditor->loadFields(m_fields);
+	m_groupField->setText(m_generic->path);
+}
+
 void EditGeneric::setup(QString name)
 {
 	m_genericNameEdit = new QLineEdit(name);
 	m_genericNameEdit->setReadOnly(SignetApplication::get()->isDeviceEmulated());
+	
+	m_groupField = new GroupDatabaseField(120, m_groupList, nullptr);
 
 	QBoxLayout *nameLayout = new QBoxLayout(QBoxLayout::LeftToRight);
 	nameLayout->addWidget(new QLabel("Name"));
@@ -100,6 +112,7 @@ void EditGeneric::setup(QString name)
 
 	connect(m_genericNameEdit, SIGNAL(textEdited(QString)), this, SLOT(edited()));
 	connect(m_genericNameEdit, SIGNAL(textEdited(QString)), this, SLOT(entryNameEdited()));
+	connect(m_groupField, SIGNAL(textEdited(QString)), this, SLOT(edited()));
 
 	QList<fieldSpec> requiredGenericFields = m_typeDesc->fields;
 
@@ -126,6 +139,7 @@ void EditGeneric::setup(QString name)
 	QBoxLayout *mainLayout = new QBoxLayout(QBoxLayout::TopToBottom);
 	mainLayout->setAlignment(Qt::AlignTop);
 	mainLayout->addLayout(nameLayout);
+	mainLayout->addWidget(m_groupField);
 	mainLayout->addWidget(m_genericFieldsEditor);
 	EditEntryDialog::setup(mainLayout);
 }

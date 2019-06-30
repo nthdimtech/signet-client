@@ -155,7 +155,6 @@ void AccountActionBar::browseUrlUI()
 		QUrl url(entry->getUrl());
 		if (url.isValid() && !url.isEmpty()) {
 			m_quickTypeState = QUICKTYPE_STATE_BROWSE;
-			background();
 			browseUrl(entry);
 		}
 	}
@@ -241,7 +240,7 @@ void AccountActionBar::accessAccount(account *acct, bool typeData, bool username
 		message.append(acct->acctName);
 	}
 	accessEntry(acct, doTypeData ? INTENT_TYPE_ENTRY : INTENT_COPY_ENTRY,
-	            message, true);
+	            message, username && password && doTypeData);
 }
 
 void AccountActionBar::typeAccountData(account *acct)
