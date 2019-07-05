@@ -17,6 +17,7 @@ class SettingsDialog : public QDialog
 {
 	Q_OBJECT
 	bool m_initial;
+    QCheckBox *m_browserPluginSupport;
 	QCheckBox *m_localBackups;
 	QLineEdit *m_localBackupPath;
 	QSpinBox  *m_localBackupInterval;

@@ -13,6 +13,7 @@ extern "C" {
 typedef QVector<struct signetdev_key> keyboardLayout;
 
 struct localSettings {
+    bool browserPluginSupport;
 	bool localBackups;
 	QString localBackupPath;
 	int localBackupInterval;

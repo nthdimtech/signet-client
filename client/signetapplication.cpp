@@ -13,6 +13,8 @@
 #include <QMenu>
 #include <QDesktopWidget>
 #include <QApplication>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 extern "C" {
 #include "signetdev/host/signetdev.h"
@@ -51,7 +53,8 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 #else
     QtSingleApplication("signetdev-" + QString(USB_VENDOR_ID) + "-" + QString(USB_SIGNET_DESKTOP_PRODUCT_ID),argc, argv),
 #endif
-    m_signetAsyncListener(nullptr)
+    m_signetAsyncListener(nullptr),
+    m_webSocketServer(nullptr)
 {
 #ifdef WITH_BROWSER_PLUGINS
 	m_nextSocketId = 0;
@@ -236,6 +239,36 @@ void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int c
 	}
 }
 
+void SignetApplication::startWebsocketServer()
+{
+#ifndef Q_OS_ANDROID
+#ifdef WITH_BROWSER_PLUGINS
+    if (m_webSocketServer == nullptr) {
+        m_webSocketServer = new QWebSocketServer("Signet", QWebSocketServer::NonSecureMode, this);
+        m_webSocketServer->listen(QHostAddress::LocalHost, 10910);
+        connect(m_webSocketServer, SIGNAL(newConnection()), this, SLOT(newWebSocketConnection()));
+    }
+#endif
+#endif
+}
+
+void SignetApplication::stopWebsocketServer()
+{
+#ifndef Q_OS_ANDROID
+#ifdef WITH_BROWSER_PLUGINS
+    if (m_webSocketServer) {
+        m_webSocketServer->close();
+        for (auto s : m_openWebSockets) {
+            s->disconnect();
+            s->deleteLater();
+        }
+        m_webSocketServer->deleteLater();
+        m_webSocketServer = nullptr;
+    }
+#endif
+#endif
+}
+
 void SignetApplication::init(bool startInTray, QString dbFilename)
 {
 	signetdev_initialize_api();
@@ -250,12 +283,6 @@ void SignetApplication::init(bool startInTray, QString dbFilename)
 	m_main_window = new MainWindow(m_dbFilename);
 
 	connect(this, SIGNAL(connectionError()), m_main_window, SLOT(connectionError()));
-
-#ifdef WITH_BROWSER_PLUGINS
-	m_webSocketServer = new QWebSocketServer("Cool", QWebSocketServer::NonSecureMode, this);
-	m_webSocketServer->listen(QHostAddress::LocalHost, 10910);
-	connect(m_webSocketServer, SIGNAL(newConnection()), this, SLOT(newWebSocketConnection()));
-#endif
 
 	QObject::connect(this, SIGNAL(messageReceived(QString)), m_main_window, SLOT(messageReceived(QString)));
 	QObject::connect(m_systray, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),
@@ -377,9 +404,6 @@ void SignetApplication::newWebSocketConnection()
 		}
 	}
 }
-
-#include <QJsonDocument>
-#include <QJsonObject>
 
 void SignetApplication::websocketMessage_(int id, QString message)
 {

@@ -278,6 +278,10 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	} else {
 		restoreGeometry(m_settings.windowGeometry);
 	}
+
+    if (m_settings.browserPluginSupport) {
+        SignetApplication::get()->startWebsocketServer();
+    }
 }
 
 QString MainWindow::csvQuote(const QString &s)
@@ -502,7 +506,6 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 			m_restoreProgress->setMinimum(0);
 			m_restoreProgress->setMaximum(NUM_DATA_BLOCKS);
 
-			loadSettings();
 			m_restoreProgress->setValue(m_restoreBlock);
 			if (m_restoreBlock < MAX_DATA_BLOCK) {
 				QByteArray block(BLK_SIZE, 0);
@@ -904,7 +907,8 @@ void MainWindow::saveSettings()
 	QFile configFile(configFileName);
 	configFile.open(QFile::WriteOnly);
 	QJsonDocument doc;
-	QJsonObject obj;
+    QJsonObject obj;
+    obj.insert("browserPluginSupport", QJsonValue(m_settings.browserPluginSupport));
 	obj.insert("localBackups", QJsonValue(m_settings.localBackups));
 	obj.insert("localBackupPath", QJsonValue(m_settings.localBackupPath));
 	obj.insert("localBackupInterval", QJsonValue(m_settings.localBackupInterval));
@@ -1091,6 +1095,11 @@ void MainWindow::backupDatabasePromptDialogFinished(int rc)
 
 void MainWindow::settingsChanged()
 {
+    if (m_settings.browserPluginSupport) {
+        SignetApplication::get()->startWebsocketServer();
+    } else {
+        SignetApplication::get()->stopWebsocketServer();
+    }
 }
 
 void MainWindow::loadSettings()
@@ -1117,643 +1126,650 @@ void MainWindow::loadSettings()
 			configFile.close();
 		}
 	}
-	QJsonObject obj = doc.object();
+    QJsonObject obj = doc.object();
 
-	QJsonValue localBackups = obj.value("localBackups");
-	if (localBackups.isBool()) {
-		m_settings.localBackups = localBackups.toBool();
-	} else {
-		m_settings.localBackups = false;
-	}
-	QJsonValue localBackupPath = obj.value("localBackupPath");
-	if (localBackupPath.isString()) {
-		m_settings.localBackupPath = localBackupPath.toString();
-	} else {
-		m_settings.localBackupPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/SignetBackups";
-	}
-	QJsonValue localBackupInterval = obj.value("localBackupInterval");
-	if (localBackupInterval.isDouble()) {
-		m_settings.localBackupInterval = localBackupInterval.toInt();
-	} else {
-		m_settings.localBackupInterval = 7;
-	}
+    QJsonValue browserPluginSupport = obj.value("browserPluginSupport");
+    if (browserPluginSupport.isBool()) {
+        m_settings.browserPluginSupport = browserPluginSupport.toBool();
+    } else {
+        m_settings.browserPluginSupport = true;
+    }
 
-	QJsonValue removableBackups = obj.value("removableBackups");
-	if (removableBackups.isBool()) {
-		m_settings.removableBackups = removableBackups.toBool();
-	} else {
-		m_settings.removableBackups = false;
-	}
-	QJsonValue removableBackupPath = obj.value("removableBackupPath");
-	if (removableBackupPath.isString()) {
-		m_settings.removableBackupPath = removableBackupPath.toString();
-	} else {
-		m_settings.removableBackupPath = "SignetBackups";
-	}
-	QJsonValue removableBackupVolume = obj.value("removableBackupVolume");
-	if (removableBackupVolume.isString()) {
-		m_settings.removableBackupVolume = removableBackupVolume.toString();
-	} else {
-		m_settings.removableBackupVolume = "SIGNET";
-	}
-	QJsonValue removableBackupInterval = obj.value("removableBackupInterval");
-	if (removableBackupInterval.isDouble()) {
-		m_settings.removableBackupInterval = removableBackupInterval.toInt();
-	} else {
-		m_settings.removableBackupInterval = 30;
-	}
-	QJsonValue lastRemoveableBackup = obj.value("lastRemoveableBackup");
-	if (lastRemoveableBackup.isString()) {
-		m_settings.lastRemoveableBackup = QDateTime::fromString(lastRemoveableBackup.toString());
-	} else {
-		m_settings.lastRemoveableBackup = QDateTime();
-	}
+    QJsonValue localBackups = obj.value("localBackups");
+    if (localBackups.isBool()) {
+        m_settings.localBackups = localBackups.toBool();
+    } else {
+        m_settings.localBackups = false;
+    }
+    QJsonValue localBackupPath = obj.value("localBackupPath");
+    if (localBackupPath.isString()) {
+        m_settings.localBackupPath = localBackupPath.toString();
+    } else {
+        m_settings.localBackupPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/SignetBackups";
+    }
+    QJsonValue localBackupInterval = obj.value("localBackupInterval");
+    if (localBackupInterval.isDouble()) {
+        m_settings.localBackupInterval = localBackupInterval.toInt();
+    } else {
+        m_settings.localBackupInterval = 7;
+    }
 
-	QJsonValue lastUpdatePrompt = obj.value("lastUpdatePrompt");
-	if (lastUpdatePrompt.isString()) {
-		m_settings.lastUpdatePrompt = QDateTime::fromString(lastUpdatePrompt.toString());
-	} else {
-		m_settings.lastUpdatePrompt = QDateTime();
-	}
+    QJsonValue removableBackups = obj.value("removableBackups");
+    if (removableBackups.isBool()) {
+        m_settings.removableBackups = removableBackups.toBool();
+    } else {
+        m_settings.removableBackups = false;
+    }
+    QJsonValue removableBackupPath = obj.value("removableBackupPath");
+    if (removableBackupPath.isString()) {
+        m_settings.removableBackupPath = removableBackupPath.toString();
+    } else {
+        m_settings.removableBackupPath = "SignetBackups";
+    }
+    QJsonValue removableBackupVolume = obj.value("removableBackupVolume");
+    if (removableBackupVolume.isString()) {
+        m_settings.removableBackupVolume = removableBackupVolume.toString();
+    } else {
+        m_settings.removableBackupVolume = "SIGNET";
+    }
+    QJsonValue removableBackupInterval = obj.value("removableBackupInterval");
+    if (removableBackupInterval.isDouble()) {
+        m_settings.removableBackupInterval = removableBackupInterval.toInt();
+    } else {
+        m_settings.removableBackupInterval = 30;
+    }
+    QJsonValue lastRemoveableBackup = obj.value("lastRemoveableBackup");
+    if (lastRemoveableBackup.isString()) {
+        m_settings.lastRemoveableBackup = QDateTime::fromString(lastRemoveableBackup.toString());
+    } else {
+        m_settings.lastRemoveableBackup = QDateTime();
+    }
 
-	QJsonValue minimizeToTray = obj.value("minimizeToTray");
-	if (minimizeToTray.isBool()) {
-		m_settings.minimizeToTray = minimizeToTray.toBool();
-	} else {
-		m_settings.minimizeToTray = false;
-	}
+    QJsonValue lastUpdatePrompt = obj.value("lastUpdatePrompt");
+    if (lastUpdatePrompt.isString()) {
+        m_settings.lastUpdatePrompt = QDateTime::fromString(lastUpdatePrompt.toString());
+    } else {
+        m_settings.lastUpdatePrompt = QDateTime();
+    }
 
-	QJsonValue activeKeyboardLayout = obj.value("activeKeyboardLayout");
-	if (activeKeyboardLayout.isString()) {
-		m_settings.activeKeyboardLayout = activeKeyboardLayout.toString();
-	} else {
-		m_settings.activeKeyboardLayout = "";
-	}
+    QJsonValue minimizeToTray = obj.value("minimizeToTray");
+    if (minimizeToTray.isBool()) {
+        m_settings.minimizeToTray = minimizeToTray.toBool();
+    } else {
+        m_settings.minimizeToTray = false;
+    }
 
-	QJsonValue windowGeometry = obj.value("windowGeometry");
-	if (windowGeometry.isString()) {
-		m_settings.windowGeometry = QByteArray::fromBase64(windowGeometry.toString().toLatin1());
-	}
+    QJsonValue activeKeyboardLayout = obj.value("activeKeyboardLayout");
+    if (activeKeyboardLayout.isString()) {
+        m_settings.activeKeyboardLayout = activeKeyboardLayout.toString();
+    } else {
+        m_settings.activeKeyboardLayout = "";
+    }
 
-	QJsonValue keyboardLayoutsV = obj.value("keyboardLayouts");
-	if (keyboardLayoutsV.isObject()) {
-		QJsonObject keyboardLayouts = keyboardLayoutsV.toObject();
-		for (QJsonObject::iterator layoutIter = keyboardLayouts.begin();
-		     layoutIter != keyboardLayouts.end();
-		     layoutIter++) {
+    QJsonValue windowGeometry = obj.value("windowGeometry");
+    if (windowGeometry.isString()) {
+        m_settings.windowGeometry = QByteArray::fromBase64(windowGeometry.toString().toLatin1());
+    }
 
-			if (!(*layoutIter).isArray())
-				continue;
-			keyboardLayout layout;
+    QJsonValue keyboardLayoutsV = obj.value("keyboardLayouts");
+    if (keyboardLayoutsV.isObject()) {
+        QJsonObject keyboardLayouts = keyboardLayoutsV.toObject();
+        for (QJsonObject::iterator layoutIter = keyboardLayouts.begin();
+             layoutIter != keyboardLayouts.end();
+             layoutIter++) {
 
-			QJsonArray layoutA = (*layoutIter).toArray();
-			QString name = layoutIter.key();
-			for (auto entryV : layoutA) {
-				if (!entryV.isArray())
+            if (!(*layoutIter).isArray())
+                continue;
+            keyboardLayout layout;
+
+            QJsonArray layoutA = (*layoutIter).toArray();
+            QString name = layoutIter.key();
+            for (auto entryV : layoutA) {
+                if (!entryV.isArray())
 					continue;
 
-				QJsonArray entry = entryV.toArray();
-				if (entry.size() != 3 && entry.size() != 5)
-					continue;
-				if (!entry.first().isString())
-					continue;
+                QJsonArray entry = entryV.toArray();
+                if (entry.size() != 3 && entry.size() != 5)
+                    continue;
+                if (!entry.first().isString())
+                    continue;
 
-				QString keyS = entry.first().toString();
-				if (keyS.size() != 1)
-					continue;
-				signetdev_key key;
-				key.key = keyS.at(0).unicode();
+                QString keyS = entry.first().toString();
+                if (keyS.size() != 1)
+                    continue;
+                signetdev_key key;
+                key.key = keyS.at(0).unicode();
 
-				int codes[4];
-				bool numeric = true;
-				for (int i = 1; i < entry.size(); i++) {
-					if (!entry.at(i).isDouble()) {
-						numeric = false;
+                int codes[4];
+                bool numeric = true;
+                for (int i = 1; i < entry.size(); i++) {
+                    if (!entry.at(i).isDouble()) {
+                        numeric = false;
 					}
-					codes[i - 1] = entry.at(i).toInt();
+                    codes[i - 1] = entry.at(i).toInt();
+                }
+                if (!numeric)
+                    continue;
+                if (entry.size() == 3) {
+                    key.phy_key[0].scancode = codes[0];
+                    key.phy_key[0].modifier = codes[1];
+                } else if (entry.size() == 5) {
+                    key.phy_key[0].scancode = codes[0];
+                    key.phy_key[0].modifier = codes[1];
+                    key.phy_key[1].scancode = codes[2];
+                    key.phy_key[1].modifier = codes[3];
 				}
-				if (!numeric)
-					continue;
-				if (entry.size() == 3) {
-					key.phy_key[0].scancode = codes[0];
-					key.phy_key[0].modifier = codes[1];
-				} else if (entry.size() == 5) {
-					key.phy_key[0].scancode = codes[0];
-					key.phy_key[0].modifier = codes[1];
-					key.phy_key[1].scancode = codes[2];
-					key.phy_key[1].modifier = codes[3];
-				}
-				layout.append(key);
-				m_settings.keyboardLayouts.insert(name, layout);
-			}
-		}
-	} else {
-		m_settings.keyboardLayouts.clear();
-	}
+                layout.append(key);
+                m_settings.keyboardLayouts.insert(name, layout);
+            }
+        }
+    } else {
+        m_settings.keyboardLayouts.clear();
+    }
 
-	auto iter = m_settings.keyboardLayouts.find(m_settings.activeKeyboardLayout);
-	if (iter != m_settings.keyboardLayouts.end()) {
-		auto keyboardLayout = *iter;
-		::signetdev_set_keymap(keyboardLayout.data(), keyboardLayout.size());
-	}
+    auto iter = m_settings.keyboardLayouts.find(m_settings.activeKeyboardLayout);
+    if (iter != m_settings.keyboardLayouts.end()) {
+        auto keyboardLayout = *iter;
+        ::signetdev_set_keymap(keyboardLayout.data(), keyboardLayout.size());
+    }
 
-	SignetApplication *app = SignetApplication::get();
+    SignetApplication *app = SignetApplication::get();
 
-	QDateTime current = QDateTime::currentDateTime();
-	QDateTime release = QDateTime(app->getReleaseDate());
-	QDateTime prompt = m_settings.lastUpdatePrompt;
+    QDateTime current = QDateTime::currentDateTime();
+    QDateTime release = QDateTime(app->getReleaseDate());
+    QDateTime prompt = m_settings.lastUpdatePrompt;
 
-	if ((release.daysTo(current) > app->releasePeriod()) &&
-	    (!prompt.isValid() ||
-	     (prompt.daysTo(current) > 30))) {
-		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Client update check",
+    if ((release.daysTo(current) > app->releasePeriod()) &&
+        (!prompt.isValid() ||
+         (prompt.daysTo(current) > 30))) {
+        QMessageBox *box = new QMessageBox(QMessageBox::Information, "Client update check",
                            "This client is more than 30 days old. Check for a new version?",
                            QMessageBox::No | QMessageBox::Yes,
                            this);
-		int rc = box->exec();
-		m_settings.lastUpdatePrompt = current;
-		saveSettings();
-		box->deleteLater();
-		if (rc == QMessageBox::Yes) {
-			QUrl url("https://nthdimtech.com/signet/downloads");
-			QDesktopServices::openUrl(url);
+        int rc = box->exec();
+        m_settings.lastUpdatePrompt = current;
+        saveSettings();
+        box->deleteLater();
+        if (rc == QMessageBox::Yes) {
+            QUrl url("https://nthdimtech.com/signet/downloads");
+            QDesktopServices::openUrl(url);
 		}
-	}
+    }
 
-	if (!configFile.exists()) {
-		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Machine not configured",
+    if (!configFile.exists()) {
+        QMessageBox *box = new QMessageBox(QMessageBox::Information, "Machine not configured",
                            "Would you like to configure Signet for this system now?\n\n"
                            "If you don't configure your system backups will not be enabled and Signet "
                            "will use a standard English(US) keyboard which may prevent Signet from typing data "
                            "correctly if you use a different keyboard layout.\n\n"
                            "You can configure Sigent later from "
 #ifdef Q_OS_MACOS
-						   "'Preferences'",
+                           "'Preferences'",
 #else
-						   "the 'File->Settings' menu option",
+                           "the 'File->Settings' menu option",
 #endif
                            QMessageBox::No | QMessageBox::Yes,
                            this);
-		int rc = box->exec();
-		box->deleteLater();
-		if (rc == QMessageBox::Yes) {
-			SettingsDialog *config = new SettingsDialog(this, true);
-			config->exec();
-			config->deleteLater();
+        int rc = box->exec();
+        box->deleteLater();
+        if (rc == QMessageBox::Yes) {
+            SettingsDialog *config = new SettingsDialog(this, true);
+            config->exec();
+            config->deleteLater();
 		}
-		saveSettings();
-	}
+        saveSettings();
+    }
 
-	settingsChanged();
-	QLocale inputLocale = QApplication::inputMethod()->locale();
-	if ((inputLocale.language() != QLocale::English ||
-	     inputLocale.country() != QLocale::UnitedStates)
-	    && inputLocale != QLocale::c() &&
-	    !m_settings.keyboardLayouts.size()) {
-		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Keyboard layout not configured",
+    settingsChanged();
+    QLocale inputLocale = QApplication::inputMethod()->locale();
+    if ((inputLocale.language() != QLocale::English ||
+         inputLocale.country() != QLocale::UnitedStates)
+        && inputLocale != QLocale::c() &&
+        !m_settings.keyboardLayouts.size()) {
+        QMessageBox *box = new QMessageBox(QMessageBox::Information, "Keyboard layout not configured",
                            "Configure your keyboard layout?\n\n"
                            "By default Signet uses a standard English(US) keyboard layout but your "
                            "input locale is not English(US). If you don't conifigure your keyboard layout Signet "
                            "may not function correctly.",
                            QMessageBox::No | QMessageBox::Yes,
                            this);
-		connect(box, SIGNAL(finished(int)), this, SLOT(keyboardLayoutNotConfiguredDialogFinished(int)));
-		box->setWindowModality(Qt::WindowModal);
-		box->setAttribute(Qt::WA_DeleteOnClose);
-		box->show();
+        connect(box, SIGNAL(finished(int)), this, SLOT(keyboardLayoutNotConfiguredDialogFinished(int)));
+        box->setWindowModality(Qt::WindowModal);
+        box->setAttribute(Qt::WA_DeleteOnClose);
+        box->show();
 	}
 }
 
 void MainWindow::keyboardLayoutNotConfiguredDialogFinished(int rc)
 {
-	if (rc == QMessageBox::Yes) {
-		QVector<struct signetdev_key> currentLayout;
+    if (rc == QMessageBox::Yes) {
+        QVector<struct signetdev_key> currentLayout;
 
-		int n_keys;
-		const signetdev_key *keymap = ::signetdev_get_keymap(&n_keys);
-		for (int i = 0; i < n_keys; i++) {
-			currentLayout.append(keymap[i]);
+        int n_keys;
+        const signetdev_key *keymap = ::signetdev_get_keymap(&n_keys);
+        for (int i = 0; i < n_keys; i++) {
+            currentLayout.append(keymap[i]);
 		}
 
-		m_keyboardLayoutTester = new KeyboardLayoutTester(currentLayout, this);
-		connect(m_keyboardLayoutTester, SIGNAL(closing(bool)),
-			this, SLOT(keyboardLayoutTesterClosing(bool)));
-		connect(m_keyboardLayoutTester, SIGNAL(applyChanges()),
-			this, SLOT(applyKeyboardLayoutChanges()));
-		m_keyboardLayoutTester->setWindowModality(Qt::WindowModal);
-		m_keyboardLayoutTester->show();
+        m_keyboardLayoutTester = new KeyboardLayoutTester(currentLayout, this);
+        connect(m_keyboardLayoutTester, SIGNAL(closing(bool)),
+            this, SLOT(keyboardLayoutTesterClosing(bool)));
+        connect(m_keyboardLayoutTester, SIGNAL(applyChanges()),
+            this, SLOT(applyKeyboardLayoutChanges()));
+        m_keyboardLayoutTester->setWindowModality(Qt::WindowModal);
+        m_keyboardLayoutTester->show();
 	}
 }
 
 void MainWindow::applyKeyboardLayoutChanges()
 {
-	auto keyboardLayout = m_keyboardLayoutTester->getLayout();
-	::signetdev_set_keymap(keyboardLayout.data(), keyboardLayout.size());
-	m_settings.activeKeyboardLayout = QString("current");
-	m_settings.keyboardLayouts.insert("current", keyboardLayout);
-	saveSettings();
-	settingsChanged();
+    auto keyboardLayout = m_keyboardLayoutTester->getLayout();
+    ::signetdev_set_keymap(keyboardLayout.data(), keyboardLayout.size());
+    m_settings.activeKeyboardLayout = QString("current");
+    m_settings.keyboardLayouts.insert("current", keyboardLayout);
+    saveSettings();
+    settingsChanged();
 }
 
 void MainWindow::keyboardLayoutTesterClosing(bool applyChanges)
 {
-	if (applyChanges) {
-		applyKeyboardLayoutChanges();
+    if (applyChanges) {
+        applyKeyboardLayoutChanges();
 	}
-	m_keyboardLayoutTester->deleteLater();
+    m_keyboardLayoutTester->deleteLater();
 }
 
 void MainWindow::enterDeviceState(int state)
 {
-	bool databaseFile = m_dbFilename.size();
-	if (databaseFile) {
-		m_changePasswordAction->setVisible(false);
-		m_backupAction->setVisible(false);
-		m_restoreAction->setVisible(false);
-		m_updateFirmwareAction->setVisible(false);
-		m_eraseDeviceAction->setVisible(false);
-		m_wipeDeviceAction->setVisible(false);
-		m_passwordSlots->setVisible(false);
-		m_importMenu->setDisabled(true);
-		m_deviceMenu->setTitle("&Database");
-	} else {
-		m_deviceMenu->setTitle("&Device");
-	}
-	m_closeAction->setDisabled(!databaseFile);
-	if (state == m_deviceState && (state != SignetApplication::STATE_LOGGED_OUT))
-		return;
-	switch (m_deviceState) {
-	case SignetApplication::STATE_LOGGED_IN:
+    bool databaseFile = m_dbFilename.size();
+    if (databaseFile) {
+        m_changePasswordAction->setVisible(false);
+        m_backupAction->setVisible(false);
+        m_restoreAction->setVisible(false);
+        m_updateFirmwareAction->setVisible(false);
+        m_eraseDeviceAction->setVisible(false);
+        m_wipeDeviceAction->setVisible(false);
+        m_passwordSlots->setVisible(false);
+        m_importMenu->setDisabled(true);
+        m_deviceMenu->setTitle("&Database");
+    } else {
+        m_deviceMenu->setTitle("&Device");
+    }
+    m_closeAction->setDisabled(!databaseFile);
+    if (state == m_deviceState && (state != SignetApplication::STATE_LOGGED_OUT))
+        return;
+    switch (m_deviceState) {
+    case SignetApplication::STATE_LOGGED_IN:
 		break;
-	case SignetApplication::STATE_BACKING_UP:
-	case SignetApplication::STATE_EXPORTING:
-		m_loggedInStack->setCurrentIndex(0);
-		m_loggedInStack->removeWidget(m_backupWidget);
-		m_backupWidget->deleteLater();
-		m_backupWidget = nullptr;
+    case SignetApplication::STATE_BACKING_UP:
+    case SignetApplication::STATE_EXPORTING:
+        m_loggedInStack->setCurrentIndex(0);
+        m_loggedInStack->removeWidget(m_backupWidget);
+        m_backupWidget->deleteLater();
+        m_backupWidget = nullptr;
+        break;
+    case SignetApplication::STATE_LOGGED_IN_LOADING_ACCOUNTS: {
+        QWidget *w = m_loggedInStack->currentWidget();
+        m_loggedInStack->setCurrentIndex(0);
+        m_loggedInStack->removeWidget(w);
+        w->deleteLater();
+    }
+    break;
+    case SignetApplication::STATE_CONNECTING:
+        m_connectingTimer.stop();
+        m_connectingLabel = nullptr;
 		break;
-	case SignetApplication::STATE_LOGGED_IN_LOADING_ACCOUNTS: {
-		QWidget *w = m_loggedInStack->currentWidget();
-		m_loggedInStack->setCurrentIndex(0);
-		m_loggedInStack->removeWidget(w);
-		w->deleteLater();
-	}
-	break;
-	case SignetApplication::STATE_CONNECTING:
-		m_connectingTimer.stop();
-		m_connectingLabel = nullptr;
+    default:
 		break;
-	default:
-		break;
-	}
+    }
 
-	m_deviceState = static_cast<enum SignetApplication::device_state>(state);
+    m_deviceState = static_cast<enum SignetApplication::device_state>(state);
 
-	switch (m_deviceState) {
-	case SignetApplication::STATE_DISCONNECTING: {
-		m_loggedIn = false;
-		QWidget *disconnecting_widget = new QWidget();
-		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
-		layout->setAlignment(Qt::AlignTop);
-		disconnecting_widget->setLayout(layout);
-		QLabel *label = new QLabel("Disconnecting from device");
-		layout->addWidget(label);
-		disconnecting_widget->setLayout(layout);
-		setCentralWidget(disconnecting_widget);
-	}
-	break;
-	case SignetApplication::STATE_DISCONNECTED: {
-		m_loggedIn = false;
-		QWidget *disconnected_widget = new QWidget();
-		setCentralWidget(disconnected_widget);
-	}
-	break;
-	case SignetApplication::STATE_CONNECTING: {
-		m_loggedIn = false;
-		QWidget *connecting_widget = new QWidget();
-		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
-		layout->setAlignment(Qt::AlignTop);
-		if (m_wasConnected) {
-			m_connectingLabel = new QLabel("No Signet device detected.\n\nPlease insert device.");
-			m_wasConnected = false;
-		} else {
-			m_connectingLabel = new QLabel("Connecting to device...");
-			m_connectingTimer.setSingleShot(true);
-			m_connectingTimer.setInterval(500);
-			m_connectingTimer.start();
+    switch (m_deviceState) {
+    case SignetApplication::STATE_DISCONNECTING: {
+        m_loggedIn = false;
+        QWidget *disconnecting_widget = new QWidget();
+        QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
+        layout->setAlignment(Qt::AlignTop);
+        disconnecting_widget->setLayout(layout);
+        QLabel *label = new QLabel("Disconnecting from device");
+        layout->addWidget(label);
+        disconnecting_widget->setLayout(layout);
+        setCentralWidget(disconnecting_widget);
+    }
+    break;
+    case SignetApplication::STATE_DISCONNECTED: {
+        m_loggedIn = false;
+        QWidget *disconnected_widget = new QWidget();
+        setCentralWidget(disconnected_widget);
+    }
+    break;
+    case SignetApplication::STATE_CONNECTING: {
+        m_loggedIn = false;
+        QWidget *connecting_widget = new QWidget();
+        QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
+        layout->setAlignment(Qt::AlignTop);
+        if (m_wasConnected) {
+            m_connectingLabel = new QLabel("No Signet device detected.\n\nPlease insert device.");
+            m_wasConnected = false;
+        } else {
+            m_connectingLabel = new QLabel("Connecting to device...");
+            m_connectingTimer.setSingleShot(true);
+            m_connectingTimer.setInterval(500);
+            m_connectingTimer.start();
 		}
 
-		layout->addWidget(m_connectingLabel);
+        layout->addWidget(m_connectingLabel);
 
-		m_deviceMenu->setDisabled(true);
-		m_fileMenu->setDisabled(false);
-		connecting_widget->setLayout(layout);
-		setCentralWidget(connecting_widget);
-	}
-	break;
-	case SignetApplication::STATE_RESET:
-		m_loggedIn = false;
-		break;
-	case SignetApplication::STATE_WIPING: {
-		m_loggedIn = false;
-		m_wipingWidget = new QWidget(this);
-		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
-		layout->setAlignment(Qt::AlignTop);
-		m_wipeProgress = new QProgressBar();
-		layout->addWidget(new QLabel("Wiping device..."));
-		layout->addWidget(m_wipeProgress);
-		m_wipingWidget->setLayout(layout);
-		m_deviceMenu->setDisabled(true);
-		m_fileMenu->setDisabled(true);
-		setCentralWidget(m_wipingWidget);
-		::signetdev_get_progress(nullptr, &m_signetdevCmdToken, 0, WIPING);
-	}
-	break;
-	case SignetApplication::STATE_LOGGED_IN_LOADING_ACCOUNTS: {
-		m_loggedIn = true;
-		m_deviceMenu->setDisabled(true);
-		m_fileMenu->setDisabled(true);
-		QLabel *loading_label = new QLabel("Loading...");
-		loading_label->setStyleSheet("font-weight: bold");
+        m_deviceMenu->setDisabled(true);
+        m_fileMenu->setDisabled(false);
+        connecting_widget->setLayout(layout);
+        setCentralWidget(connecting_widget);
+    }
+    break;
+    case SignetApplication::STATE_RESET:
+        m_loggedIn = false;
+        break;
+    case SignetApplication::STATE_WIPING: {
+        m_loggedIn = false;
+        m_wipingWidget = new QWidget(this);
+        QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
+        layout->setAlignment(Qt::AlignTop);
+        m_wipeProgress = new QProgressBar();
+        layout->addWidget(new QLabel("Wiping device..."));
+        layout->addWidget(m_wipeProgress);
+        m_wipingWidget->setLayout(layout);
+        m_deviceMenu->setDisabled(true);
+        m_fileMenu->setDisabled(true);
+        setCentralWidget(m_wipingWidget);
+        ::signetdev_get_progress(nullptr, &m_signetdevCmdToken, 0, WIPING);
+    }
+    break;
+    case SignetApplication::STATE_LOGGED_IN_LOADING_ACCOUNTS: {
+        m_loggedIn = true;
+        m_deviceMenu->setDisabled(true);
+        m_fileMenu->setDisabled(true);
+        QLabel *loading_label = new QLabel("Loading...");
+        loading_label->setStyleSheet("font-weight: bold");
 
-		QProgressBar *loading_progress = new QProgressBar();
+        QProgressBar *loading_progress = new QProgressBar();
 
-		QVBoxLayout *layout = new QVBoxLayout();
-		layout->setAlignment(Qt::AlignTop);
-		layout->addWidget(loading_label);
-		layout->addWidget(loading_progress);
+        QVBoxLayout *layout = new QVBoxLayout();
+        layout->setAlignment(Qt::AlignTop);
+        layout->addWidget(loading_label);
+        layout->addWidget(loading_progress);
 
-		QWidget *loadingWidget = new QWidget();
-		loadingWidget->setLayout(layout);
+        QWidget *loadingWidget = new QWidget();
+        loadingWidget->setLayout(layout);
 
-		m_loggedInWidget = new LoggedInWidget(loading_progress, this);
-		connect(m_loggedInWidget, SIGNAL(abort()), this, SLOT(abort()));
-		connect(m_loggedInWidget, SIGNAL(enterDeviceState(int)),
-			this, SLOT(enterDeviceState(int)));
-		connect(SignetApplication::get(), SIGNAL(signetdevEvent(int)), m_loggedInWidget, SLOT(signetDevEvent(int)));
-		connect(m_loggedInWidget, SIGNAL(background()), this, SLOT(background()));
+        m_loggedInWidget = new LoggedInWidget(loading_progress, this);
+        connect(m_loggedInWidget, SIGNAL(abort()), this, SLOT(abort()));
+        connect(m_loggedInWidget, SIGNAL(enterDeviceState(int)),
+            this, SLOT(enterDeviceState(int)));
+        connect(SignetApplication::get(), SIGNAL(signetdevEvent(int)), m_loggedInWidget, SLOT(signetDevEvent(int)));
+        connect(m_loggedInWidget, SIGNAL(background()), this, SLOT(background()));
 
-		m_loggedInStack = new QStackedWidget();
-		m_loggedInStack->addWidget(m_loggedInWidget);
-		m_loggedInStack->addWidget(loadingWidget);
-		m_loggedInStack->setCurrentIndex(1);
-		setCentralWidget(m_loggedInStack);
-	}
-	break;
-	case SignetApplication::STATE_BACKING_UP: {
-		m_loggedIn = true;
-		m_backupWidget = new QWidget();
-		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
-		layout->setAlignment(Qt::AlignTop);
-		m_backupProgress = new QProgressBar();
-		QFileInfo fi(m_backupFile->fileName());
-		layout->addWidget(new QLabel("Backing up device to " + fi.fileName() + "..."));
-		layout->addWidget(m_backupProgress);
-		m_backupWidget->setLayout(layout);
-		m_deviceMenu->setDisabled(true);
-		m_fileMenu->setDisabled(true);
-		m_loggedInStack->addWidget(m_backupWidget);
-		m_loggedInStack->setCurrentWidget(m_backupWidget);
-	}
-	break;
-	case SignetApplication::STATE_EXPORTING: {
-		m_loggedIn = true;
-		m_backupWidget = new QWidget();
-		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
-		layout->setAlignment(Qt::AlignTop);
-		m_backupProgress = new QProgressBar();
-		layout->addWidget(new QLabel("Exporting to CSV"));
-		layout->addWidget(m_backupProgress);
-		m_backupWidget->setLayout(layout);
-		m_deviceMenu->setDisabled(true);
-		m_fileMenu->setDisabled(true);
-		m_loggedInStack->addWidget(m_backupWidget);
-		m_loggedInStack->setCurrentWidget(m_backupWidget);
-	}
-	break;
-	case SignetApplication::STATE_RESTORING: {
-		m_loggedIn = false;
-		m_restoreWidget = new QWidget();
-		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
-		layout->setAlignment(Qt::AlignTop);
-		m_restoreProgress = new QProgressBar();
-		layout->addWidget(new QLabel("Restoring device..."));
-		layout->addWidget(m_restoreProgress);
-		m_restoreWidget->setLayout(layout);
-		m_deviceMenu->setDisabled(true);
-		m_fileMenu->setDisabled(true);
-		setCentralWidget(m_restoreWidget);
-	}
-	break;
-	case SignetApplication::STATE_UPDATING_FIRMWARE: {
-		m_firmwareUpdateWidget = new QWidget();
-		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
-		layout->setAlignment(Qt::AlignTop);
-		m_firmwareUpdateProgress = new QProgressBar();
-		m_firmwareUpdateStage = new QLabel("Erasing firmware pages...");
-		layout->addWidget(m_firmwareUpdateStage);
-		layout->addWidget(m_firmwareUpdateProgress);
-		m_firmwareUpdateWidget->setLayout(layout);
-		m_deviceMenu->setDisabled(true);
-		m_fileMenu->setDisabled(true);
-		QByteArray erase_pages_;
-		QByteArray page_mask(512, 0);
+        m_loggedInStack = new QStackedWidget();
+        m_loggedInStack->addWidget(m_loggedInWidget);
+        m_loggedInStack->addWidget(loadingWidget);
+        m_loggedInStack->setCurrentIndex(1);
+        setCentralWidget(m_loggedInStack);
+    }
+    break;
+    case SignetApplication::STATE_BACKING_UP: {
+        m_loggedIn = true;
+        m_backupWidget = new QWidget();
+        QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
+        layout->setAlignment(Qt::AlignTop);
+        m_backupProgress = new QProgressBar();
+        QFileInfo fi(m_backupFile->fileName());
+        layout->addWidget(new QLabel("Backing up device to " + fi.fileName() + "..."));
+        layout->addWidget(m_backupProgress);
+        m_backupWidget->setLayout(layout);
+        m_deviceMenu->setDisabled(true);
+        m_fileMenu->setDisabled(true);
+        m_loggedInStack->addWidget(m_backupWidget);
+        m_loggedInStack->setCurrentWidget(m_backupWidget);
+    }
+    break;
+    case SignetApplication::STATE_EXPORTING: {
+        m_loggedIn = true;
+        m_backupWidget = new QWidget();
+        QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
+        layout->setAlignment(Qt::AlignTop);
+        m_backupProgress = new QProgressBar();
+        layout->addWidget(new QLabel("Exporting to CSV"));
+        layout->addWidget(m_backupProgress);
+        m_backupWidget->setLayout(layout);
+        m_deviceMenu->setDisabled(true);
+        m_fileMenu->setDisabled(true);
+        m_loggedInStack->addWidget(m_backupWidget);
+        m_loggedInStack->setCurrentWidget(m_backupWidget);
+    }
+    break;
+    case SignetApplication::STATE_RESTORING: {
+        m_loggedIn = false;
+        m_restoreWidget = new QWidget();
+        QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
+        layout->setAlignment(Qt::AlignTop);
+        m_restoreProgress = new QProgressBar();
+        layout->addWidget(new QLabel("Restoring device..."));
+        layout->addWidget(m_restoreProgress);
+        m_restoreWidget->setLayout(layout);
+        m_deviceMenu->setDisabled(true);
+        m_fileMenu->setDisabled(true);
+        setCentralWidget(m_restoreWidget);
+    }
+    break;
+    case SignetApplication::STATE_UPDATING_FIRMWARE: {
+        m_firmwareUpdateWidget = new QWidget();
+        QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
+        layout->setAlignment(Qt::AlignTop);
+        m_firmwareUpdateProgress = new QProgressBar();
+        m_firmwareUpdateStage = new QLabel("Erasing firmware pages...");
+        layout->addWidget(m_firmwareUpdateStage);
+        layout->addWidget(m_firmwareUpdateProgress);
+        m_firmwareUpdateWidget->setLayout(layout);
+        m_deviceMenu->setDisabled(true);
+        m_fileMenu->setDisabled(true);
+        QByteArray erase_pages_;
+        QByteArray page_mask(512, 0);
 
-		for (auto iter = m_fwSections.begin(); iter != m_fwSections.end(); iter++) {
-			const fwSection &section = (*iter);
-			unsigned int lma = section.lma;
-			unsigned int lma_end = lma + section.size;
-			int page_begin = (lma - 0x8000000)/2048;
-			int page_end = (lma_end - 1 - 0x8000000)/2048;
-			for (int i  = page_begin; i <= page_end; i++) {
-				if (i < 0)
-					continue;
-				if (i >= 511)
-					continue;
-				page_mask[i] = 1;
+        for (auto iter = m_fwSections.begin(); iter != m_fwSections.end(); iter++) {
+            const fwSection &section = (*iter);
+            unsigned int lma = section.lma;
+            unsigned int lma_end = lma + section.size;
+            int page_begin = (lma - 0x8000000)/2048;
+            int page_end = (lma_end - 1 - 0x8000000)/2048;
+            for (int i  = page_begin; i <= page_end; i++) {
+                if (i < 0)
+                    continue;
+                if (i >= 511)
+                    continue;
+                page_mask[i] = 1;
 			}
-		}
+        }
 
-		for (int i = 0; i < 512; i++) {
-			if (page_mask[i]) {
-				erase_pages_.push_back(i);
+        for (int i = 0; i < 512; i++) {
+            if (page_mask[i]) {
+                erase_pages_.push_back(i);
 			}
-		}
-		::signetdev_erase_pages(nullptr, &m_signetdevCmdToken,
-					erase_pages_.size(),
-					(u8 *)erase_pages_.data());
-		setCentralWidget(m_firmwareUpdateWidget);
-	}
-	break;
-	case SignetApplication::STATE_UNINITIALIZED: {
-		m_loggedIn = false;
-		m_deviceMenu->setDisabled(false);
-		m_fileMenu->setDisabled(false);
+        }
+        ::signetdev_erase_pages(nullptr, &m_signetdevCmdToken,
+                    erase_pages_.size(),
+                    (u8 *)erase_pages_.data());
+        setCentralWidget(m_firmwareUpdateWidget);
+    }
+    break;
+    case SignetApplication::STATE_UNINITIALIZED: {
+        m_loggedIn = false;
+        m_deviceMenu->setDisabled(false);
+        m_fileMenu->setDisabled(false);
 
-		if (!databaseFile) {
-			m_restoreAction->setVisible(true);
-			m_eraseDeviceAction->setVisible(true);
-			m_eraseDeviceAction->setText("Initialize");
-		}
+        if (!databaseFile) {
+            m_restoreAction->setVisible(true);
+            m_eraseDeviceAction->setVisible(true);
+            m_eraseDeviceAction->setText("Initialize");
+        }
 
-		m_logoutAction->setDisabled(true);
-		m_backupAction->setVisible(false);
-		m_wipeDeviceAction->setVisible(false);
-		m_changePasswordAction->setVisible(false);
-		m_updateFirmwareAction->setVisible(false);
-		m_passwordSlots->setVisible(false);
+        m_logoutAction->setDisabled(true);
+        m_backupAction->setVisible(false);
+        m_wipeDeviceAction->setVisible(false);
+        m_changePasswordAction->setVisible(false);
+        m_updateFirmwareAction->setVisible(false);
+        m_passwordSlots->setVisible(false);
 
-		m_uninitPrompt = new QWidget();
-		QVBoxLayout *layout = new QVBoxLayout();
-		layout->setAlignment(Qt::AlignTop);
-		QPushButton *init_button = new QPushButton("Initialize for the first time");
-		QPushButton *restore_button = new QPushButton("Initialize from a backup file");
-		layout->addWidget(new QLabel("This device is uninitialized.\n\nSelect an option below to initialize the device.\n"));
-		layout->addWidget(init_button);
-		QLabel *orText = new QLabel("OR");
-		orText->setAlignment(Qt::AlignCenter);
-		layout->addWidget(orText);
-		layout->addWidget(restore_button);
-		m_uninitPrompt->setLayout(layout);
-		connect(init_button, SIGNAL(pressed()), this, SLOT(eraseDeviceUi()));
-		connect(restore_button, SIGNAL(pressed()), this, SLOT(restoreDeviceUi()));
-		setCentralWidget(m_uninitPrompt);
-	}
-	break;
-	case SignetApplication::STATE_LOGGED_OUT: {
-		m_loggedIn = false;
-		m_deviceMenu->setDisabled(false);
-		m_fileMenu->setDisabled(false);
-		int fwMaj, fwMin, fwStep;
-		SignetApplication::get()->getConnectedFirmwareVersion(fwMaj, fwMin, fwStep);
+        m_uninitPrompt = new QWidget();
+        QVBoxLayout *layout = new QVBoxLayout();
+        layout->setAlignment(Qt::AlignTop);
+        QPushButton *init_button = new QPushButton("Initialize for the first time");
+        QPushButton *restore_button = new QPushButton("Initialize from a backup file");
+        layout->addWidget(new QLabel("This device is uninitialized.\n\nSelect an option below to initialize the device.\n"));
+        layout->addWidget(init_button);
+        QLabel *orText = new QLabel("OR");
+        orText->setAlignment(Qt::AlignCenter);
+        layout->addWidget(orText);
+        layout->addWidget(restore_button);
+        m_uninitPrompt->setLayout(layout);
+        connect(init_button, SIGNAL(pressed()), this, SLOT(eraseDeviceUi()));
+        connect(restore_button, SIGNAL(pressed()), this, SLOT(restoreDeviceUi()));
+        setCentralWidget(m_uninitPrompt);
+    }
+    break;
+    case SignetApplication::STATE_LOGGED_OUT: {
+        m_loggedIn = false;
+        m_deviceMenu->setDisabled(false);
+        m_fileMenu->setDisabled(false);
+        int fwMaj, fwMin, fwStep;
+        SignetApplication::get()->getConnectedFirmwareVersion(fwMaj, fwMin, fwStep);
 
-		if (!databaseFile) {
-			if (fwMaj == 1 && fwMin == 2 && fwStep == 1) {
-				//Version 1.2.1 has a glitch that causes a lockup when starting
-				// a restore from the logged out state
-				m_restoreAction->setVisible(false);
-			} else {
-				m_restoreAction->setVisible(true);
+        if (!databaseFile) {
+            if (fwMaj == 1 && fwMin == 2 && fwStep == 1) {
+                //Version 1.2.1 has a glitch that causes a lockup when starting
+                // a restore from the logged out state
+                m_restoreAction->setVisible(false);
+            } else {
+                m_restoreAction->setVisible(true);
 			}
-			m_wipeDeviceAction->setVisible(true);
-			m_changePasswordAction->setVisible(true);
-			m_eraseDeviceAction->setVisible(true);
-			m_eraseDeviceAction->setText("Reinitialize");
+            m_wipeDeviceAction->setVisible(true);
+            m_changePasswordAction->setVisible(true);
+            m_eraseDeviceAction->setVisible(true);
+            m_eraseDeviceAction->setText("Reinitialize");
 		}
-		m_passwordSlots->setVisible(false);
-		m_backupAction->setVisible(false);
-		m_logoutAction->setDisabled(true);
-		m_updateFirmwareAction->setVisible(false);
+        m_passwordSlots->setVisible(false);
+        m_backupAction->setVisible(false);
+        m_logoutAction->setDisabled(true);
+        m_updateFirmwareAction->setVisible(false);
 
-		LoginWindow *login_window = new LoginWindow(this);
-		connect(login_window, SIGNAL(enterDeviceState(int)),
-			this, SLOT(enterDeviceState(int)));
-		connect(login_window, SIGNAL(abort()), this, SLOT(abort()));
-		setCentralWidget(login_window);
-	}
-	break;
-	case SignetApplication::STATE_LOGGED_IN: {
-		m_loggedIn = true;
-		m_logoutAction->setDisabled(false);
-		m_deviceMenu->setDisabled(false);
-		m_fileMenu->setDisabled(false);
+        LoginWindow *login_window = new LoginWindow(this);
+        connect(login_window, SIGNAL(enterDeviceState(int)),
+            this, SLOT(enterDeviceState(int)));
+        connect(login_window, SIGNAL(abort()), this, SLOT(abort()));
+        setCentralWidget(login_window);
+    }
+    break;
+    case SignetApplication::STATE_LOGGED_IN: {
+        m_loggedIn = true;
+        m_logoutAction->setDisabled(false);
+        m_deviceMenu->setDisabled(false);
+        m_fileMenu->setDisabled(false);
 
-		if (!databaseFile) {
-			autoBackupCheck();
-			m_backupAction->setVisible(true);
-			m_changePasswordAction->setVisible(true);
-			m_updateFirmwareAction->setVisible(true);
-			SignetApplication *app = SignetApplication::get();
-			int major;
-			int minor;
-			int step;
-			app->getConnectedFirmwareVersion(major, minor, step);
-			if (major == 1 && ((minor > 3) || (minor == 3 && step >= 2))) {
-				m_passwordSlots->setVisible(true);
+        if (!databaseFile) {
+            autoBackupCheck();
+            m_backupAction->setVisible(true);
+            m_changePasswordAction->setVisible(true);
+            m_updateFirmwareAction->setVisible(true);
+            SignetApplication *app = SignetApplication::get();
+            int major;
+            int minor;
+            int step;
+            app->getConnectedFirmwareVersion(major, minor, step);
+            if (major == 1 && ((minor > 3) || (minor == 3 && step >= 2))) {
+                m_passwordSlots->setVisible(true);
 			}
-		}
-		m_restoreAction->setVisible(false);
-		m_wipeDeviceAction->setVisible(false);
-		m_eraseDeviceAction->setVisible(false);
-		m_loggedInStack->setCurrentIndex(0);
-	}
-	break;
-	default:
+        }
+        m_restoreAction->setVisible(false);
+        m_wipeDeviceAction->setVisible(false);
+        m_eraseDeviceAction->setVisible(false);
+        m_loggedInStack->setCurrentIndex(0);
+    }
+    break;
+    default:
 		break;
-	}
+    }
 
-	bool fileActionsEnabled = (m_deviceState == SignetApplication::STATE_LOGGED_IN);
-	m_exportMenu->menuAction()->setVisible(fileActionsEnabled);
-	m_settingsAction->setVisible(fileActionsEnabled);
-	m_importKeePassAction->setEnabled(fileActionsEnabled);
+    bool fileActionsEnabled = (m_deviceState == SignetApplication::STATE_LOGGED_IN);
+    m_exportMenu->menuAction()->setVisible(fileActionsEnabled);
+    m_settingsAction->setVisible(fileActionsEnabled);
+    m_importKeePassAction->setEnabled(fileActionsEnabled);
 #ifdef Q_OS_UNIX
-	m_importPassAction->setEnabled(fileActionsEnabled && m_passDatabaseFound);
+    m_importPassAction->setEnabled(fileActionsEnabled && m_passDatabaseFound);
 #endif
-	m_importCSVAction->setEnabled(fileActionsEnabled);
+    m_importCSVAction->setEnabled(fileActionsEnabled);
 }
 
 void MainWindow::openUi()
 {
-	QFileDialog *fd = new QFileDialog(this);
-	QStringList filters;
-	fd->setOption(QFileDialog::DontUseNativeDialog, true);
-	fd->setDirectory(m_settings.localBackupPath);
+    QFileDialog *fd = new QFileDialog(this);
+    QStringList filters;
+    fd->setOption(QFileDialog::DontUseNativeDialog, true);
+    fd->setDirectory(m_settings.localBackupPath);
 
-	QDir backupPath(m_settings.localBackupPath);
-	if (backupPath.exists()) {
-		QStringList nameFilters;
-		nameFilters.push_back("*.sdb");
-		QFileInfoList files = backupPath.entryInfoList(nameFilters, QDir::Files, QDir::Time);
-		if (files.size()) {
-			fd->selectFile(files.first().fileName());
+    QDir backupPath(m_settings.localBackupPath);
+    if (backupPath.exists()) {
+        QStringList nameFilters;
+        nameFilters.push_back("*.sdb");
+        QFileInfoList files = backupPath.entryInfoList(nameFilters, QDir::Files, QDir::Time);
+        if (files.size()) {
+            fd->selectFile(files.first().fileName());
 		}
-	}
-	filters.append("*.sdb");
-	filters.append("*");
-	fd->setNameFilters(filters);
-	fd->setFileMode(QFileDialog::AnyFile);
-	fd->setAcceptMode(QFileDialog::AcceptOpen);
-	fd->setWindowModality(Qt::WindowModal);
-	m_openFileDialog = fd;
-	connect(m_openFileDialog, SIGNAL(finished(int)), this, SLOT(openFileDialogFinished(int)));
-	m_openFileDialog->show();
+    }
+    filters.append("*.sdb");
+    filters.append("*");
+    fd->setNameFilters(filters);
+    fd->setFileMode(QFileDialog::AnyFile);
+    fd->setAcceptMode(QFileDialog::AcceptOpen);
+    fd->setWindowModality(Qt::WindowModal);
+    m_openFileDialog = fd;
+    connect(m_openFileDialog, SIGNAL(finished(int)), this, SLOT(openFileDialogFinished(int)));
+    m_openFileDialog->show();
 }
 
 void MainWindow::openFileDialogFinished(int rc)
 {
-	QFileDialog *fd = m_openFileDialog;
-	m_openFileDialog->deleteLater();
-	m_openFileDialog = nullptr;
-	if (!rc)
-		return;
-	QStringList sl = fd->selectedFiles();
-	if (sl.empty()) {
-		return;
+    QFileDialog *fd = m_openFileDialog;
+    m_openFileDialog->deleteLater();
+    m_openFileDialog = nullptr;
+    if (!rc)
+        return;
+    QStringList sl = fd->selectedFiles();
+    if (sl.empty()) {
+        return;
 	}
-	QString fn = sl.first();
-	if (signetdev_emulate_init(fn.toLatin1().data())) {
-		m_dbFilename = fn;
-		::signetdev_close_connection();
-		if (::signetdev_emulate_begin()) {
+    QString fn = sl.first();
+    if (signetdev_emulate_init(fn.toLatin1().data())) {
+        m_dbFilename = fn;
+        ::signetdev_close_connection();
+        if (::signetdev_emulate_begin()) {
 			enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
 			enterDeviceState(SignetApplication::STATE_CONNECTING);
-			::signetdev_startup(nullptr, &m_signetdevCmdToken);
+            ::signetdev_startup(nullptr, &m_signetdevCmdToken);
 		}
-	} else {
-		SignetApplication::messageBoxError(QMessageBox::Warning, "Open", "Database file not valid", this);
-	}
+    } else {
+        SignetApplication::messageBoxError(QMessageBox::Warning, "Open", "Database file not valid", this);
+    }
 }
 
 void MainWindow::closeUi()
 {
-	if (m_dbFilename.size()) {
-		::signetdev_emulate_end();
-		m_dbFilename.clear();
-		enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
-		enterDeviceState(SignetApplication::STATE_CONNECTING);
-		int rc = signetdev_open_connection();
-		if (rc == 0) {
-			::signetdev_startup(
+    if (m_dbFilename.size()) {
+        ::signetdev_emulate_end();
+        m_dbFilename.clear();
+        enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
+        enterDeviceState(SignetApplication::STATE_CONNECTING);
+        int rc = signetdev_open_connection();
+        if (rc == 0) {
+            ::signetdev_startup(
 
                 nullptr, &m_signetdevCmdToken);
 		}
@@ -1762,317 +1778,317 @@ void MainWindow::closeUi()
 
 void MainWindow::openSettingsUi()
 {
-	SettingsDialog *config = new SettingsDialog(this, false);
-	config->setWindowModality(Qt::WindowModal);
-	config->setAttribute(Qt::WA_DeleteOnClose);
-	connect(config, SIGNAL(finished(int)), this, SLOT(settingDialogFinished(int)));
-	config->show();
+    SettingsDialog *config = new SettingsDialog(this, false);
+    config->setWindowModality(Qt::WindowModal);
+    config->setAttribute(Qt::WA_DeleteOnClose);
+    connect(config, SIGNAL(finished(int)), this, SLOT(settingDialogFinished(int)));
+    config->show();
 }
 
 void MainWindow::settingDialogFinished(int rc)
 {
-	if (!rc) {
-		saveSettings();
-		settingsChanged();
+    if (!rc) {
+        saveSettings();
+        settingsChanged();
 	}
 }
 
 void MainWindow::eraseDeviceUi()
 {
-	ResetDevice *rd = new ResetDevice(m_deviceState != SignetApplication::STATE_UNINITIALIZED, this);
-	connect(rd, SIGNAL(enterDeviceState(int)),
-		this, SLOT(enterDeviceState(int)));
-	connect(rd, SIGNAL(abort()), this, SLOT(abort()));
-	connect(rd, SIGNAL(finished(int)), rd, SLOT(deleteLater()));
-	rd->show();
+    ResetDevice *rd = new ResetDevice(m_deviceState != SignetApplication::STATE_UNINITIALIZED, this);
+    connect(rd, SIGNAL(enterDeviceState(int)),
+        this, SLOT(enterDeviceState(int)));
+    connect(rd, SIGNAL(abort()), this, SLOT(abort()));
+    connect(rd, SIGNAL(finished(int)), rd, SLOT(deleteLater()));
+    rd->show();
 }
 
 void MainWindow::abort()
 {
-	QMessageBox *box = SignetApplication::messageBoxError(QMessageBox::Critical, "Signet", "Unexpected device error. Press okay to exit.", this);
-	connect(box, SIGNAL(finished(int)), this, SLOT(quit()));
+    QMessageBox *box = SignetApplication::messageBoxError(QMessageBox::Critical, "Signet", "Unexpected device error. Press okay to exit.", this);
+    connect(box, SIGNAL(finished(int)), this, SLOT(quit()));
 }
 
 void MainWindow::connectingTimer()
 {
-	m_connectingLabel->setText("No Signet device detected.\n\nPlease insert device.");
+    m_connectingLabel->setText("No Signet device detected.\n\nPlease insert device.");
 }
 
 void MainWindow::resetTimer()
 {
-	m_resetTimer.stop();
-	enterDeviceState(SignetApplication::STATE_CONNECTING);
-	m_wasConnected = false;
-	int rc = ::signetdev_open_connection();
-	if (rc == 0) {
-		::signetdev_startup(
+    m_resetTimer.stop();
+    enterDeviceState(SignetApplication::STATE_CONNECTING);
+    m_wasConnected = false;
+    int rc = ::signetdev_open_connection();
+    if (rc == 0) {
+        ::signetdev_startup(
 
             nullptr, &m_signetdevCmdToken);
-	}
+    }
 }
 
 void MainWindow::sendFirmwareWriteCmd()
 {
-	bool advance = false;
-	unsigned int section_lma = m_writingSectionIter->lma;
-	int section_size = m_writingSectionIter->size;
-	unsigned int section_end = section_lma + section_size;
-	unsigned int write_size = 1024;
-	if ((m_writingAddr + write_size) >= section_end) {
-		write_size = section_end - m_writingAddr;
-		advance = true;
+    bool advance = false;
+    unsigned int section_lma = m_writingSectionIter->lma;
+    int section_size = m_writingSectionIter->size;
+    unsigned int section_end = section_lma + section_size;
+    unsigned int write_size = 1024;
+    if ((m_writingAddr + write_size) >= section_end) {
+        write_size = section_end - m_writingAddr;
+        advance = true;
 	}
-	void *data = m_writingSectionIter->contents.data() + (m_writingAddr - section_lma);
+    void *data = m_writingSectionIter->contents.data() + (m_writingAddr - section_lma);
 
-	::signetdev_write_flash(
+    ::signetdev_write_flash(
 
         nullptr, &m_signetdevCmdToken, m_writingAddr, data, write_size);
-	if (advance) {
-		m_writingSectionIter++;
-		if (m_writingSectionIter != m_fwSections.end()) {
-			m_writingAddr = m_writingSectionIter->lma;
+    if (advance) {
+        m_writingSectionIter++;
+        if (m_writingSectionIter != m_fwSections.end()) {
+            m_writingAddr = m_writingSectionIter->lma;
 		}
-	} else {
-		m_writingAddr += write_size;
-	}
-	m_writingSize = write_size;
+    } else {
+        m_writingAddr += write_size;
+    }
+    m_writingSize = write_size;
 }
 
 void MainWindow::updateFirmwareUi()
 {
-	QFileDialog fd(this);
-	QStringList filters;
-	filters.append("*.sfw");
-	filters.append("*");
-	fd.setNameFilters(filters);
-	fd.setFileMode(QFileDialog::AnyFile);
-	fd.setAcceptMode(QFileDialog::AcceptOpen);
-	fd.setWindowModality(Qt::WindowModal);
-	if (!fd.exec())
-		return;
-	QStringList sl = fd.selectedFiles();
-	if (sl.empty()) {
-		return;
-	}
+    QFileDialog fd(this);
+    QStringList filters;
+    filters.append("*.sfw");
+    filters.append("*");
+    fd.setNameFilters(filters);
+    fd.setFileMode(QFileDialog::AnyFile);
+    fd.setAcceptMode(QFileDialog::AcceptOpen);
+    fd.setWindowModality(Qt::WindowModal);
+    if (!fd.exec())
+        return;
+    QStringList sl = fd.selectedFiles();
+    if (sl.empty()) {
+        return;
+    }
 
-	QFile firmware_update_file(sl.first());
-	bool result = firmware_update_file.open(QFile::ReadWrite);
-	if (!result) {
-		firmware_update_file.close();
-		SignetApplication::messageBoxError(QMessageBox::Warning, "Update firmware", "Failed to open firmware file", this);
-		return;
-	}
+    QFile firmware_update_file(sl.first());
+    bool result = firmware_update_file.open(QFile::ReadWrite);
+    if (!result) {
+        firmware_update_file.close();
+        SignetApplication::messageBoxError(QMessageBox::Warning, "Update firmware", "Failed to open firmware file", this);
+        return;
+    }
 
-	QByteArray datum = firmware_update_file.readAll();
-	QJsonDocument doc = QJsonDocument::fromJson(datum);
+    QByteArray datum = firmware_update_file.readAll();
+    QJsonDocument doc = QJsonDocument::fromJson(datum);
 
-	firmware_update_file.close();
+    firmware_update_file.close();
 
-	bool valid_fw = !doc.isNull() && doc.isObject();
+    bool valid_fw = !doc.isNull() && doc.isObject();
 
-	QJsonObject doc_obj;
-	QJsonObject sections_obj;
-	m_fwSections.clear();
+    QJsonObject doc_obj;
+    QJsonObject sections_obj;
+    m_fwSections.clear();
 
-	if (valid_fw) {
-		doc_obj = doc.object();
-		QJsonValue temp_val = doc_obj.value("sections");
-		valid_fw = (temp_val != QJsonValue::Undefined) && temp_val.isObject();
+    if (valid_fw) {
+        doc_obj = doc.object();
+        QJsonValue temp_val = doc_obj.value("sections");
+        valid_fw = (temp_val != QJsonValue::Undefined) && temp_val.isObject();
 		if (valid_fw) {
-			sections_obj = temp_val.toObject();
+            sections_obj = temp_val.toObject();
 		}
 	}
 
-	if (valid_fw) {
-		for (auto iter = sections_obj.constBegin(); iter != sections_obj.constEnd() && valid_fw; iter++) {
-			fwSection section;
-			section.name = iter.key();
-			QJsonValue temp = iter.value();
-			if (!temp.isObject()) {
-				valid_fw = false;
-				break;
-			}
+    if (valid_fw) {
+        for (auto iter = sections_obj.constBegin(); iter != sections_obj.constEnd() && valid_fw; iter++) {
+            fwSection section;
+            section.name = iter.key();
+            QJsonValue temp = iter.value();
+            if (!temp.isObject()) {
+                valid_fw = false;
+                break;
+            }
 
-			QJsonObject section_obj = temp.toObject();
-			QJsonValue lma_val = section_obj.value("lma");
-			QJsonValue size_val = section_obj.value("size");
-			QJsonValue contents_val = section_obj.value("contents");
+            QJsonObject section_obj = temp.toObject();
+            QJsonValue lma_val = section_obj.value("lma");
+            QJsonValue size_val = section_obj.value("size");
+            QJsonValue contents_val = section_obj.value("contents");
 
-			if (lma_val == QJsonValue::Undefined ||
-			    size_val == QJsonValue::Undefined ||
-			    contents_val == QJsonValue::Undefined ||
-			    !lma_val.isDouble() ||
-			    !size_val.isDouble() ||
-			    !contents_val.isString()) {
-				valid_fw = false;
-				break;
-			}
-			section.lma = static_cast<unsigned int>(lma_val.toDouble());
-			section.size = static_cast<int>(size_val.toDouble());
-			section.contents = QByteArray::fromBase64(contents_val.toString().toLatin1());
-			if (section.contents.size() != section.size) {
-				valid_fw = false;
-				break;
-			}
-			m_fwSections.append(section);
+            if (lma_val == QJsonValue::Undefined ||
+                size_val == QJsonValue::Undefined ||
+                contents_val == QJsonValue::Undefined ||
+                !lma_val.isDouble() ||
+                !size_val.isDouble() ||
+                !contents_val.isString()) {
+                valid_fw = false;
+                break;
+            }
+            section.lma = static_cast<unsigned int>(lma_val.toDouble());
+            section.size = static_cast<int>(size_val.toDouble());
+            section.contents = QByteArray::fromBase64(contents_val.toString().toLatin1());
+            if (section.contents.size() != section.size) {
+                valid_fw = false;
+                break;
+            }
+            m_fwSections.append(section);
 		}
-	}
-	if (valid_fw) {
-		m_buttonWaitDialog = new ButtonWaitDialog("Update firmware", "update firmware", this, true);
+    }
+    if (valid_fw) {
+        m_buttonWaitDialog = new ButtonWaitDialog("Update firmware", "update firmware", this, true);
 		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
 		m_buttonWaitDialog->show();
-		::signetdev_begin_update_firmware(nullptr, &m_signetdevCmdToken);
-	} else {
-		SignetApplication::messageBoxError(QMessageBox::Warning, "Update firmware", "Firmware file not valid", this);
+        ::signetdev_begin_update_firmware(nullptr, &m_signetdevCmdToken);
+    } else {
+        SignetApplication::messageBoxError(QMessageBox::Warning, "Update firmware", "Firmware file not valid", this);
 	}
 }
 
 void MainWindow::wipeDeviceUi()
 {
-	m_wipeDeviceDialog = new QMessageBox(QMessageBox::Warning,
-					     "Wipe device",
-					     "This will permanently erase the contents of the device. Continue?",
-					     QMessageBox::Ok | QMessageBox::Cancel,
-					     this);
-	connect(m_wipeDeviceDialog, SIGNAL(finished(int)), this, SLOT(wipeDeviceDialogFinished(int)));
-	connect(m_wipeDeviceDialog, SIGNAL(finished(int)), m_wipeDeviceDialog, SLOT(deleteLater()));
-	m_wipeDeviceDialog->setWindowModality(Qt::WindowModal);
-	m_wipeDeviceDialog->show();
+    m_wipeDeviceDialog = new QMessageBox(QMessageBox::Warning,
+                         "Wipe device",
+                         "This will permanently erase the contents of the device. Continue?",
+                         QMessageBox::Ok | QMessageBox::Cancel,
+                         this);
+    connect(m_wipeDeviceDialog, SIGNAL(finished(int)), this, SLOT(wipeDeviceDialogFinished(int)));
+    connect(m_wipeDeviceDialog, SIGNAL(finished(int)), m_wipeDeviceDialog, SLOT(deleteLater()));
+    m_wipeDeviceDialog->setWindowModality(Qt::WindowModal);
+    m_wipeDeviceDialog->show();
 }
 
 void MainWindow::wipeDeviceDialogFinished(int result)
 {
-	if (result != QMessageBox::Ok) {
-		return;
+    if (result != QMessageBox::Ok) {
+        return;
 	}
-	m_buttonWaitDialog = new ButtonWaitDialog("Wipe device", "wipe device", this, true);
-	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
-	m_buttonWaitDialog->show();
-	::signetdev_wipe(nullptr, &m_signetdevCmdToken);
+    m_buttonWaitDialog = new ButtonWaitDialog("Wipe device", "wipe device", this, true);
+    connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
+    m_buttonWaitDialog->show();
+    ::signetdev_wipe(nullptr, &m_signetdevCmdToken);
 }
 
 void MainWindow::operationFinished(int code)
 {
-	m_buttonWaitDialog->deleteLater();
-	if (code != QMessageBox::Ok) {
-		::signetdev_cancel_button_wait();
+    m_buttonWaitDialog->deleteLater();
+    if (code != QMessageBox::Ok) {
+        ::signetdev_cancel_button_wait();
 	}
-	m_buttonWaitDialog = nullptr;
+    m_buttonWaitDialog = nullptr;
 }
 
 void MainWindow::backupDevice(QString fileName)
 {
-	m_backupFile = new QFile(fileName);
-	bool result = m_backupFile->open(QFile::ReadWrite);
-	if (!result) {
-		SignetApplication::messageBoxError(QMessageBox::Warning, "Backup device", "Failed to create destination file", this);
-		return;
+    m_backupFile = new QFile(fileName);
+    bool result = m_backupFile->open(QFile::ReadWrite);
+    if (!result) {
+        SignetApplication::messageBoxError(QMessageBox::Warning, "Backup device", "Failed to create destination file", this);
+        return;
 	}
-	QFileInfo fi(m_backupFile->fileName());
-	m_buttonWaitDialog = new ButtonWaitDialog("Backup device to file", "start backing up device to " + fi.fileName(), this, true);
-	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
-	m_buttonWaitDialog->show();
-	::signetdev_begin_device_backup(nullptr, &m_signetdevCmdToken);
+    QFileInfo fi(m_backupFile->fileName());
+    m_buttonWaitDialog = new ButtonWaitDialog("Backup device to file", "start backing up device to " + fi.fileName(), this, true);
+    connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
+    m_buttonWaitDialog->show();
+    ::signetdev_begin_device_backup(nullptr, &m_signetdevCmdToken);
 }
 
 void MainWindow::aboutUi()
 {
-	bool connected = (m_deviceState == SignetApplication::STATE_LOGGED_IN) || (m_deviceState == SignetApplication::STATE_LOGGED_OUT)
+    bool connected = (m_deviceState == SignetApplication::STATE_LOGGED_IN) || (m_deviceState == SignetApplication::STATE_LOGGED_OUT)
              || (m_deviceState == SignetApplication::STATE_UNINITIALIZED);
-	QDialog *dlg = new About(connected,this);
-	dlg->exec();
+    QDialog *dlg = new About(connected,this);
+    dlg->exec();
 }
 
 void MainWindow::backupDeviceUi()
 {
-	QString backupFileName = m_settings.localBackupPath + "/" + backupFileBaseName() + ".sdb";
-	QDir backupPath(m_settings.localBackupPath);
-	if (!backupPath.exists()) {
-		QString dirName = backupPath.dirName();
-		if (backupPath.cdUp()) {
-			backupPath.mkdir(dirName);
-			backupPath.setPath(m_settings.localBackupPath);
+    QString backupFileName = m_settings.localBackupPath + "/" + backupFileBaseName() + ".sdb";
+    QDir backupPath(m_settings.localBackupPath);
+    if (!backupPath.exists()) {
+        QString dirName = backupPath.dirName();
+        if (backupPath.cdUp()) {
+            backupPath.mkdir(dirName);
+            backupPath.setPath(m_settings.localBackupPath);
 		}
-	}
+    }
 
-	QFileDialog fd(this, "Backup device to file");
-	QStringList filters;
-	filters.append("*.sdb");
-	filters.append("*");
-	fd.setDirectory(m_settings.localBackupPath);
-	fd.selectFile(backupFileName);
-	fd.setNameFilters(filters);
-	fd.setFileMode(QFileDialog::AnyFile);
-	fd.setAcceptMode(QFileDialog::AcceptSave);
-	fd.setDefaultSuffix(QString("sdb"));
-	fd.setWindowModality(Qt::WindowModal);
-	if (!fd.exec())
-		return;
-	QStringList sl = fd.selectedFiles();
-	if (sl.empty())
-		return;
-	backupDevice(sl.first());
+    QFileDialog fd(this, "Backup device to file");
+    QStringList filters;
+    filters.append("*.sdb");
+    filters.append("*");
+    fd.setDirectory(m_settings.localBackupPath);
+    fd.selectFile(backupFileName);
+    fd.setNameFilters(filters);
+    fd.setFileMode(QFileDialog::AnyFile);
+    fd.setAcceptMode(QFileDialog::AcceptSave);
+    fd.setDefaultSuffix(QString("sdb"));
+    fd.setWindowModality(Qt::WindowModal);
+    if (!fd.exec())
+        return;
+    QStringList sl = fd.selectedFiles();
+    if (sl.empty())
+        return;
+    backupDevice(sl.first());
 }
 
 void MainWindow::exportCSVUi()
 {
-	QFileDialog fd(this, "Export device to CSV file");
-	QStringList filters;
-	filters.append("*.csv");
-	filters.append("*.txt");
-	filters.append("*");
+    QFileDialog fd(this, "Export device to CSV file");
+    QStringList filters;
+    filters.append("*.csv");
+    filters.append("*.txt");
+    filters.append("*");
 
-	QString fileName = backupFileBaseName();
-	QString documentsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-	QString backupFileName = documentsPath + "/" + fileName + ".csv";
+    QString fileName = backupFileBaseName();
+    QString documentsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+    QString backupFileName = documentsPath + "/" + fileName + ".csv";
 
-	fd.setNameFilters(filters);
-	fd.setDirectory(documentsPath);
-	fd.selectFile(fileName);
-	fd.setFileMode(QFileDialog::AnyFile);
-	fd.setAcceptMode(QFileDialog::AcceptSave);
-	fd.setDefaultSuffix(QString("csv"));
-	fd.setWindowModality(Qt::WindowModal);
-	if (!fd.exec())
-		return;
-	QStringList sl = fd.selectedFiles();
-	if (sl.empty())
-		return;
-	m_backupFile = new QFile(sl.first());
-	bool result = m_backupFile->open(QFile::WriteOnly);
-	if (!result) {
-		SignetApplication::messageBoxError(QMessageBox::Warning, "Export to CSV", "Failed to create CSV file", this);
-		return;
+    fd.setNameFilters(filters);
+    fd.setDirectory(documentsPath);
+    fd.selectFile(fileName);
+    fd.setFileMode(QFileDialog::AnyFile);
+    fd.setAcceptMode(QFileDialog::AcceptSave);
+    fd.setDefaultSuffix(QString("csv"));
+    fd.setWindowModality(Qt::WindowModal);
+    if (!fd.exec())
+        return;
+    QStringList sl = fd.selectedFiles();
+    if (sl.empty())
+        return;
+    m_backupFile = new QFile(sl.first());
+    bool result = m_backupFile->open(QFile::WriteOnly);
+    if (!result) {
+        SignetApplication::messageBoxError(QMessageBox::Warning, "Export to CSV", "Failed to create CSV file", this);
+        return;
 	}
-	m_buttonWaitDialog = new ButtonWaitDialog("Export database to CSV", "export to CSV", this, true);
-	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
-	m_buttonWaitDialog->show();
-	m_startedExport = true;
-	::signetdev_read_all_uids(nullptr, &m_signetdevCmdToken, 0);
+    m_buttonWaitDialog = new ButtonWaitDialog("Export database to CSV", "export to CSV", this, true);
+    connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
+    m_buttonWaitDialog->show();
+    m_startedExport = true;
+    ::signetdev_read_all_uids(nullptr, &m_signetdevCmdToken, 0);
 }
 
 void MainWindow::importDone(bool success)
 {
-	if (success) {
-		QString typeName = m_dbImportController->importer()->databaseTypeName();
-		QMessageBox *mb = SignetApplication::messageBoxError(QMessageBox::Information,
+    if (success) {
+        QString typeName = m_dbImportController->importer()->databaseTypeName();
+        QMessageBox *mb = SignetApplication::messageBoxError(QMessageBox::Information,
                   typeName + " Import",
                   typeName + " import successful",
                   this);
-		Q_UNUSED(mb);
+        Q_UNUSED(mb);
 	}
-	m_dbImportController->deleteLater();
-	m_dbImportController = nullptr;
+    m_dbImportController->deleteLater();
+    m_dbImportController = nullptr;
 }
 
 void MainWindow::startImport(DatabaseImporter *importer)
 {
-	SignetApplication *app = SignetApplication::get();
-	int majorVer;
-	int minorVer;
-	int stepVer;
-	app->getConnectedFirmwareVersion(majorVer, minorVer, stepVer);
-	bool useUpdateUids =
+    SignetApplication *app = SignetApplication::get();
+    int majorVer;
+    int minorVer;
+    int stepVer;
+    app->getConnectedFirmwareVersion(majorVer, minorVer, stepVer);
+    bool useUpdateUids =
         (majorVer == 1) &&
         (
             (minorVer > 3) ||
@@ -2081,84 +2097,84 @@ void MainWindow::startImport(DatabaseImporter *importer)
                 (stepVer >= 3)
             )
         );
-	m_dbImportController = new DatabaseImportController(importer, m_loggedInWidget, useUpdateUids);
-	connect(m_dbImportController, SIGNAL(done(bool)), this, SLOT(importDone(bool)));
-	m_dbImportController->start();
+    m_dbImportController = new DatabaseImportController(importer, m_loggedInWidget, useUpdateUids);
+    connect(m_dbImportController, SIGNAL(done(bool)), this, SLOT(importDone(bool)));
+    m_dbImportController->start();
 }
 
 void MainWindow::importKeePassUI()
 {
-	DatabaseImporter *importer = new KeePassImporter(this);
-	startImport(importer);
+    DatabaseImporter *importer = new KeePassImporter(this);
+    startImport(importer);
 }
 
 #include "cleartextpasswordselector.h"
 
 void MainWindow::passwordSlotsUi()
 {
-	::signetdev_read_cleartext_password_names(nullptr, &m_signetdevCmdToken);
+    ::signetdev_read_cleartext_password_names(nullptr, &m_signetdevCmdToken);
 }
 
 void MainWindow::signetdevReadCleartextPasswordNames(signetdevCmdRespInfo info, QVector<int> formats, QStringList names)
 {
-	if (info.resp_code == OKAY) {
-		cleartextPasswordSelector *s = new cleartextPasswordSelector(formats, names, this);
-		s->setMinimumWidth(300);
-		s->setWindowTitle("Password slots");
-		s->setWindowModality(Qt::WindowModal);
-		s->setAttribute(Qt::WA_DeleteOnClose);
-		s->show();
+    if (info.resp_code == OKAY) {
+        cleartextPasswordSelector *s = new cleartextPasswordSelector(formats, names, this);
+        s->setMinimumWidth(300);
+        s->setWindowTitle("Password slots");
+        s->setWindowModality(Qt::WindowModal);
+        s->setAttribute(Qt::WA_DeleteOnClose);
+        s->show();
 	}
 }
 
 #ifdef Q_OS_UNIX
 void MainWindow::importPassUI()
 {
-	DatabaseImporter *importer = new PassImporter(this);
-	startImport(importer);
+    DatabaseImporter *importer = new PassImporter(this);
+    startImport(importer);
 }
 #endif
 
 void MainWindow::importCSVUI()
 {
-	QList<esdbTypeModule *> typeModules = m_loggedInWidget->getTypeModules();
+    QList<esdbTypeModule *> typeModules = m_loggedInWidget->getTypeModules();
 
-	DatabaseImporter *importer = new CSVImporter(typeModules, this);
-	startImport(importer);
+    DatabaseImporter *importer = new CSVImporter(typeModules, this);
+    startImport(importer);
 }
 
 void MainWindow::restoreDeviceUi()
 {
-	QFileDialog fd(this, "Restore device from file");
-	QStringList filters;
-	filters.append("*.sdb");
-	filters.append("*");
-	fd.setNameFilters(filters);
-	fd.setFileMode(QFileDialog::AnyFile);
-	fd.setAcceptMode(QFileDialog::AcceptOpen);
-	fd.setDefaultSuffix(QString("sdb"));
-	fd.setWindowModality(Qt::WindowModal);
-	if (!fd.exec())
-		return;
-	QStringList sl = fd.selectedFiles();
-	if (sl.empty()) {
-		return;
-	}
-	m_restoreFile = new QFile(sl.first());
-	bool result = m_restoreFile->open(QFile::ReadWrite);
-	if (!result) {
-		delete m_restoreFile;
-		SignetApplication::messageBoxError(QMessageBox::Warning, "Restore device from file", "Failed to open backup file", this);
-		return;
-	}
-	if (m_restoreFile->size() != BLK_SIZE * (NUM_DATA_BLOCKS + 1)) {
-		delete m_restoreFile;
-		SignetApplication::messageBoxError(QMessageBox::Warning, "Restore device from file", "Backup file has wrong size", this);
-		return;
+    QFileDialog fd(this, "Restore device from file");
+    QStringList filters;
+    filters.append("*.sdb");
+    filters.append("*");
+    fd.setNameFilters(filters);
+    fd.setFileMode(QFileDialog::AnyFile);
+    fd.setAcceptMode(QFileDialog::AcceptOpen);
+    fd.setDefaultSuffix(QString("sdb"));
+    fd.setWindowModality(Qt::WindowModal);
+    if (!fd.exec())
+        return;
+    QStringList sl = fd.selectedFiles();
+    if (sl.empty()) {
+        return;
+    }
+    m_restoreFile = new QFile(sl.first());
+    bool result = m_restoreFile->open(QFile::ReadWrite);
+    if (!result) {
+        delete m_restoreFile;
+        SignetApplication::messageBoxError(QMessageBox::Warning, "Restore device from file", "Failed to open backup file", this);
+        return;
+    }
+    if (m_restoreFile->size() != BLK_SIZE * (NUM_DATA_BLOCKS + 1)) {
+        delete m_restoreFile;
+        SignetApplication::messageBoxError(QMessageBox::Warning, "Restore device from file", "Backup file has wrong size", this);
+        return;
 	}
 
-	m_buttonWaitDialog = new ButtonWaitDialog("Restore device from file", "start restoring device", this, true);
-	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
-	m_buttonWaitDialog->show();
-	::signetdev_begin_device_restore(nullptr, &m_signetdevCmdToken);
+    m_buttonWaitDialog = new ButtonWaitDialog("Restore device from file", "start restoring device", this, true);
+    connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(operationFinished(int)));
+    m_buttonWaitDialog->show();
+    ::signetdev_begin_device_restore(nullptr, &m_signetdevCmdToken);
 }

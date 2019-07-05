@@ -137,9 +137,10 @@ public:
             return r->name().compare(l->name(), Qt::CaseInsensitive) < 0;
         } else if (!r->isLeafItem()) {
             return false;
-        } else
+        } else {
             return true;
-	}
+        }
+    }
 };
 
 static EsdbModelItemCompare s_esdbModelItemCompare;
