@@ -15,7 +15,7 @@ cleartextPasswordEditor::cleartextPasswordEditor(int index, struct cleartext_pas
 	m_index(index),
 	m_pass(p),
     m_signetdevCmdToken(-1),
-	m_buttonWaitDialog(NULL),
+    m_buttonWaitDialog(nullptr),
 	m_changesMade(false)
 {
 	SignetApplication *app = SignetApplication::get();

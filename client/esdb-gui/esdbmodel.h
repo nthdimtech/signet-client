@@ -26,13 +26,13 @@ public:
 	}
 
 	virtual esdbEntry *leafNode() = 0;
-	virtual QString name() = 0;
+    virtual QString name() const = 0;
 	virtual int rowCount() = 0;
 	virtual EsdbModelGroupItem *parent() = 0;
 	virtual QVariant data(int role) = 0;
 	virtual ~EsdbModelItem() {}
 	virtual int row() = 0;
-	virtual bool isLeafItem() = 0;
+    virtual bool isLeafItem() const = 0 ;
 	EsdbModelItem(int rank_) : m_rank(rank_) {}
 	static bool LessThan(const EsdbModelItem &r, const EsdbModelItem &l);
 	bool LessThan(const EsdbModelItem *r, const EsdbModelItem *l);
@@ -50,12 +50,12 @@ public:
 		return m_item;
 	}
 
-	bool isLeafItem()
+    bool isLeafItem() const
 	{
 		return true;
 	}
 
-	QString name()
+    QString name() const
 	{
 		return m_name;
 	}
@@ -115,7 +115,7 @@ public:
 	QList<EsdbModelLeafItem *> m_hiddenItems;
 	void clearPointers();
 
-	QString name()
+    QString name() const
 	{
 		return m_name;
 	}
@@ -127,14 +127,14 @@ public:
 
 	esdbEntry *leafNode()
 	{
-		return NULL;
+        return nullptr;
 	}
 	int rowCount()
 	{
 		return m_items.size();
 	}
 
-	bool isLeafItem()
+    bool isLeafItem() const
 	{
 		return false;
 	}
@@ -152,7 +152,7 @@ public:
 	EsdbModelItem *child(int row)
 	{
 		if (row >= m_items.size()) {
-			return NULL;
+            return nullptr;
 		} else {
 			return m_items.at(row);
 		}

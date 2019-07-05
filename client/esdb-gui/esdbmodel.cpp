@@ -20,7 +20,7 @@ void EsdbModelGroupItem::refreshEntry(EsdbModel *m, const QModelIndex &parent, e
 			}
 			row++;
 		}
-		EsdbModelLeafItem *leafItem = NULL;
+        EsdbModelLeafItem *leafItem = nullptr;
 		QList<EsdbModelLeafItem *>::iterator iter = m_hiddenItems.begin();
 		while (iter != m_hiddenItems.end()) {
 			if ((*iter)->name() == ent->getTitle()) {
@@ -55,7 +55,7 @@ void EsdbModelGroupItem::refreshEntry(EsdbModel *m, const QModelIndex &parent, e
 			}
 			row++;
 		}
-		EsdbModelGroupItem *groupItem = NULL;
+        EsdbModelGroupItem *groupItem = nullptr;
 		QList<EsdbModelGroupItem *>::iterator iter = m_hiddenGroups.begin();
 		while (iter != m_hiddenGroups.end()) {
 			if ((*iter)->name() == path.at(first)) {
@@ -133,7 +133,12 @@ class EsdbModelItemCompare
 public:
 	bool operator()(const EsdbModelItem *r, const EsdbModelItem *l)
 	{
-		return r->rank() < l->rank();
+        if (r->isLeafItem() == l->isLeafItem()) {
+            return r->name().compare(l->name(), Qt::CaseInsensitive) < 0;
+        } else if (!r->isLeafItem()) {
+            return false;
+        } else
+            return true;
 	}
 };
 
@@ -243,7 +248,7 @@ EsdbModel::EsdbModel(esdbTypeModule *module, QList<esdbEntry *> *entries) :
 	m_entries(entries)
 {
 	Q_UNUSED(module);
-	m_rootItem = new EsdbModelGroupItem("", -1, NULL, true);
+    m_rootItem = new EsdbModelGroupItem("", -1, nullptr, true);
 	bool hasGroups = false;
 	for (auto x : *m_entries) {
 		esdbEntry *entry = x;
