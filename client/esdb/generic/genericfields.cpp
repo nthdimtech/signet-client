@@ -12,7 +12,7 @@ void genericFields_1::fromBlock(block *blk)
 		blk->readString(fld.name);
 		blk->readString(fld.value);
 		m_fields.push_back(fld);
-	}
+    }
 }
 
 

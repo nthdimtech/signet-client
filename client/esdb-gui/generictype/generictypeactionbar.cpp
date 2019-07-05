@@ -61,10 +61,10 @@ void GenericTypeActionBar::deletePressed()
 	int numEntriesOfType = entryMap->size();
 	if (numEntriesOfType > 0) {
 		QMessageBox *box = new QMessageBox(QMessageBox::Warning,
-		                                   "Delete datatype",
-		                                   "There are still entries with this data type. If you delete this data type these entries will move to the 'Misc' group.\n\n Delete this data type?",
-		                                   QMessageBox::Yes | QMessageBox::No,
-		                                   this);
+                           "Delete datatype",
+                           "There are still entries with this data type. If you delete this data type these entries will move to the 'Misc' group.\n\n Delete this data type?",
+                           QMessageBox::Yes | QMessageBox::No,
+                           this);
 		box->setWindowModality(Qt::WindowModal);
 		box->setAttribute(Qt::WA_DeleteOnClose);
 		QObject::connect(box, SIGNAL(finished(int)), this, SLOT(deleteConfirmDialogFinished(int)));
@@ -96,14 +96,11 @@ void GenericTypeActionBar::openEntryUI()
 	openEntry(EsdbActionBar::selectedEntry());
 }
 
-void GenericTypeActionBar::accessEntryComplete(esdbEntry *entry, int intent)
+bool GenericTypeActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 {
 	switch (intent) {
 	case INTENT_OPEN_ENTRY: {
 		genericTypeDesc *g = static_cast<genericTypeDesc *>(entry);
-		if (m_buttonWaitDialog) {
-			m_buttonWaitDialog->done(QMessageBox::Ok);
-		}
 		EditGenericType *ogt = new EditGenericType(g, m_parent);
 		connect(ogt, SIGNAL(abort()), this, SIGNAL(abort()));
 		connect(ogt, SIGNAL(entryChanged(int)), m_parent, SLOT(entryChanged(int)));
@@ -112,4 +109,5 @@ void GenericTypeActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 	}
 	break;
 	}
+    return true;
 }

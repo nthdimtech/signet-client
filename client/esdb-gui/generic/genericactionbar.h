@@ -32,7 +32,7 @@ class GenericActionBar : public EsdbActionBar
 	void newInstanceUI(int id, const QString &name);
 
 	QPushButton *m_browseButton;
-	void accessEntryComplete(esdbEntry *entry, int intent);
+    bool accessEntryComplete(esdbEntry *entry, int intent) override;
 public:
 	GenericActionBar(LoggedInWidget *parent, esdbTypeModule *module, genericTypeDesc *typeDesc, bool writeEnabled, bool typeEnabled);
 

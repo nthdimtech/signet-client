@@ -6,8 +6,8 @@
 #include <QJsonArray>
 
 websocketHandler::websocketHandler(QWebSocket *socket, int socketId, QObject *parent) : QObject(parent),
-        m_socketId(socketId),
-        m_socket(socket)
+    m_socketId(socketId),
+    m_socket(socket)
 {
 	socket->setParent(this);
 	connect(socket, SIGNAL(textMessageReceived(QString)), this, SLOT(textMessageReceived(QString)));

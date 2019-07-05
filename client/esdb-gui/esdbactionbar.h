@@ -9,6 +9,7 @@ struct esdbTypeModule;
 class QPushButton;
 class LoggedInWidget;
 class ButtonWaitDialog;
+class ButtonWaitWidget;
 
 #include "loggedinwidget.h"
 
@@ -38,9 +39,9 @@ protected:
 	}
 
 	void deleteEntry();
-	void openEntry(esdbEntry *entry);
+    void openEntry(esdbEntry *entry);
 	void browseUrl(esdbEntry *entry);
-	ButtonWaitDialog *m_buttonWaitDialog;
+    ButtonWaitWidget *m_buttonWaitWidget;
 
 	enum intent {
 		INTENT_NONE,
@@ -69,7 +70,7 @@ public:
 		Q_UNUSED(entry);
 	}
 
-	virtual void accessEntryComplete(esdbEntry *entry, int intent)
+    virtual bool accessEntryComplete(esdbEntry *entry, int intent)
 	{
 		Q_UNUSED(entry);
 		Q_UNUSED(intent);
@@ -94,9 +95,8 @@ signals:
 	void background();
 	void abort();
 private slots:
-	void openEntryFinished(int);
-	void accessAccountFinished(int code);
-	void deleteEntryFinished(int);
+    void buttonWaitTimeout();
+    void buttonWaitCanceled();
 };
 
 #endif // ESDBACTIONBAR_H

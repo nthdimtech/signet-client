@@ -10,7 +10,7 @@ esdbEntry *esdbAccountModule::decodeEntry(int id, int revision, esdbEntry *prev,
 	account *acct = nullptr;
 	account_0 rev0(id);
 	account_1 rev1(id);
-	account_2 rev2(id);
+    account_2 rev2(id);
 	account_3 rev3(id);
 	account_4 rev4(id);
 	account_5 rev5(id);

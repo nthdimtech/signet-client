@@ -26,7 +26,7 @@ KeyboardLayoutTester::scancodeInfo KeyboardLayoutTester::s_scancodeSequence[] = 
 
 	{9 /*f*/, 5, 3},
 	{10 /*g*/, 6, 3},
-        {11 /*h*/, 7, 3},
+    {11 /*h*/, 7, 3},
 	{12 /*i*/, 9, 2},
 	{13 /*j*/, 8, 3},
 
@@ -184,7 +184,7 @@ void KeyboardLayoutTester::testInterrupted()
 {
 	stopTest();
 	QMessageBox *msg = new QMessageBox(QMessageBox::Information, "Keyboard layout configuration failed",
-	                                   "Keyboard layout configuration interrupted. Try again.",
+                       "Keyboard layout configuration interrupted. Try again.",
 					   QMessageBox::Ok, this);
 	QObject::connect(msg, SIGNAL(finished(int)), this, SLOT(testInterruptedDialogFinished(int)));
 	msg->setWindowModality(Qt::WindowModal);
@@ -563,9 +563,9 @@ void KeyboardLayoutTester::typeNextKey()
 				m_applyButton->setEnabled(true);
 				m_resetButton->setEnabled(true);
 				QMessageBox *msg = new QMessageBox(QMessageBox::Information,
-				                                   "Keyboard layout configuration",
-				                                   "Keyboard layout configuration successful",
-				                                   QMessageBox::Ok, this);
+                                   "Keyboard layout configuration",
+                                   "Keyboard layout configuration successful",
+                                   QMessageBox::Ok, this);
 				msg->setWindowModality(Qt::WindowModal);
 				msg->exec();
 				msg->deleteLater();

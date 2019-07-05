@@ -14,7 +14,7 @@ void genericTypeDesc_1::fromBlock(block *blk)
 		blk->readString(fieldType);
 		fieldSpec fs(fieldName, fieldType);
 		fields.push_back(fs);
-	}
+    }
 }
 
 void genericTypeDesc::upgrade(const genericTypeDesc_1 &prev)

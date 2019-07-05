@@ -16,8 +16,8 @@ class GenericTypeActionBar : public EsdbActionBar
 	}
 	void defaultAction(esdbEntry *entry);
 	void newInstanceUI(int id, const QString &name);
-	void accessEntryComplete(esdbEntry *entry, int intent);
-	void deleteEntryComplete(esdbEntry *entry);
+    bool accessEntryComplete(esdbEntry *entry, int intent) override;
+    void deleteEntryComplete(esdbEntry *entry) override;
 public:
 	explicit GenericTypeActionBar(LoggedInWidget *parent, esdbTypeModule *module, bool writeEnabled, bool typeEnabled);
 

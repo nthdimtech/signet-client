@@ -32,7 +32,7 @@ class BookmarkActionBar : public EsdbActionBar
 
 	int esdbType();
 
-	void accessEntryComplete(esdbEntry *entry, int intent);
+    bool accessEntryComplete(esdbEntry *entry, int intent) override;
 public:
 	BookmarkActionBar(esdbTypeModule *module, LoggedInWidget *parent, bool writeEnabled = true, bool typeEnabled = true);
 public slots:

@@ -18,7 +18,7 @@ GenericActionBar::GenericActionBar(LoggedInWidget *parent, esdbTypeModule *modul
 	EsdbActionBar(parent, typeDesc->name, writeEnabled, typeEnabled),
 	m_module(module),
 	m_typeDesc(typeDesc),
-	m_newEntryDlg(nullptr),
+    m_newEntryDlg(nullptr),
 	m_browseButton(nullptr)
 {
 	if (module->hasUrl()) {
@@ -73,14 +73,11 @@ void GenericActionBar::deleteEntryUI()
 	deleteEntry();
 }
 
-void GenericActionBar::accessEntryComplete(esdbEntry *entry, int intent)
+bool GenericActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 {
 	switch (intent) {
 	case INTENT_OPEN_ENTRY: {
 		generic *g = static_cast<generic *>(entry);
-		if (m_buttonWaitDialog) {
-			m_buttonWaitDialog->done(QMessageBox::Ok);
-		}
 		QStringList groupList;
 		m_parent->getCurrentGroups(m_module->name(), groupList);
 		EditGeneric *og = new EditGeneric(g, m_typeDesc, groupList, m_parent);
@@ -91,6 +88,7 @@ void GenericActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 	}
 	break;
 	}
+    return true;
 }
 
 int GenericActionBar::esdbType()

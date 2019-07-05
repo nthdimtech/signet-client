@@ -13,6 +13,7 @@
 
 class MainWindow;
 class CommThread;
+class ButtonWaitWidget;
 class QPushButton;
 class QDialog;
 class EsdbModel;
@@ -93,7 +94,7 @@ class LoggedInWidget : public QWidget
 {
 	Q_OBJECT
 	QIcon m_genericIcon;
-
+	MainWindow *m_mainWindow;
 	bool m_fileMode;
 
 	QList<iconAccount> m_icon_accounts;
@@ -184,6 +185,8 @@ public:
 	~LoggedInWidget();
 	void finishTask();
 	bool beginIDTask(int id, enum ID_TASK task, int intent, EsdbActionBar *bar);
+	ButtonWaitWidget *beginButtonWait(QString action, bool longPress);
+	void endButtonWait();
 	void getSelectedAccountRect(QRect &r);
 	int getUnusedId();
 	int getUnusedTypeId();

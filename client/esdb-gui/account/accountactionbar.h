@@ -21,8 +21,8 @@ class AccountActionBar : public EsdbActionBar
 {
 	Q_OBJECT
 	EditAccount *m_newAccountDlg;
-	void entrySelected(esdbEntry *entry);
-	void defaultAction(esdbEntry *entry);
+    void entrySelected(esdbEntry *entry) override;
+    void defaultAction(esdbEntry *entry) override;
 	QPushButton *m_DeleteButton;
 	QPushButton *m_openButton;
 	QPushButton *m_loginButton;
@@ -31,15 +31,15 @@ class AccountActionBar : public EsdbActionBar
 	QPushButton *m_typePasswordButton;
 	LoggedInWidget *m_loggedInWidget;
 
-	int esdbType();
+    int esdbType() override;
 
 	bool m_accessUsername;
 	bool m_accessPassword;
 	bool m_accessPending;
 
-	void newInstanceUI(int id, const QString &name);
-	void typeAccountData(account *acct);
-	void copyAccountData(account *acct, bool username, bool password);
+    void newInstanceUI(int id, const QString &name) override;
+    bool typeAccountData(account *acct);
+    bool copyAccountData(account *acct, bool username, bool password);
 	void openAccount(account *acct);
 
 	int m_id;
@@ -52,7 +52,7 @@ class AccountActionBar : public EsdbActionBar
 		QUICKTYPE_STATE_PASSWORD
 	} m_quickTypeState;
 
-	void accessEntryComplete(esdbEntry *entry, int intent);
+    bool accessEntryComplete(esdbEntry *entry, int intent) override;
 	void accessAccountUI(bool typeData, bool username, bool password);
 	void accessAccount(account *acct, bool typeData, bool username, bool password);
 private slots:

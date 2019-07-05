@@ -72,7 +72,7 @@ void BookmarkActionBar::openEntryUI()
 	openEntry(selectedEntry());
 }
 
-void BookmarkActionBar::accessEntryComplete(esdbEntry *entry, int intent)
+bool BookmarkActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 {
 	bookmark *b = static_cast<bookmark *>(entry);
 	switch (intent) {
@@ -85,6 +85,7 @@ void BookmarkActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 	}
 	break;
 	}
+    return true;
 }
 
 void BookmarkActionBar::deleteEntryUI()

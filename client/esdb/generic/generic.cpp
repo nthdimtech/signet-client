@@ -12,7 +12,7 @@ void generic_1::fromBlock(block *blk)
 
 void generic_2::fromBlock(block *blk)
 {
-	esdbEntry::fromBlock(blk);
+    esdbEntry::fromBlock(blk);
 	blk->readString(this->typeName);
 	blk->readString(this->name);
 	fields.fromBlock(blk);

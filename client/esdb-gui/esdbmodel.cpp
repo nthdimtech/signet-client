@@ -15,7 +15,7 @@ void EsdbModelGroupItem::refreshEntry(EsdbModel *m, const QModelIndex &parent, e
 				if(leafItem->name() == ent->getTitle()) {
 					leafItem->setRank(rank);
 					leafItem->setLeafEntry(ent);
-					return;
+                    return;
 				}
 			}
 			row++;

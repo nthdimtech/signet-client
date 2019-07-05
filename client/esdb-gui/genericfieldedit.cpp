@@ -16,10 +16,10 @@ extern "C" {
 }
 
 genericFieldEdit::genericFieldEdit(const QString &name, QWidget *parent) :
-	m_name(name),
-        m_parent(parent),
+    m_name(name),
+    m_parent(parent),
 	m_widget(nullptr),
-        m_signetdevCmdToken(-1)
+    m_signetdevCmdToken(-1)
 {
 	SignetApplication *app = SignetApplication::get();
 	QObject::connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
@@ -113,9 +113,9 @@ void genericFieldEdit::typePressed()
 	}
 	if (!::signetdev_can_type_w(m_keysToType.data(), m_keysToType.length())) {
 		QMessageBox *msg = new QMessageBox(QMessageBox::Warning,
-		                                   "Cannot type data",
-		                                   "Signet cannot type this data. It contains characters not present in your keyboard layout.",
-		                                   QMessageBox::NoButton, m_editWidget);
+                           "Cannot type data",
+                           "Signet cannot type this data. It contains characters not present in your keyboard layout.",
+                           QMessageBox::NoButton, m_editWidget);
 		QPushButton *copyData = msg->addButton("Copy data", QMessageBox::AcceptRole);
 		msg->addButton("Cancel", QMessageBox::RejectRole);
 		msg->setWindowModality(Qt::WindowModal);
@@ -158,10 +158,10 @@ void genericFieldEdit::signetdevCmdResp(signetdevCmdRespInfo info)
 			QString keys = toString();
 			if (QApplication::focusWindow()) {
 				QMessageBox *box = SignetApplication::messageBoxError(
-				                           QMessageBox::Warning,
-				                           "Signet",
-				                           "A destination text area must be selected for typing to start\n\n"
-				                           "Click OK and try again.", m_buttonWait ? (QWidget *)m_buttonWait : (QWidget *)this);
+                               QMessageBox::Warning,
+                               "Signet",
+                               "A destination text area must be selected for typing to start\n\n"
+                               "Click OK and try again.", m_buttonWait ? (QWidget *)m_buttonWait : (QWidget *)this);
 				connect(box, SIGNAL(finished(int)), this, SLOT(retryTypeData()));
 				break;
 			}

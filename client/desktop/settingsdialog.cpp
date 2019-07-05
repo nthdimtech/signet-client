@@ -96,7 +96,7 @@ SettingsDialog::SettingsDialog(MainWindow *mainWindow, bool initial) :
 		this, SLOT(configureKeyboardLayout()));
 
 	m_keyboardLayoutUnconfiguredWarning = new QLabel(
-	        "Note: Signet's keyboard layout is not configured. Signet will default to a English(US) keyboard layout which will cause incorrect keys to be generated if this system uses a different layout.");
+        "Note: Signet's keyboard layout is not configured. Signet will default to a English(US) keyboard layout which will cause incorrect keys to be generated if this system uses a different layout.");
 	m_keyboardLayoutUnconfiguredWarning->setWordWrap(true);
 	m_keyboardLayoutUnconfiguredWarning->setStyleSheet("font-weight: bold");
 	if (keyboardLayoutConfigured) {

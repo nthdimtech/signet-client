@@ -11,7 +11,7 @@ void bookmark::fromBlock(block *blk)
 
 void bookmark::toBlock(block *blk) const
 {
-	esdbEntry::toBlock(blk);
+    esdbEntry::toBlock(blk);
 	blk->writeString(this->name, false);
 	blk->writeString(this->url, false);
 }

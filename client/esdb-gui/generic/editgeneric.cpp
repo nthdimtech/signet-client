@@ -22,12 +22,11 @@ extern "C" {
 #include "signetdev/host/signetdev.h"
 }
 
-
 EditGeneric::EditGeneric(generic *generic, genericTypeDesc *typeDesc, QStringList groupList, QWidget *parent) :
 	EditEntryDialog(typeDesc->name, generic, parent),
 	m_generic(generic),
 	m_typeDesc(typeDesc),
-        m_fields(generic->fields),
+    m_fields(generic->fields),
 	m_groupList(groupList)
 {
 	setup(generic->name);
@@ -103,7 +102,7 @@ void EditGeneric::setup(QString name)
 {
 	m_genericNameEdit = new QLineEdit(name);
 	m_genericNameEdit->setReadOnly(SignetApplication::get()->isDeviceEmulated());
-	
+
 	m_groupField = new GroupDatabaseField(120, m_groupList, nullptr);
 
 	QBoxLayout *nameLayout = new QBoxLayout(QBoxLayout::LeftToRight);

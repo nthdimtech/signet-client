@@ -2,7 +2,7 @@
 #include "loggedinwidget.h"
 #include "esdb.h"
 #include "editaccount.h"
-#include "buttonwaitdialog.h"
+#include "buttonwaitwidget.h"
 
 #include <QHBoxLayout>
 #include <QPushButton>
@@ -243,20 +243,18 @@ void AccountActionBar::accessAccount(account *acct, bool typeData, bool username
 	            message, username && password && doTypeData);
 }
 
-void AccountActionBar::typeAccountData(account *acct)
+bool AccountActionBar::typeAccountData(account *acct)
 {
 	if (QApplication::focusWindow()) {
 		QMessageBox *box = SignetApplication::messageBoxError(
 		                           QMessageBox::Warning,
 		                           "Signet",
 		                           "A destination text area must be selected for typing to start\n\n"
-		                           "Click OK and try again.", m_buttonWaitDialog ? (QWidget *)m_buttonWaitDialog : (QWidget *)this);
+                                   "Click OK and try again.", this);
 		connect(box, SIGNAL(finished(int)), this, SLOT(retryTypeData()));
 		m_id = acct->id;
-		return;
+        return false;
 	}
-	if (m_buttonWaitDialog)
-		m_buttonWaitDialog->done(QMessageBox::Ok);
 	QString keys;
 	if (m_accessUsername) {
 		keys.append(acct->userName);
@@ -290,18 +288,16 @@ void AccountActionBar::typeAccountData(account *acct)
 			copyAccountData(acct, m_accessUsername, m_accessPassword);
 		}
 		msg->deleteLater();
-		return;
+        return true;
 	} else {
 		::signetdev_type_w(nullptr, &m_signetdevCmdToken,
 		                   (u16 *)uKeys.data(), uKeys.length());
+        return true;
 	}
 }
 
-void AccountActionBar::copyAccountData(account *acct, bool username, bool password)
+bool AccountActionBar::copyAccountData(account *acct, bool username, bool password)
 {
-	if (m_buttonWaitDialog) {
-		m_buttonWaitDialog->done(QMessageBox::Ok);
-	}
 	QString s;
 	if (username) {
 		s = acct->userName;
@@ -314,9 +310,10 @@ void AccountActionBar::copyAccountData(account *acct, bool username, bool passwo
 	}
 	QClipboard *clipboard = QApplication::clipboard();
 	clipboard->setText(s);
+    return true;
 }
 
-void AccountActionBar::accessEntryComplete(esdbEntry *entry, int intent)
+bool AccountActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 {
 	account *acct = static_cast<account *>(entry);
 	switch (intent) {
@@ -328,17 +325,19 @@ void AccountActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 		connect(ea, SIGNAL(entryChanged(int)), m_parent, SLOT(entryChanged(int)));
 		connect(ea, SIGNAL(finished(int)), ea, SLOT(deleteLater()));
 		ea->show();
+        return true;
 	}
 	break;
 	case INTENT_TYPE_ENTRY: {
-		typeAccountData(acct);
+        return typeAccountData(acct);
 	}
 	break;
 	case INTENT_COPY_ENTRY: {
-		copyAccountData(acct, m_accessUsername, m_accessPassword);
+        return copyAccountData(acct, m_accessUsername, m_accessPassword);
 	}
 	break;
 	}
+    return true;
 }
 
 void AccountActionBar::entryCreated(esdbEntry *entry)
@@ -349,12 +348,9 @@ void AccountActionBar::entryCreated(esdbEntry *entry)
 void AccountActionBar::retryTypeData()
 {
 	if (m_parent->beginIDTask(selectedEntry()->id, LoggedInWidget::ID_TASK_READ, INTENT_TYPE_ENTRY, this)) {
-		if (m_buttonWaitDialog) {
-			m_buttonWaitDialog->resetTimeout();
-		}
+        m_buttonWaitWidget->resetTimeout();
 	} else {
-		if (m_buttonWaitDialog) {
-			m_buttonWaitDialog->done(QMessageBox::Cancel);
-		}
+        m_parent->endButtonWait();
+        m_parent->finishTask();
 	}
 }

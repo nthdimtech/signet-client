@@ -15,7 +15,7 @@ extern "C" {
 
 EditEntryDialog::EditEntryDialog(QString typeName, int id, QWidget *parent) :
 	QDialog(parent),
-	m_typeName(typeName),
+    m_typeName(typeName),
 	m_signetdevCmdToken(-1),
 	m_isOversized(false),
 	m_dataOversized(nullptr),
@@ -25,7 +25,7 @@ EditEntryDialog::EditEntryDialog(QString typeName, int id, QWidget *parent) :
 	m_closeOnSave(false),
 	m_id(id),
 	m_settingFields(false),
-        m_entry(nullptr)
+    m_entry(nullptr)
 {
 	m_isNew = true;
 	setWindowModality(Qt::WindowModal);
@@ -146,9 +146,9 @@ void EditEntryDialog::submitButtonPressed()
 	m_buttonWaitDialog->show();
 
 	::signetdev_update_uid(nullptr, &m_signetdevCmdToken,
-	                       m_id,
-	                       blk.data.size(),
-	                       (const u8 *)blk.data.data(),
+                   m_id,
+                   blk.data.size(),
+                   (const u8 *)blk.data.data(),
 			       (const u8 *)blk.mask.data());
 }
 
@@ -264,10 +264,10 @@ void EditEntryDialog::closeEvent(QCloseEvent *event)
 {
 	if (m_changesMade && !m_isNew) {
 		QMessageBox *saveOnClose = new QMessageBox(QMessageBox::Question, windowTitle(),
-		                "You have made changes. Do you want to save them",
-		                QMessageBox::Yes |
-		                QMessageBox::No,
-		                this);
+                "You have made changes. Do you want to save them",
+                QMessageBox::Yes |
+                QMessageBox::No,
+                this);
 		connect(saveOnClose, SIGNAL(finished(int)), this, SLOT(saveOnCloseDialogFinished(int)));
 		saveOnClose->setWindowModality(Qt::WindowModal);
 		saveOnClose->setAttribute(Qt::WA_DeleteOnClose);

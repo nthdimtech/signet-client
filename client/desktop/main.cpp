@@ -17,8 +17,8 @@ int main(int argc, char **argv)
 		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Signet",
 						   "A Signet client is already running."
 						   "Only one instance of the client can run at the same time.",
-		                                   nullptr,
-		                                   nullptr,
+                           nullptr,
+                           nullptr,
 						   Qt::WindowStaysOnTopHint);
 		QPushButton *closeItButton = box->addButton("Replace running instance", QMessageBox::RejectRole);
 		box->addButton("Switch to running instance", QMessageBox::AcceptRole);
@@ -35,10 +35,10 @@ int main(int argc, char **argv)
 				i++;
 				if (i > 200) {
 					box = new QMessageBox(QMessageBox::Information, "Signet",
-					                      "Existing signet client is not closing. Close it and try again",
-					                      QMessageBox::Ok,
-					                      nullptr,
-					                      Qt::WindowStaysOnTopHint);
+                                  "Existing signet client is not closing. Close it and try again",
+                                  QMessageBox::Ok,
+                                  nullptr,
+                                  Qt::WindowStaysOnTopHint);
 					box->exec();
 					box->deleteLater();
 					box = NULL;

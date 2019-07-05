@@ -14,11 +14,11 @@ extern "C" {
 };
 
 DatabaseField::DatabaseField(const QString &name, int width, QList<QWidget *> &widgets, QWidget *parent) : QWidget(parent),
-	m_buttonWait(nullptr),
+    m_buttonWait(nullptr),
 	m_name(name),
-        m_signetdevCmdToken(-1),
-        m_fieldEdit(nullptr),
-        m_customEdit(nullptr)
+    m_signetdevCmdToken(-1),
+    m_fieldEdit(nullptr),
+    m_customEdit(nullptr)
 {
 	init(width, widgets, false);
 }
@@ -31,9 +31,9 @@ DatabaseField::~DatabaseField()
 DatabaseField::DatabaseField(const QString &name, int width, QWidget *middle, QWidget *parent) : QWidget(parent),
 	m_buttonWait(nullptr),
 	m_name(name),
-        m_signetdevCmdToken(-1),
-        m_fieldEdit(nullptr),
-        m_customEdit(nullptr)
+    m_signetdevCmdToken(-1),
+    m_fieldEdit(nullptr),
+    m_customEdit(nullptr)
 {
 
 	QList<QWidget *> widgets;
@@ -44,11 +44,11 @@ DatabaseField::DatabaseField(const QString &name, int width, QWidget *middle, QW
 
 
 DatabaseField::DatabaseField(const QString &name, QWidget *parent) : QWidget(parent),
-        m_buttonWait(nullptr),
-        m_name(name),
-        m_signetdevCmdToken(-1),
-        m_fieldEdit(nullptr),
-        m_customEdit(nullptr)
+    m_buttonWait(nullptr),
+    m_name(name),
+    m_signetdevCmdToken(-1),
+    m_fieldEdit(nullptr),
+    m_customEdit(nullptr)
 {
 }
 
@@ -143,10 +143,10 @@ void DatabaseField::signetdevCmdResp(signetdevCmdRespInfo info)
 		case SIGNETDEV_CMD_BUTTON_WAIT: {
 			if (QApplication::focusWindow()) {
 				QMessageBox *box = SignetApplication::messageBoxError(
-				                           QMessageBox::Warning,
-				                           "Signet",
-				                           "A destination text area must be selected for typing to start\n\n"
-				                           "Click OK and try again.", m_buttonWait ? (QWidget *)m_buttonWait : (QWidget *)this);
+                               QMessageBox::Warning,
+                               "Signet",
+                               "A destination text area must be selected for typing to start\n\n"
+                               "Click OK and try again.", m_buttonWait ? (QWidget *)m_buttonWait : (QWidget *)this);
 				connect(box, SIGNAL(finished(int)), this, SLOT(retryTypeData()));
 				break;
 			}
@@ -154,7 +154,7 @@ void DatabaseField::signetdevCmdResp(signetdevCmdRespInfo info)
 				m_buttonWait->done(QMessageBox::Ok);
 			}
 			::signetdev_type_w(nullptr, &m_signetdevCmdToken,
-			                   (u16 *)m_keysToType.data(), m_keysToType.length());
+                       (u16 *)m_keysToType.data(), m_keysToType.length());
 		}
 		break;
 		case SIGNETDEV_CMD_TYPE:
@@ -185,9 +185,9 @@ void DatabaseField::typeFieldUi()
 	}
 	if (!::signetdev_can_type_w(m_keysToType.data(), m_keysToType.length())) {
 		QMessageBox *msg = new QMessageBox(QMessageBox::Warning,
-		                                   "Cannot type data",
-		                                   "Signet cannot type this data. It contains characters not present in your keyboard layout.",
-		                                   QMessageBox::NoButton, this);
+                           "Cannot type data",
+                           "Signet cannot type this data. It contains characters not present in your keyboard layout.",
+                           QMessageBox::NoButton, this);
 		QPushButton *copyData = msg->addButton("Copy data", QMessageBox::AcceptRole);
 		msg->addButton("Cancel", QMessageBox::RejectRole);
 		msg->setWindowModality(Qt::WindowModal);

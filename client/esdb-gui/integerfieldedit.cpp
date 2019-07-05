@@ -4,7 +4,7 @@
 #include <QString>
 
 integerFieldEdit::integerFieldEdit(const QString &name, bool canRemove, QWidget *parent) :
-        genericFieldEdit(name, parent)
+    genericFieldEdit(name, parent)
 {
 	m_spinBoxEdit = new QSpinBox();
 	m_spinBoxEdit->setReadOnly(SignetApplication::get()->isDeviceEmulated());
@@ -17,7 +17,7 @@ integerFieldEdit::integerFieldEdit(const QString &name, bool canRemove, QWidget 
 
 QString integerFieldEdit::toString() const
 {
-	return m_spinBoxEdit->text();
+    return m_spinBoxEdit->text();
 }
 
 void integerFieldEdit::fromString(const QString &s)

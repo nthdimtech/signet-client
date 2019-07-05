@@ -139,7 +139,6 @@ HEADERS += esdb/esdb.h \
     esdb/generic/esdbgenericmodule.h \
     esdb/generictype/esdbgenerictypemodule.h
 
-
 win32|linux-g++|macx {
 
 #
@@ -275,6 +274,7 @@ SOURCES += desktop/main.cpp \
         desktop/changemasterpassword.cpp \
         desktop/searchlistbox.cpp \
         desktop/buttonwaitdialog.cpp \
+        desktop/buttonwaitwidget.cpp \
         desktop/searchfilteredit.cpp \
         desktop/loginwindow.cpp \
 	desktop/cleartextpasswordeditor.cpp \
@@ -294,6 +294,7 @@ HEADERS +=  desktop/mainwindow.h \
         desktop\changemasterpassword.h \
         desktop\searchlistbox.h \
         desktop\buttonwaitdialog.h \
+        desktop\buttonwaitwidget.h \
         desktop\searchfilteredit.h \
         desktop\loginwindow.h \
 	desktop/cleartextpasswordeditor.h \

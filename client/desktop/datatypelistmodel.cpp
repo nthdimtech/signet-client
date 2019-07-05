@@ -15,7 +15,7 @@ QVariant DataTypeListModel::data(const QModelIndex &index, int role) const
 	} else if (row >= m_builtInTypes.size() && row < (m_builtInTypes.size() + m_dynamicTypes.size())) {
 		return QVariant(m_dynamicTypes.at(row - m_builtInTypes.size())->name());
 	} else {
-		return QVariant();
+        return QVariant();
 	}
 }
 

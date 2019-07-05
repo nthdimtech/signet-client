@@ -29,7 +29,7 @@ LoginWindow::LoginWindow(QWidget *parent) : QWidget(parent),
 
 	QObject::connect(m_keyGenerator, SIGNAL(finished()), this, SLOT(keyGenerated()));
 	QObject::connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
-	                 this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
+             this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 
 	QLayout *top_layout = new QBoxLayout(QBoxLayout::TopToBottom);
 	QLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight);

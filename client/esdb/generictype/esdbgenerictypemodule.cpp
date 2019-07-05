@@ -15,7 +15,7 @@ esdbEntry *esdbGenericTypeModule::decodeEntry(int id, int revision, esdbEntry *p
 		desc = new genericTypeDesc(id);
 	} else {
 		desc = static_cast<genericTypeDesc *>(prev);
-	}
+    }
 
 	switch(revision) {
 	case 0:

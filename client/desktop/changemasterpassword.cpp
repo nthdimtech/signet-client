@@ -18,7 +18,7 @@ extern "C" {
 ChangeMasterPassword::ChangeMasterPassword(QWidget *parent) :
 	QDialog(parent),
 	m_newPasswordWarningMessage(nullptr),
-        m_oldPasswordWarningMessage(nullptr),
+    m_oldPasswordWarningMessage(nullptr),
 	m_oldPasswordEdit(nullptr),
 	m_newPasswordEdit(nullptr),
 	m_newPasswordRepeatEdit(nullptr),
@@ -119,10 +119,10 @@ void ChangeMasterPassword::keyGenerated()
 		connect(m_buttonDialog, SIGNAL(finished(int)), this, SLOT(changePasswordFinished(int)));
 		m_buttonDialog->show();
 		::signetdev_change_master_password(NULL, &m_signetdevCmdToken,
-		                                   (u8 *)m_oldKey.data(), m_oldKey.length(),
-		                                   (u8 *)m_newKey.data(), m_newKey.length(),
-		                                   (u8 *)m_newHashfn.data(), m_newHashfn.length(),
-		                                   (u8 *)m_newSalt.data(), m_newSalt.length());
+                           (u8 *)m_oldKey.data(), m_oldKey.length(),
+                           (u8 *)m_newKey.data(), m_newKey.length(),
+                           (u8 *)m_newHashfn.data(), m_newHashfn.length(),
+                           (u8 *)m_newSalt.data(), m_newSalt.length());
 	}
 }
 

@@ -11,7 +11,7 @@ esdbEntry *esdbBookmarkModule::decodeEntry(int id, int revision, esdbEntry *prev
 
 	if (!prev) {
 		bm = new bookmark(id);
-	} else {
+    } else {
 		bm = static_cast<bookmark *>(prev);
 	}
 

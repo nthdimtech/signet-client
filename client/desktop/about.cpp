@@ -43,9 +43,9 @@ About::About(bool connectedDevice, QWidget *parent):
 	app->getConnectedFirmwareVersion(deviceFirwmareMajVer, deviceFirwmareMinVer, deviceFirwmareStepVer);
 
 	QString versionString = QString("Signet client ") +
-	                        QString::number(clientMajVer) + "." +
-	                        QString::number(clientMinVer) + "." +
-	                        QString::number(clientStepVer);
+                QString::number(clientMajVer) + "." +
+                QString::number(clientMinVer) + "." +
+                QString::number(clientStepVer);
 
 	if (clientSubStepVer != 0) {
 		versionString += "." + QString::number(clientSubStepVer);
@@ -61,12 +61,12 @@ About::About(bool connectedDevice, QWidget *parent):
 	title->setStyleSheet("font-weight: bold");
 
 	QLabel *releaseDate = new QLabel(QString("Released ") +
-	                                 date.toString());
+                     date.toString());
 
 	QLabel *targetFirmware = new QLabel(QString("Target firmware version ") +
-	                                    QString::number(firmwareMajVer) + "." +
-	                                    QString::number(firmwareMinVer) + "." +
-	                                    QString::number(firmwareStepVer));
+                        QString::number(firmwareMajVer) + "." +
+                        QString::number(firmwareMinVer) + "." +
+                        QString::number(firmwareStepVer));
 
 	right->addWidget(title);
 	right->addWidget(releaseDate);
@@ -74,9 +74,9 @@ About::About(bool connectedDevice, QWidget *parent):
 
 	if (connectedDevice) {
 		QLabel *deviceFirmware = new QLabel(QString("Device firmware version ") +
-		                                    QString::number(deviceFirwmareMajVer) + "." +
-		                                    QString::number(deviceFirwmareMinVer) + "." +
-		                                    QString::number(deviceFirwmareStepVer));
+                            QString::number(deviceFirwmareMajVer) + "." +
+                            QString::number(deviceFirwmareMinVer) + "." +
+                            QString::number(deviceFirwmareStepVer));
 		right->addWidget(deviceFirmware);
 	}
 

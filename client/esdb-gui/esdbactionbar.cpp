@@ -1,6 +1,7 @@
 #include "esdbactionbar.h"
 #include "loggedinwidget.h"
 #include "buttonwaitdialog.h"
+#include "buttonwaitwidget.h"
 
 #include <QPushButton>
 #include <QIcon>
@@ -11,12 +12,12 @@
 EsdbActionBar::EsdbActionBar(LoggedInWidget *parent, QString typeName, bool writeEnabled, bool typeEnabled) : QWidget(parent),
 	m_parent(parent),
 	m_writeEnabled(writeEnabled),
-        m_typeEnabled(typeEnabled),
+    m_typeEnabled(typeEnabled),
 	m_typeName(typeName),
-        m_selectedEntry(nullptr),
-        m_buttonWaitDialog(nullptr)
+    m_selectedEntry(nullptr),
+    m_buttonWaitWidget(nullptr)
 {
-	QHBoxLayout *l = new QHBoxLayout();
+    QHBoxLayout *l = new QHBoxLayout();
 	l->setAlignment(Qt::AlignLeft);
 	l->setContentsMargins(0,0,0,0);
 	setLayout(l);
@@ -49,16 +50,12 @@ void EsdbActionBar::deleteEntry()
 	if (entry) {
 		m_parent->selectEntry(nullptr);
 		int id = entry->id;
-		m_buttonWaitDialog = new ButtonWaitDialog("Delete " + m_typeName,
-		                QString("delete " + m_typeName + " \"") + entry->getTitle() + QString("\""),
-		                m_parent);
-		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(deleteEntryFinished(int)));
-		if (m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_DELETE, INTENT_NONE, this)) {
-			if (m_buttonWaitDialog)
-				m_buttonWaitDialog->show();
-		} else {
-			m_buttonWaitDialog->deleteLater();
-			m_buttonWaitDialog = nullptr;
+        QString action = QString("delete " + m_typeName + " \"") + entry->getTitle() + QString("\"");
+        m_buttonWaitWidget = m_parent->beginButtonWait(action, false);
+        connect(m_buttonWaitWidget, SIGNAL(timeout()), this, SLOT(buttonWaitTimeout()));
+        connect(m_buttonWaitWidget, SIGNAL(canceled()), this, SLOT(buttonWaitCanceled()));
+        if (!m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_DELETE, INTENT_NONE, this)) {
+            m_parent->endButtonWait();
 		}
 	}
 }
@@ -67,97 +64,66 @@ void EsdbActionBar::openEntry(esdbEntry *entry)
 {
 	if (entry) {
 		int id = entry->id;
-		m_buttonWaitDialog = new ButtonWaitDialog(
-		        "Open " + m_typeName.toLower(),
-		        "open " + m_typeName.toLower() +  " \"" + entry->getTitle() + "\"",
-		        m_parent);
-		connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(openEntryFinished(int)));
-		if (m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, INTENT_OPEN_ENTRY, this)) {
-			if (m_buttonWaitDialog)
-				m_buttonWaitDialog->show();
-		} else {
-			m_buttonWaitDialog->deleteLater();
-			m_buttonWaitDialog = nullptr;
-		}
-	}
+        QString action = "open " + m_typeName.toLower() +  " \"" + entry->getTitle() + "\"";
+        m_buttonWaitWidget = m_parent->beginButtonWait(action, false);
+        connect(m_buttonWaitWidget, SIGNAL(timeout()), this, SLOT(buttonWaitTimeout()));
+        connect(m_buttonWaitWidget, SIGNAL(canceled()), this, SLOT(buttonWaitCanceled()));
+        if (!m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, INTENT_OPEN_ENTRY, this)) {
+            m_parent->endButtonWait();
+        }
+    }
 }
 
 void EsdbActionBar::accessEntry(esdbEntry *entry, int intent, QString message, bool backgroundApp)
 {
 	QString title = entry->getTitle();
-	m_buttonWaitDialog = new ButtonWaitDialog(title, message, m_parent);
-	connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(accessAccountFinished(int)));
+    m_buttonWaitWidget = m_parent->beginButtonWait(message, false);
+    connect(m_buttonWaitWidget, SIGNAL(timeout()), this, SLOT(buttonWaitTimeout()));
+    connect(m_buttonWaitWidget, SIGNAL(canceled()), this, SLOT(buttonWaitCanceled()));
 	if (m_parent->beginIDTask(entry->id, LoggedInWidget::ID_TASK_READ, intent, this)) {
 #ifndef Q_OS_MACOS
 		if (backgroundApp) {
-			m_buttonWaitDialog->deleteLater();
-			m_buttonWaitDialog = nullptr;
 			background();
-		} else {
-			if (m_buttonWaitDialog)
-				m_buttonWaitDialog->show();
-		}
-#else
-		if (m_buttonWaitDialog)
-			m_buttonWaitDialog->show();
+        }
 #endif
 	} else {
-		m_buttonWaitDialog->deleteLater();
-		m_buttonWaitDialog = nullptr;
+        m_parent->endButtonWait();
 	}
-
 }
 
-void EsdbActionBar::accessAccountFinished(int code)
+void EsdbActionBar::buttonWaitTimeout()
 {
-	if (m_buttonWaitDialog) {
-		m_buttonWaitDialog->deleteLater();
-		m_buttonWaitDialog = nullptr;
-	}
-	if (code != QMessageBox::Ok) {
-		::signetdev_cancel_button_wait();
-	}
-	m_parent->finishTask();
+    m_parent->endButtonWait();
+    m_parent->finishTask();
 }
 
-void EsdbActionBar::openEntryFinished(int code)
+void EsdbActionBar::buttonWaitCanceled()
 {
-	if (m_buttonWaitDialog) {
-		m_buttonWaitDialog->deleteLater();
-		m_buttonWaitDialog = nullptr;
-	}
-	if (code != QMessageBox::Ok) {
-		::signetdev_cancel_button_wait();
-	}
-	m_parent->finishTask();
+    ::signetdev_cancel_button_wait();
+    m_parent->endButtonWait();
+    m_parent->finishTask();
 }
-
 
 void EsdbActionBar::idTaskComplete(bool error, int id, esdbEntry *entry, enum LoggedInWidget::ID_TASK task, int intent)
 {
 	Q_UNUSED(id);
 	if (error) {
-		if (m_buttonWaitDialog)
-			m_buttonWaitDialog->done(QMessageBox::Ok);
-		else
-			m_parent->finishTask();
+        m_parent->endButtonWait();
+        m_parent->finishTask();
 		return;
 	}
 	if (entry && task == LoggedInWidget::ID_TASK_READ) {
-		if (m_buttonWaitDialog)
-			m_buttonWaitDialog->done(QMessageBox::Ok);
-		else
-			m_parent->finishTask();
-		accessEntryComplete(entry, intent);
-	}
-	if (entry && task == LoggedInWidget::ID_TASK_DELETE) {
-		deleteEntryComplete(entry);
-	} else {
-		if (m_buttonWaitDialog)
-			m_buttonWaitDialog->done(QMessageBox::Ok);
-		else
-			m_parent->finishTask();
-	}
+        if (accessEntryComplete(entry, intent)) {
+            m_parent->endButtonWait();
+            m_parent->finishTask();
+        }
+    } else {
+        m_parent->endButtonWait();
+        m_parent->finishTask();
+        if (task == LoggedInWidget::ID_TASK_DELETE) {
+            deleteEntryComplete(entry);
+        }
+    }
 }
 
 void EsdbActionBar::selectEntry(esdbEntry *entry)
@@ -178,16 +144,4 @@ void EsdbActionBar::browseUrl(esdbEntry *entry)
 		}
 		QDesktopServices::openUrl(url);
 	}
-}
-
-void EsdbActionBar::deleteEntryFinished(int code)
-{
-	if (m_buttonWaitDialog) {
-		m_buttonWaitDialog->deleteLater();
-		m_buttonWaitDialog = nullptr;
-	}
-	if (code != QMessageBox::Ok) {
-		::signetdev_cancel_button_wait();
-	}
-	m_parent->finishTask();
 }

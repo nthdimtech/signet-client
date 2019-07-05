@@ -84,6 +84,10 @@ public:
 	{
 		return m_dbFilename;
 	}
+
+	QStackedWidget *loggedInStack() {
+		return m_loggedInStack;
+	}
 private:
 	Database *m_keePassDatabase;
 	QProgressBar *m_wipeProgress;

@@ -12,7 +12,7 @@
 #include <QComboBox>
 
 GenericFieldsEditor::GenericFieldsEditor(QList<fieldSpec> requiredFieldSpecs,
-                QWidget *parent, bool descEdit) :
+        QWidget *parent, bool descEdit) :
 	QWidget(parent),
 	m_requiredFieldSpecs(requiredFieldSpecs),
 	m_descEdit(descEdit)
