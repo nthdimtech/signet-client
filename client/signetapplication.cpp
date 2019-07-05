@@ -53,11 +53,11 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 #else
     QtSingleApplication("signetdev-" + QString(USB_VENDOR_ID) + "-" + QString(USB_SIGNET_DESKTOP_PRODUCT_ID),argc, argv),
 #endif
-    m_signetAsyncListener(nullptr),
-    m_webSocketServer(nullptr)
+    m_signetAsyncListener(nullptr)
 {
 #ifdef WITH_BROWSER_PLUGINS
 	m_nextSocketId = 0;
+    m_webSocketServer = nullptr;
 #endif
 	setStyleSheet("QPushButton {qproperty-iconSize: 32px;}\n QAbstractItemView {qproperty-iconSize: 32px;}");
 	g_singleton = this;

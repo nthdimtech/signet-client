@@ -13,8 +13,8 @@
 
 AccountActionBar::AccountActionBar(LoggedInWidget *parent, bool writeEnabled, bool typeEnabled) :
 	EsdbActionBar(parent, "Account", writeEnabled, typeEnabled),
-        m_loggedInWidget(parent),
-        m_quickTypeState(QUICKTYPE_STATE_INITIAL)
+    m_loggedInWidget(parent),
+    m_quickTypeState(QUICKTYPE_STATE_INITIAL)
 {
 	m_browseUrlButton = addBrowseButton();
 	connect(m_browseUrlButton, SIGNAL(pressed()), this, SLOT(browseUrlUI()));
@@ -240,17 +240,17 @@ void AccountActionBar::accessAccount(account *acct, bool typeData, bool username
 		message.append(acct->acctName);
 	}
 	accessEntry(acct, doTypeData ? INTENT_TYPE_ENTRY : INTENT_COPY_ENTRY,
-	            message, username && password && doTypeData);
+            message, username && password && doTypeData);
 }
 
 bool AccountActionBar::typeAccountData(account *acct)
 {
 	if (QApplication::focusWindow()) {
 		QMessageBox *box = SignetApplication::messageBoxError(
-		                           QMessageBox::Warning,
-		                           "Signet",
-		                           "A destination text area must be selected for typing to start\n\n"
-                                   "Click OK and try again.", this);
+                       QMessageBox::Warning,
+                       "Signet",
+                       "A destination text area must be selected for typing to start\n\n"
+                       "Click OK and try again.", this);
 		connect(box, SIGNAL(finished(int)), this, SLOT(retryTypeData()));
 		m_id = acct->id;
         return false;
@@ -274,9 +274,9 @@ bool AccountActionBar::typeAccountData(account *acct)
 	}
 	if (!::signetdev_can_type_w((u16 *)uKeys.data(), uKeys.length())) {
 		QMessageBox *msg = new QMessageBox(QMessageBox::Warning,
-		                                   "Cannot type data",
-		                                   "Signet cannot type this data. It contains characters not present in your keyboard layout.",
-		                                   QMessageBox::NoButton, this);
+                           "Cannot type data",
+                           "Signet cannot type this data. It contains characters not present in your keyboard layout.",
+                           QMessageBox::NoButton, this);
 		QPushButton *copyData = msg->addButton("Copy data", QMessageBox::AcceptRole);
 		msg->addButton("Cancel", QMessageBox::RejectRole);
 		msg->setWindowModality(Qt::WindowModal);
@@ -291,7 +291,7 @@ bool AccountActionBar::typeAccountData(account *acct)
         return true;
 	} else {
 		::signetdev_type_w(nullptr, &m_signetdevCmdToken,
-		                   (u16 *)uKeys.data(), uKeys.length());
+                   (u16 *)uKeys.data(), uKeys.length());
         return true;
 	}
 }
@@ -327,15 +327,12 @@ bool AccountActionBar::accessEntryComplete(esdbEntry *entry, int intent)
 		ea->show();
         return true;
 	}
-	break;
 	case INTENT_TYPE_ENTRY: {
         return typeAccountData(acct);
 	}
-	break;
 	case INTENT_COPY_ENTRY: {
         return copyAccountData(acct, m_accessUsername, m_accessPassword);
 	}
-	break;
 	}
     return true;
 }

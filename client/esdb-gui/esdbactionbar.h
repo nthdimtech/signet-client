@@ -74,6 +74,7 @@ public:
 	{
 		Q_UNUSED(entry);
 		Q_UNUSED(intent);
+        return true;
 	}
 
 	virtual void deleteEntryComplete(esdbEntry *entry)
