@@ -87,6 +87,7 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	m_fileMenu(nullptr),
 	m_deviceMenu(nullptr),
 	m_loggedInStack(nullptr),
+	m_buttonWaitWidget(nullptr),
 	m_connectingLabel(nullptr),
 	m_loggedIn(false),
 	m_wasConnected(false),
@@ -625,6 +626,14 @@ void MainWindow::backupError()
 void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QByteArray data, QByteArray mask)
 {
 	if (info.token != m_signetdevCmdToken) {
+		return;
+	}
+
+	if (info.resp_code != OKAY) {
+		m_backupFile->remove();
+		delete m_backupFile;
+		m_backupFile = nullptr;
+		enterDeviceState(SignetApplication::STATE_LOGGED_IN);
 		return;
 	}
 
@@ -1956,24 +1965,33 @@ void MainWindow::updateFirmwareUi()
 	}
 }
 
-void MainWindow::beginButtonWait(QString action, bool longPress)
+ButtonWaitWidget * MainWindow::beginButtonWait(QString action, bool longPress)
 {
-	if (m_loggedIn) {
-		ButtonWaitWidget *w = m_loggedInWidget->beginButtonWait(action, longPress);
-		connect(w, SIGNAL(timeout()), this, SLOT(buttonWaitTimeout()));
-		connect(w, SIGNAL(canceled()), this, SLOT(buttonWaitCancel()));
+	if (m_loggedIn && m_buttonWaitWidget == nullptr) {
+		m_buttonWaitWidget = m_loggedInWidget->beginButtonWait(action, longPress);
+		connect(m_buttonWaitWidget, SIGNAL(timeout()), this, SLOT(buttonWaitTimeout()));
+		connect(m_buttonWaitWidget, SIGNAL(canceled()), this, SLOT(buttonWaitCancel()));
+	} else if (m_buttonWaitWidget == nullptr) {
+		QStackedWidget *stack = static_cast<QStackedWidget *>(centralWidget());
+		m_buttonWaitWidget = new ButtonWaitWidget(action, longPress);
+		connect(m_buttonWaitWidget, SIGNAL(timeout()), this, SLOT(buttonWaitTimeout()));
+		connect(m_buttonWaitWidget, SIGNAL(canceled()), this, SLOT(buttonWaitCancel()));
+		int index = stack->addWidget(m_buttonWaitWidget);
+		stack->setCurrentIndex(index);
 	}
+	return m_buttonWaitWidget;
 }
 
 void MainWindow::endButtonWait()
 {
-	if (m_loggedIn) {
+	if (m_loggedIn && m_buttonWaitWidget) {
 		m_loggedInWidget->endButtonWait();
-	} else {
+		m_buttonWaitWidget = nullptr;
+	} else if (m_buttonWaitWidget) {
 		QStackedWidget *stack = static_cast<QStackedWidget *>(centralWidget());
-		QWidget *w = stack->currentWidget();
-		stack->removeWidget(w);
-		w->deleteLater();
+		stack->removeWidget(m_buttonWaitWidget);
+		m_buttonWaitWidget->deleteLater();
+		m_buttonWaitWidget = nullptr;
 	}
 }
 

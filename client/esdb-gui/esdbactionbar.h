@@ -41,7 +41,7 @@ protected:
 	void deleteEntry();
     void openEntry(esdbEntry *entry);
 	void browseUrl(esdbEntry *entry);
-    ButtonWaitWidget *m_buttonWaitWidget;
+	ButtonWaitWidget *m_buttonWaitWidget;
 
 	enum intent {
 		INTENT_NONE,

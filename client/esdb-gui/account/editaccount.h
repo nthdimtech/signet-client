@@ -7,7 +7,6 @@
 
 class QLineEdit;
 class QPushButton;
-class ButtonWaitDialog;
 class QString;
 class CommThread;
 class DatabaseField;

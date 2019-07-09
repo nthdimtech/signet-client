@@ -5,7 +5,6 @@
 
 class LoggedInWidget;
 class QPushButton;
-class ButtonWaitDialog;
 struct account;
 class EditAccount;
 

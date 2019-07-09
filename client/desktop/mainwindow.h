@@ -33,6 +33,7 @@ class MainWindow;
 #include <QString>
 
 class ButtonWaitDialog;
+class ButtonWaitWidget;
 class QFile;
 class LoginWindow;
 class QProgressBar;
@@ -99,6 +100,7 @@ private:
 	QMenu *m_deviceMenu;
 	QStackedWidget *m_loggedInStack;
 	QLabel *m_connectingLabel;
+	ButtonWaitWidget *m_buttonWaitWidget;
 	bool m_loggedIn;
 	QTimer m_connectingTimer;
 	bool m_wasConnected;
@@ -179,6 +181,8 @@ public:
 	{
 		return m_connected;
 	}
+	void endButtonWait();
+	ButtonWaitWidget *beginButtonWait(QString action, bool longPress);
 private slots:
 	void settingDialogFinished(int rc);
 	void restoreError();
@@ -208,8 +212,6 @@ public slots:
 private:
 	QFileDialog *m_openFileDialog;
 	void setCentralStack(QWidget *w);
-	void endButtonWait();
-	void beginButtonWait(QString action, bool longPress);
 public slots:
 	void abort();
 	void quit();

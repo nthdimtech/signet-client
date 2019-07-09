@@ -7,7 +7,6 @@
 #include <QList>
 
 class LoggedInWidget;
-class ButtonWaitDialog;
 class QPushButton;
 
 struct esdbTypeModule;

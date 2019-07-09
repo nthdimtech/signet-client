@@ -17,8 +17,10 @@ extern "C" {
 
 #include "../desktop/mainwindow.h"
 
+#include "buttonwaitwidget.h"
+
 LoginWindow::LoginWindow(QWidget *parent) : QWidget(parent),
-	m_buttonWait(NULL),
+	m_parent(static_cast<MainWindow *>(parent)),
 	m_loggingIn(false),
 	m_preparingLogin(false),
 	m_signetdevCmdToken(-1)
@@ -29,7 +31,7 @@ LoginWindow::LoginWindow(QWidget *parent) : QWidget(parent),
 
 	QObject::connect(m_keyGenerator, SIGNAL(finished()), this, SLOT(keyGenerated()));
 	QObject::connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
-             this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
+			 this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 
 	QLayout *top_layout = new QBoxLayout(QBoxLayout::TopToBottom);
 	QLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight);
@@ -49,10 +51,9 @@ LoginWindow::LoginWindow(QWidget *parent) : QWidget(parent),
 
 	layout->addWidget(password_label);
 	layout->addWidget(m_passwordInput);
-	MainWindow *mw = (MainWindow *) parent;
-	if (mw->getDatabaseFileName().size()) {
+	if (m_parent->getDatabaseFileName().size()) {
 		QLabel *l = new QLabel();
-		l->setText("Database file: " + mw->getDatabaseFileName());
+		l->setText("Database file: " + m_parent->getDatabaseFileName());
 		QFrame *f = new QFrame();
 		f->setFrameStyle(QFrame::HLine);
 		top_layout->addWidget(l);
@@ -87,14 +88,22 @@ void LoginWindow::keyGenerated()
 		if (m_preparingLogin) {
 			m_preparingLogin = false;
 			updateWidgetState();
-			m_buttonWait = new ButtonWaitDialog("Unlock","unlock", this);
-			connect(m_buttonWait, SIGNAL(finished(int)), this, SLOT(loginFinished(int)));
-			m_buttonWait->show();
+			ButtonWaitWidget *w = m_parent->beginButtonWait("unlock device", false);
+			connect(w, SIGNAL(timeout()), this, SLOT(buttonWaitFinished()));
+			connect(w, SIGNAL(canceled()), this, SLOT(buttonWaitFinished()));
 			::signetdev_login(NULL, &m_signetdevCmdToken,
 					  (u8 *)m_keyGenerator->getKey().data(),
 					  m_keyGenerator->getKey().length(), 0);
 		}
 	}
+}
+
+void LoginWindow::buttonWaitFinished()
+{
+	m_loggingIn = false;
+	m_preparingLogin = false;
+	m_passwordInput->setText("");
+	updateWidgetState();
 }
 
 void LoginWindow::updateWidgetState()
@@ -132,31 +141,20 @@ void LoginWindow::doLogin()
 	m_keyGenerator->start();
 }
 
-void LoginWindow::loginFinished(int code)
-{
-	if (code != QMessageBox::Ok) {
-		::signetdev_cancel_button_wait();
-		m_loggingIn = false;
-		m_preparingLogin = false;
-		updateWidgetState();
-	}
-	m_buttonWait->deleteLater();
-	m_buttonWait = NULL;
-}
-
 void LoginWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 {
 	if (info.token != m_signetdevCmdToken) {
 		return;
 	}
 	m_signetdevCmdToken = -1;
+
 	int resp_code = info.resp_code;
+
+	m_parent->endButtonWait();
 
 	m_loggingIn = false;
 	m_preparingLogin = false;
 	updateWidgetState();
-	if (m_buttonWait)
-		m_buttonWait->done(QMessageBox::Ok);
 
 	switch (resp_code) {
 	case OKAY:
@@ -169,6 +167,8 @@ void LoginWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 		break;
 	case BUTTON_PRESS_CANCELED:
 	case BUTTON_PRESS_TIMEOUT:
+		m_passwordInput->setText("");
+		break;
 	case SIGNET_ERROR_DISCONNECT:
 	case SIGNET_ERROR_QUIT:
 		break;

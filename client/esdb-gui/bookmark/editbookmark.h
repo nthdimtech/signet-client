@@ -4,7 +4,6 @@
 #include "editentrydialog.h"
 
 class DatabaseField;
-class ButtonWaitDialog;
 class QLineEdit;
 
 

@@ -7,19 +7,19 @@
 
 class QLabel;
 class QLineEdit;
-class ButtonWaitDialog;
 class CommThread;
 class QPushButton;
 class KeyGeneratorThread;
+class MainWindow;
 
 struct signetdevCmdRespInfo;
 
 class LoginWindow : public QWidget
 {
 	Q_OBJECT
+        MainWindow *m_parent;
 	QLineEdit *m_passwordInput;
 	QLabel *m_incorrectPassword;
-	ButtonWaitDialog *m_buttonWait;
 	QPushButton *m_loginButton;
 	KeyGeneratorThread *m_keyGenerator;
 	QLabel *m_preparingLabel;
@@ -38,9 +38,10 @@ signals:
 public slots:
 	void signetdevCmdResp(signetdevCmdRespInfo info);
 	void keyGenerated();
-	void loginFinished(int);
 	void doLogin(void);
-	void passwordTextEdited(QString);
+        void passwordTextEdited(QString);
+private slots:
+        void buttonWaitFinished();
 };
 
 #endif // LOGINWINDOW_H
