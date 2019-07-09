@@ -19,7 +19,6 @@ class QDialog;
 class EsdbModel;
 class QListView;
 class QLineEdit;
-class ButtonWaitDialog;
 class QGroupBox;
 class QComboBox;
 class QFrame;
@@ -54,20 +53,20 @@ struct iconAccount {
 	QString iconName;
 	QUrl urlObj;
 	iconAccount(const QString &_name,
-	            const QString &_url,
-	            const QString &_icon_name) :
-	        name(_name),
-	        url(_url),
-	        iconName(_icon_name),
-	        urlObj(_url)
+                    const QString &_url,
+                    const QString &_icon_name) :
+                name(_name),
+                url(_url),
+                iconName(_icon_name),
+                urlObj(_url)
 	{
 
 	}
 	iconAccount(const QString &_name) :
-	        name(_name),
-	        url(_name),
-	        iconName(_name),
-	        urlObj(_name)
+                name(_name),
+                url(_name),
+                iconName(_name),
+                urlObj(_name)
 	{
 		url.append(".com");
 		iconName.append(".png");
@@ -224,10 +223,9 @@ public slots:
 private slots:
 #ifdef WITH_BROWSER_PLUGINS
 	void websocketMessage(int socketId, QString message);
-	void readEntryFinished(int code);
 #endif
 private:
-	ButtonWaitDialog *m_buttonWaitDialog;
+        ButtonWaitWidget *m_buttonWaitWidget;
 	int m_socketId;
 	QStringList m_requestedFields;
 	bool m_backgroundAfterTask;

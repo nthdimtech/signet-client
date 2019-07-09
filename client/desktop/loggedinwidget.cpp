@@ -134,7 +134,7 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	m_signetdevCmdToken(-1),
 	m_id(-1),
 	m_idTask(ID_TASK_NONE),
-	m_buttonWaitDialog(nullptr)
+	m_buttonWaitWidget(nullptr)
 {
 	m_genericIcon = QIcon(":images/generic-entry.png");
 	m_icon_accounts.append(
@@ -351,17 +351,21 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 
 ButtonWaitWidget *LoggedInWidget::beginButtonWait(QString action, bool longPress)
 {
-	ButtonWaitWidget *w = new ButtonWaitWidget(action, longPress);
-	int idx = m_mainWindow->loggedInStack()->addWidget(w);
-	m_mainWindow->loggedInStack()->setCurrentIndex(idx);
-	return w;
+	if (m_buttonWaitWidget == nullptr) {
+		m_buttonWaitWidget = new ButtonWaitWidget(action, longPress);
+		int idx = m_mainWindow->loggedInStack()->addWidget(m_buttonWaitWidget);
+		m_mainWindow->loggedInStack()->setCurrentIndex(idx);
+	}
+	return m_buttonWaitWidget;
 }
 
 void LoggedInWidget::endButtonWait()
 {
-	QWidget *w = m_mainWindow->loggedInStack()->currentWidget();
-	m_mainWindow->loggedInStack()->removeWidget(w);
-	w->deleteLater();
+	if (m_buttonWaitWidget != nullptr) {
+		m_mainWindow->loggedInStack()->removeWidget(m_buttonWaitWidget);
+		m_buttonWaitWidget->deleteLater();
+		m_buttonWaitWidget = nullptr;
+	}
 }
 
 void LoggedInWidget::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int uid, QByteArray data, QByteArray mask)
@@ -626,11 +630,7 @@ void LoggedInWidget::websocketRequestFields(int socketId, const QString &path, c
 			}
 			m_requestedFields = requestedFields;
 			m_socketId = socketId;
-			m_buttonWaitDialog = new ButtonWaitDialog("Reading entry",
-					QString("Read entry ") +  QString("\"") + matchingEntry->getTitle() + QString("\""),
-					this);
-			connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(readEntryFinished(int)));
-			m_buttonWaitDialog->show();
+			beginButtonWait(QString("Read entry ") +  QString("\"") + matchingEntry->getTitle() + QString("\""), false);
 		}
 	}
 }
@@ -665,22 +665,9 @@ void LoggedInWidget::websocketMessage(int socketId, QString message)
 
 }
 
-void LoggedInWidget::readEntryFinished(int code)
-{
-	if (m_buttonWaitDialog) {
-		m_buttonWaitDialog->deleteLater();
-		m_buttonWaitDialog = nullptr;
-	}
-	if (code != QMessageBox::Ok) {
-		::signetdev_cancel_button_wait();
-		m_idTask = ID_TASK_NONE;
-	}
-}
-
 void LoggedInWidget::idTaskComplete(bool error, int id, esdbEntry *entry, enum ID_TASK task, int intent)
 {
-	if (m_buttonWaitDialog)
-		m_buttonWaitDialog->done(QMessageBox::Ok);
+	endButtonWait();
 
 	if (!error && task == ID_TASK_READ && entry && intent == 0 /* TODO: magic number */) {
 		QVector<genericField> fields;
