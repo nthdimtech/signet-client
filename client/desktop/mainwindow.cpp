@@ -630,6 +630,7 @@ void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QBy
 	}
 
 	if (info.resp_code != OKAY) {
+		endButtonWait();
 		m_backupFile->remove();
 		delete m_backupFile;
 		m_backupFile = nullptr;

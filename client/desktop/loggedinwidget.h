@@ -195,6 +195,9 @@ public:
 	QList<esdbTypeModule *> getTypeModules();
 	const QMap<int, esdbEntry *> *typeNameToEntryMap(QString name);
 	void getCurrentGroups(QString typeName, QStringList &groups);
+        ButtonWaitWidget *getButtonWaitWidget() const {
+            return m_buttonWaitWidget;
+        }
 signals:
 	void abort();
 	void enterDeviceState(int);

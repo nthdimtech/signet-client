@@ -345,7 +345,8 @@ void AccountActionBar::entryCreated(esdbEntry *entry)
 void AccountActionBar::retryTypeData()
 {
 	if (m_parent->beginIDTask(selectedEntry()->id, LoggedInWidget::ID_TASK_READ, INTENT_TYPE_ENTRY, this)) {
-        m_buttonWaitWidget->resetTimeout();
+		ButtonWaitWidget *buttonWaitWidget = m_parent->getButtonWaitWidget();
+		buttonWaitWidget->resetTimeout();
 	} else {
         m_parent->endButtonWait();
         m_parent->finishTask();
