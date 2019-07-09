@@ -1307,7 +1307,7 @@ void MainWindow::loadSettings()
 		(!prompt.isValid() ||
 		 (prompt.daysTo(current) > 30))) {
 		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Client update check",
-						   "This client is more than 30 days old. Check for a new version?",
+						   "This client is more than " + QString::number(app->releasePeriod()) + " days old. Check for a new version?",
 						   QMessageBox::No | QMessageBox::Yes,
 						   this);
 		int rc = box->exec();
