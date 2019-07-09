@@ -14,8 +14,7 @@ EsdbActionBar::EsdbActionBar(LoggedInWidget *parent, QString typeName, bool writ
 	m_writeEnabled(writeEnabled),
     m_typeEnabled(typeEnabled),
 	m_typeName(typeName),
-    m_selectedEntry(nullptr),
-    m_buttonWaitWidget(nullptr)
+	m_selectedEntry(nullptr)
 {
     QHBoxLayout *l = new QHBoxLayout();
 	l->setAlignment(Qt::AlignLeft);
@@ -51,9 +50,9 @@ void EsdbActionBar::deleteEntry()
 		m_parent->selectEntry(nullptr);
 		int id = entry->id;
         QString action = QString("delete " + m_typeName + " \"") + entry->getTitle() + QString("\"");
-        m_buttonWaitWidget = m_parent->beginButtonWait(action, false);
-        connect(m_buttonWaitWidget, SIGNAL(timeout()), this, SLOT(buttonWaitTimeout()));
-        connect(m_buttonWaitWidget, SIGNAL(canceled()), this, SLOT(buttonWaitCanceled()));
+		ButtonWaitWidget *buttonWaitWidget = m_parent->beginButtonWait(action, false);
+		connect(buttonWaitWidget, SIGNAL(timeout()), this, SLOT(buttonWaitTimeout()));
+		connect(buttonWaitWidget, SIGNAL(canceled()), this, SLOT(buttonWaitCanceled()));
         if (!m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_DELETE, INTENT_NONE, this)) {
             m_parent->endButtonWait();
 		}
@@ -65,9 +64,9 @@ void EsdbActionBar::openEntry(esdbEntry *entry)
 	if (entry) {
 		int id = entry->id;
         QString action = "open " + m_typeName.toLower() +  " \"" + entry->getTitle() + "\"";
-        m_buttonWaitWidget = m_parent->beginButtonWait(action, false);
-        connect(m_buttonWaitWidget, SIGNAL(timeout()), this, SLOT(buttonWaitTimeout()));
-        connect(m_buttonWaitWidget, SIGNAL(canceled()), this, SLOT(buttonWaitCanceled()));
+		ButtonWaitWidget *buttonWaitWidget = m_parent->beginButtonWait(action, false);
+		connect(buttonWaitWidget, SIGNAL(timeout()), this, SLOT(buttonWaitTimeout()));
+		connect(buttonWaitWidget, SIGNAL(canceled()), this, SLOT(buttonWaitCanceled()));
         if (!m_parent->beginIDTask(id, LoggedInWidget::ID_TASK_READ, INTENT_OPEN_ENTRY, this)) {
             m_parent->endButtonWait();
         }
@@ -77,9 +76,9 @@ void EsdbActionBar::openEntry(esdbEntry *entry)
 void EsdbActionBar::accessEntry(esdbEntry *entry, int intent, QString message, bool backgroundApp)
 {
 	QString title = entry->getTitle();
-    m_buttonWaitWidget = m_parent->beginButtonWait(message, false);
-    connect(m_buttonWaitWidget, SIGNAL(timeout()), this, SLOT(buttonWaitTimeout()));
-    connect(m_buttonWaitWidget, SIGNAL(canceled()), this, SLOT(buttonWaitCanceled()));
+	ButtonWaitWidget *buttonWaitWidget = m_parent->beginButtonWait(message, false);
+	connect(buttonWaitWidget, SIGNAL(timeout()), this, SLOT(buttonWaitTimeout()));
+	connect(buttonWaitWidget, SIGNAL(canceled()), this, SLOT(buttonWaitCanceled()));
 	if (m_parent->beginIDTask(entry->id, LoggedInWidget::ID_TASK_READ, intent, this)) {
 #ifndef Q_OS_MACOS
 		if (backgroundApp) {
