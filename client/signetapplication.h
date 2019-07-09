@@ -138,7 +138,7 @@ public:
 
 	static int releasePeriod()
 	{
-		return 90;
+		return 60;
 	}
 
 	void getClientVersion(int &major, int &minor, int &step, int &subStep)
