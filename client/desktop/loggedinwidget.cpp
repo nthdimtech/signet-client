@@ -133,78 +133,78 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 	m_accountGroup(nullptr),
 	m_signetdevCmdToken(-1),
 	m_id(-1),
-    m_idTask(ID_TASK_NONE),
-    m_buttonWaitDialog(nullptr)
+	m_idTask(ID_TASK_NONE),
+	m_buttonWaitDialog(nullptr)
 {
 	m_genericIcon = QIcon(":images/generic-entry.png");
 	m_icon_accounts.append(
-        iconAccount("facebook")
+		iconAccount("facebook")
 	);
 	m_icon_accounts.append(
-        iconAccount("kickstarter")
+		iconAccount("kickstarter")
 	);
 	m_icon_accounts.append(
-        iconAccount("twitter")
+		iconAccount("twitter")
 	);
 	m_icon_accounts.append(
-        iconAccount("linkedin")
+		iconAccount("linkedin")
 	);
 	m_icon_accounts.append(
-        iconAccount("patreon")
+		iconAccount("patreon")
 	);
 	m_icon_accounts.append(
-        iconAccount("gmail")
+		iconAccount("gmail")
 	);
 	m_icon_accounts.append(
-        iconAccount("github")
+		iconAccount("github")
 	);
 	m_icon_accounts.append(
-        iconAccount("paypal")
+		iconAccount("paypal")
 	);
 	m_icon_accounts.append(
-        iconAccount("apple")
+		iconAccount("apple")
 	);
 	m_icon_accounts.append(
-        iconAccount("macrofab")
+		iconAccount("macrofab")
 	);
 	m_icon_accounts.append(
-        iconAccount("fandango")
+		iconAccount("fandango")
 	);
 	m_icon_accounts.append(
-        iconAccount("indiegogo")
+		iconAccount("indiegogo")
 	);
 	m_icon_accounts.append(
-        iconAccount("slack")
+		iconAccount("slack")
 	);
 	m_icon_accounts.append(
-        iconAccount("qt","qt.io","qt.png")
+		iconAccount("qt","qt.io","qt.png")
 	);
 	m_icon_accounts.append(
-        iconAccount("instagram")
+		iconAccount("instagram")
 	);
 	m_icon_accounts.append(
-        iconAccount("Crowd Supply", "crowdsupply.com", "crowdsupply.png")
+		iconAccount("Crowd Supply", "crowdsupply.com", "crowdsupply.png")
 	);
 	m_icon_accounts.append(
-        iconAccount("chase","chase.com", "chase_bank.png")
+		iconAccount("chase","chase.com", "chase_bank.png")
 	);
 	m_icon_accounts.append(
-        iconAccount("dropbox")
+		iconAccount("dropbox")
 	);
 	m_icon_accounts.append(
-        iconAccount("tumblr")
+		iconAccount("tumblr")
 	);
 	m_icon_accounts.append(
-        iconAccount("steam")
+		iconAccount("steam")
 	);
 	m_icon_accounts.append(
-        iconAccount("amazon")
+		iconAccount("amazon")
 	);
 	m_icon_accounts.append(
-        iconAccount("microsoft")
+		iconAccount("microsoft")
 	);
 	m_icon_accounts.append(
-        iconAccount("reddit")
+		iconAccount("reddit")
 	);
 
 	m_activeTypeIndex = 0;
@@ -354,14 +354,14 @@ ButtonWaitWidget *LoggedInWidget::beginButtonWait(QString action, bool longPress
 	ButtonWaitWidget *w = new ButtonWaitWidget(action, longPress);
 	int idx = m_mainWindow->loggedInStack()->addWidget(w);
 	m_mainWindow->loggedInStack()->setCurrentIndex(idx);
-    return w;
+	return w;
 }
 
 void LoggedInWidget::endButtonWait()
 {
-    QWidget *w = m_mainWindow->loggedInStack()->currentWidget();
-    m_mainWindow->loggedInStack()->removeWidget(w);
-    w->deleteLater();
+	QWidget *w = m_mainWindow->loggedInStack()->currentWidget();
+	m_mainWindow->loggedInStack()->removeWidget(w);
+	w->deleteLater();
 }
 
 void LoggedInWidget::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int uid, QByteArray data, QByteArray mask)
@@ -627,8 +627,8 @@ void LoggedInWidget::websocketRequestFields(int socketId, const QString &path, c
 			m_requestedFields = requestedFields;
 			m_socketId = socketId;
 			m_buttonWaitDialog = new ButtonWaitDialog("Reading entry",
-                    QString("Read entry ") +  QString("\"") + matchingEntry->getTitle() + QString("\""),
-                    this);
+					QString("Read entry ") +  QString("\"") + matchingEntry->getTitle() + QString("\""),
+					this);
 			connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(readEntryFinished(int)));
 			m_buttonWaitDialog->show();
 		}
@@ -794,7 +794,7 @@ void LoggedInWidget::signetdevCmdResp(signetdevCmdRespInfo info)
 			EsdbActionBar *bar = getActiveActionBar();
 			enum ID_TASK task = m_idTask;
 			m_idTask = ID_TASK_NONE;
-            bar->idTaskComplete(false, m_id, nullptr, task, m_taskIntent);
+			bar->idTaskComplete(false, m_id, nullptr, task, m_taskIntent);
 			if (code == OKAY) {
 				auto iter = m_entries.find(m_id);
 				if (m_activeType->module == m_genericTypeModule) {
@@ -1211,9 +1211,9 @@ void LoggedInWidget::newEntryUI()
 	int id = getUnusedId();
 	if (id < 0) {
 		SignetApplication::messageBoxError(QMessageBox::Warning,
-                           "Account creation failed",
-                           "No space left on device",
-                           this);
+						   "Account creation failed",
+						   "No space left on device",
+						   this);
 		return;
 	}
 	QString entryName;

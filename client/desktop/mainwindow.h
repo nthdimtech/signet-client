@@ -85,7 +85,8 @@ public:
 		return m_dbFilename;
 	}
 
-	QStackedWidget *loggedInStack() {
+	QStackedWidget *loggedInStack()
+	{
 		return m_loggedInStack;
 	}
 private:
@@ -151,7 +152,6 @@ private:
 	QAction *m_eraseDeviceAction;
 	QAction *m_changePasswordAction;
 	QAction *m_updateFirmwareAction;
-	ButtonWaitDialog *m_buttonWaitDialog;
 	QMessageBox *m_wipeDeviceDialog;
 	int m_signetdevCmdToken;
 	bool m_startedExport;
@@ -203,12 +203,16 @@ public slots:
 	void connectionError();
 	void messageReceived(QString);
 	void open();
+	void buttonWaitTimeout();
+	void buttonWaitCancel();
 private:
 	QFileDialog *m_openFileDialog;
+	void setCentralStack(QWidget *w);
+	void endButtonWait();
+	void beginButtonWait(QString action, bool longPress);
 public slots:
 	void abort();
 	void quit();
-	void operationFinished(int);
 	void enterDeviceState(int);
 	void openUi();
 	void logoutUi();
