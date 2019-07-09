@@ -937,7 +937,9 @@ void MainWindow::saveSettings()
 	obj.insert("lastRemoveableBackup", QJsonValue(m_settings.lastRemoveableBackup.toString()));
 	obj.insert("lastUpdatePrompt", QJsonValue(m_settings.lastUpdatePrompt.toString()));
 	obj.insert("activeKeyboardLayout", QJsonValue(m_settings.activeKeyboardLayout));
+#ifndef Q_OS_MACOS
 	obj.insert("minimizeToTray", QJsonValue(m_settings.minimizeToTray));
+#endif
 	obj.insert("windowGeometry", QJsonValue(QLatin1String(m_settings.windowGeometry.toBase64())));
 
 	QJsonObject keyboardLayouts;
@@ -1210,12 +1212,16 @@ void MainWindow::loadSettings()
 		m_settings.lastUpdatePrompt = QDateTime();
 	}
 
+#ifdef Q_OS_MACOS
+	m_settings.minimizeToTray = false;
+#else
 	QJsonValue minimizeToTray = obj.value("minimizeToTray");
 	if (minimizeToTray.isBool()) {
 		m_settings.minimizeToTray = minimizeToTray.toBool();
 	} else {
 		m_settings.minimizeToTray = false;
 	}
+#endif
 
 	QJsonValue activeKeyboardLayout = obj.value("activeKeyboardLayout");
 	if (activeKeyboardLayout.isString()) {

@@ -103,8 +103,10 @@ SettingsDialog::SettingsDialog(MainWindow *mainWindow, bool initial) :
 		m_keyboardLayoutUnconfiguredWarning->hide();
 	}
 
+#ifndef Q_OS_MACOS
 	m_minimizeToTray = new QCheckBox("&Minimize window to system tray");
 	m_minimizeToTray->setChecked(m_settings->minimizeToTray);
+#endif
 
     m_browserPluginSupport = new QCheckBox("Enable browser plugin support");
     m_browserPluginSupport->setChecked(m_settings->browserPluginSupport);
@@ -120,7 +122,9 @@ SettingsDialog::SettingsDialog(MainWindow *mainWindow, bool initial) :
 	topLayout->addLayout(removableBackupIntervalLayout);
 	topLayout->addWidget(m_keyboardLayoutUnconfiguredWarning);
 	topLayout->addLayout(keyboardLayoutConfigurationLayout);
+#ifndef Q_OS_MACOS
 	topLayout->addWidget(m_minimizeToTray);
+#endif
     topLayout->addWidget(m_browserPluginSupport);
 	topLayout->addLayout(buttonLayout);
 	setLayout(topLayout);
