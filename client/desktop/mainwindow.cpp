@@ -1704,6 +1704,10 @@ void MainWindow::enterDeviceState(int state)
 		m_logoutAction->setDisabled(false);
 		m_deviceMenu->setDisabled(false);
 		m_fileMenu->setDisabled(false);
+		m_restoreAction->setVisible(false);
+		m_wipeDeviceAction->setVisible(false);
+		m_eraseDeviceAction->setVisible(false);
+		m_loggedInStack->setCurrentIndex(0);
 
 		if (!databaseFile) {
 			autoBackupCheck();
@@ -1719,10 +1723,6 @@ void MainWindow::enterDeviceState(int state)
 				m_passwordSlots->setVisible(true);
 			}
 		}
-		m_restoreAction->setVisible(false);
-		m_wipeDeviceAction->setVisible(false);
-		m_eraseDeviceAction->setVisible(false);
-		m_loggedInStack->setCurrentIndex(0);
 	}
 	break;
 	default:
