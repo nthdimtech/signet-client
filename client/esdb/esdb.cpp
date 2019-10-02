@@ -13,6 +13,11 @@ void block::beginWrite()
 	data.resize(0);
 }
 
+size_t block::dataRemaining() const
+{
+	return data.size() - index;
+}
+
 void block::output_bytes_needed(int n)
 {
 	int mask_bytes_needed = (n + 7) / 8;

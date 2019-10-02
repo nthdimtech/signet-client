@@ -44,6 +44,7 @@ struct block {
 	{
 		index = 0;
 	}
+	size_t dataRemaining() const;
 };
 
 struct esdbEntry_1 {

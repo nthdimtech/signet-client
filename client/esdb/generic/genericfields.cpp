@@ -32,6 +32,9 @@ void genericFields_2::fromBlock(block *blk)
 
 void genericFields::fromBlock(block *blk)
 {
+	if (!blk->dataRemaining()) {
+		return;
+	}
 	u8 numFields = blk->readU8();
 	m_fields.clear();
 	for (int i = 0; i < numFields; i++) {
