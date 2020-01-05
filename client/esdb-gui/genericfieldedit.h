@@ -49,7 +49,7 @@ public:
 
 	QString displayName() const
 	{
-		if (m_name[0] == '.') {
+		if (m_name.size() > 0 && m_name[0] == '.') {
 			QString nameCpy = m_name;
 			return nameCpy.remove(0,1);
 		} else {
@@ -59,7 +59,7 @@ public:
 
 	bool isSecretField() const
 	{
-		return (m_name[0] == '.');
+		return (m_name.size() >0 && m_name[0] == '.');
 	}
 
 	virtual void fromString(const QString &s) = 0;
