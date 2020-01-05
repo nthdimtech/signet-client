@@ -77,6 +77,8 @@ extern "C" {
 #include "generictypedesc.h"
 #include "esdb/generictype/esdbgenerictypemodule.h"
 
+#define SIGNET_DB_EXTENSION ".sdbhc"
+
 MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	QMainWindow(parent),
 	m_dbFilename(dbFilename),
@@ -880,10 +882,12 @@ void MainWindow::logoutUi()
 
 void MainWindow::open()
 {
+	/*
 	show();
 	setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
 	raise();
 	activateWindow();
+	*/
 }
 
 void MainWindow::buttonWaitTimeout()
@@ -970,7 +974,7 @@ void MainWindow::saveSettings()
 QString MainWindow::backupFileBaseName()
 {
 	QDateTime currentTime = QDateTime::currentDateTime();
-	return "signet-" +
+	return "signet-hc-" +
 	       QString::number(currentTime.date().year()) + "-" +
 	       QString("%1").arg(QString::number(currentTime.date().month()), 2, '0') + "-" +
 	       QString("%1").arg(QString::number(currentTime.date().day()), 2, '0');
@@ -980,7 +984,7 @@ void MainWindow::autoBackupCheck()
 {
 	QDateTime currentTime = QDateTime::currentDateTime();
 	if (m_settings.localBackups) {
-		QString backupFileName = m_settings.localBackupPath + "/" + backupFileBaseName() + ".sdb";
+		QString backupFileName = m_settings.localBackupPath + "/" + backupFileBaseName() + SIGNET_DB_EXTENSION;
 		QDir backupPath(m_settings.localBackupPath);
 		if (!backupPath.exists()) {
 			QString dirName = backupPath.dirName();
@@ -991,7 +995,7 @@ void MainWindow::autoBackupCheck()
 		}
 		if (backupPath.exists()) {
 			QStringList nameFilters;
-			nameFilters.push_back("*.sdb");
+			nameFilters.push_back(SIGNET_DB_EXTENSION);
 			QFileInfoList files = backupPath.entryInfoList(nameFilters, QDir::Files, QDir::Time);
 			bool needToCreate = false;
 			if (files.size()) {
@@ -1072,7 +1076,7 @@ void MainWindow::backupDatabasePromptDialogFinished(int rc)
 				QString backupFileName = backupPath + "/" +
 							 QString::number(currentTime.date().year()) + "-" +
 							 QString::number(currentTime.date().month()) + "-" +
-							 QString::number(currentTime.date().day()) + ".sdb";
+							 QString::number(currentTime.date().day()) + SIGNET_DB_EXTENSION;
 				QDir backupPathDir(backupPath);
 				if (!backupPathDir.exists()) {
 					QString dirName = backupPathDir.dirName();
@@ -1749,13 +1753,13 @@ void MainWindow::openUi()
 	QDir backupPath(m_settings.localBackupPath);
 	if (backupPath.exists()) {
 		QStringList nameFilters;
-		nameFilters.push_back("*.sdb");
+		nameFilters.push_back(SIGNET_DB_EXTENSION);
 		QFileInfoList files = backupPath.entryInfoList(nameFilters, QDir::Files, QDir::Time);
 		if (files.size()) {
 			fd->selectFile(files.first().fileName());
 		}
 	}
-	filters.append("*.sdb");
+	filters.append(SIGNET_DB_EXTENSION);
 	filters.append("*");
 	fd->setNameFilters(filters);
 	fd->setFileMode(QFileDialog::AnyFile);
@@ -1852,9 +1856,7 @@ void MainWindow::resetTimer()
 	m_wasConnected = false;
 	int rc = ::signetdev_open_connection();
 	if (rc == 0) {
-		::signetdev_startup(
-
-			nullptr, &m_signetdevCmdToken);
+		::signetdev_startup(nullptr, &m_signetdevCmdToken);
 	}
 }
 
@@ -2047,7 +2049,7 @@ void MainWindow::aboutUi()
 
 void MainWindow::backupDeviceUi()
 {
-	QString backupFileName = m_settings.localBackupPath + "/" + backupFileBaseName() + ".sdb";
+	QString backupFileName = m_settings.localBackupPath + "/" + backupFileBaseName() + SIGNET_DB_EXTENSION;
 	QDir backupPath(m_settings.localBackupPath);
 	if (!backupPath.exists()) {
 		QString dirName = backupPath.dirName();
