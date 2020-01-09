@@ -104,6 +104,8 @@ private:
 	bool m_loggedIn;
 	QTimer m_connectingTimer;
 	bool m_wasConnected;
+	struct hc_firmware_file_header *m_NewFirmwareHeader;
+	struct hc_firmware_file_body *m_NewFirmwareBody;
 
 	keePassImportController *m_keePassImportController;
 
@@ -212,6 +214,11 @@ public slots:
 private:
 	QFileDialog *m_openFileDialog;
 	void setCentralStack(QWidget *w);
+	void updateFirmwareHC(QByteArray &datum);
+	void updateFirmware(QByteArray &datum);
+	void firmwareFileInvalidMsg();
+	void sendFirmwareWriteCmdHC();
+	int firmwareSizeHC();
 public slots:
 	void abort();
 	void quit();

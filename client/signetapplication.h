@@ -37,6 +37,7 @@ struct signetdevCmdRespInfo {
 
 extern "C" {
 #include "signetdev/host/signetdev.h"
+#include "signetdev/common/signetdev_hc_common.h"
 }
 
 #include "systemtray.h"
@@ -101,6 +102,7 @@ private:
 	int m_fwVersionMaj;
 	int m_fwVersionMin;
 	int m_fwVersionStep;
+	enum hc_boot_mode m_bootMode;
 	SignetAsyncListener *m_signetAsyncListener;
 public:
 #ifdef Q_OS_ANDROID
@@ -213,6 +215,16 @@ public:
 	void setSaltLength(int saltLength)
 	{
 		m_saltLength = saltLength;
+	}
+
+	void setBootMode(enum hc_boot_mode mode)
+	{
+		m_bootMode = mode;
+	}
+
+	enum hc_boot_mode getBootMode()
+	{
+		return m_bootMode;
 	}
 
 	void setDBFormat(int DBFormat)

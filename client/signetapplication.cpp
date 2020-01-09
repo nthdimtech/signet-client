@@ -53,7 +53,8 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 #else
     QtSingleApplication("signetdev-" + QString(USB_VENDOR_ID) + "-" + QString(USB_SIGNET_DESKTOP_PRODUCT_ID),argc, argv),
 #endif
-    m_signetAsyncListener(nullptr)
+	m_signetAsyncListener(nullptr),
+	m_bootMode(HC_BOOT_UNKNOWN_MODE)
 {
 #ifdef WITH_BROWSER_PLUGINS
 	m_nextSocketId = 0;
