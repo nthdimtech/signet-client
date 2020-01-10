@@ -1991,8 +1991,8 @@ void MainWindow::updateFirmwareHC(QByteArray &datum)
 	memcpy(m_NewFirmwareHeader, datum.data(), sizeof (*m_NewFirmwareHeader));
 	memcpy(m_NewFirmwareBody, datum.data() + header->header_size, sizeof (*m_NewFirmwareBody));
 
-	u32 A_crc = crc32(0, m_NewFirmwareBody->firmware_A, m_NewFirmwareHeader->A_len);
-	u32 B_crc = crc32(0, m_NewFirmwareBody->firmware_B, m_NewFirmwareHeader->B_len);
+	u32 A_crc = crc32(0, m_NewFirmwareBody->firmware_A, sizeof(m_NewFirmwareBody->firmware_A));
+	u32 B_crc = crc32(0, m_NewFirmwareBody->firmware_B, sizeof(m_NewFirmwareBody->firmware_B));
 	if (A_crc != m_NewFirmwareHeader->A_crc || B_crc != m_NewFirmwareHeader->B_crc) {
 		delete m_NewFirmwareBody;
 		delete m_NewFirmwareHeader;
