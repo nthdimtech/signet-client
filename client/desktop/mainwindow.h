@@ -219,6 +219,8 @@ private:
 	void firmwareFileInvalidMsg();
 	void sendFirmwareWriteCmdHC();
 	int firmwareSizeHC();
+	void createFirmwareUpdateWidget();
+	void updateFirmwareHCIter(bool buttonWait);
 public slots:
 	void abort();
 	void quit();

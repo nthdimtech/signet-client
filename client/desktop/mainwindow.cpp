@@ -811,6 +811,15 @@ void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, signetdev_start
 		case UNINITIALIZED:
 			enterDeviceState(SignetApplication::STATE_UNINITIALIZED);
 			break;
+		case BOOTLOADER:
+			if (m_NewFirmwareBody && m_NewFirmwareHeader) {
+				updateFirmwareHCIter(false);
+			} else {
+				auto box = app->messageBoxError(QMessageBox::Warning, "Firmware upgrade incomplete", "A previous firmware upgrade process was interrupted. Select a new firmware file to proceed.", this);
+				box->exec();
+				//TODO
+			}
+			break;
 		}
 		break;
 	case BUTTON_PRESS_CANCELED:
@@ -1443,6 +1452,18 @@ void MainWindow::setCentralStack(QWidget *w)
 	setCentralWidget(stack);
 }
 
+void MainWindow::createFirmwareUpdateWidget()
+{
+	m_firmwareUpdateWidget = new QWidget();
+	QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
+	layout->setAlignment(Qt::AlignTop);
+	m_firmwareUpdateProgress = new QProgressBar();
+	m_firmwareUpdateStage = new QLabel("Erasing firmware pages...");
+	layout->addWidget(m_firmwareUpdateStage);
+	layout->addWidget(m_firmwareUpdateProgress);
+	m_firmwareUpdateWidget->setLayout(layout);
+}
+
 void MainWindow::enterDeviceState(int state)
 {
 	bool databaseFile = m_dbFilename.size();
@@ -1626,14 +1647,8 @@ void MainWindow::enterDeviceState(int state)
 	}
 	break;
 	case SignetApplication::STATE_UPDATING_FIRMWARE: {
-		m_firmwareUpdateWidget = new QWidget();
-		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
-		layout->setAlignment(Qt::AlignTop);
-		m_firmwareUpdateProgress = new QProgressBar();
-		m_firmwareUpdateStage = new QLabel("Erasing firmware pages...");
-		layout->addWidget(m_firmwareUpdateStage);
-		layout->addWidget(m_firmwareUpdateProgress);
-		m_firmwareUpdateWidget->setLayout(layout);
+		createFirmwareUpdateWidget();
+
 		m_deviceMenu->setDisabled(true);
 		m_fileMenu->setDisabled(true);
 		if (1) { //TODO
@@ -2001,7 +2016,11 @@ void MainWindow::updateFirmwareHC(QByteArray &datum)
 		firmwareFileInvalidMsg();
 		return;
 	}
+	updateFirmwareHCIter(true);
+}
 
+void MainWindow::updateFirmwareHCIter(bool buttonWait)
+{
 	SignetApplication *app = SignetApplication::get();
 
 	struct hc_firmware_info info;
@@ -2009,21 +2028,23 @@ void MainWindow::updateFirmwareHC(QByteArray &datum)
 	auto bt_mode = app->getBootMode();
 	switch (bt_mode) {
 	case HC_BOOT_BOOTLOADER_MODE:
-		info.firmware_crc = header->B_crc;
-		info.firmware_len = header->B_len;
-		memcpy(info.firmware_signature, header->B_signature, sizeof (info.firmware_signature));
+		info.firmware_crc = m_NewFirmwareHeader->B_crc;
+		info.firmware_len = m_NewFirmwareHeader->B_len;
+		memcpy(info.firmware_signature, m_NewFirmwareHeader->B_signature, sizeof (info.firmware_signature));
 		break;
 	case HC_BOOT_APPLICATION_MODE:
-		info.firmware_crc = header->A_crc;
-		info.firmware_len = header->A_len;
-		memcpy(info.firmware_signature, header->A_signature, sizeof (info.firmware_signature));
+		info.firmware_crc = m_NewFirmwareHeader->A_crc;
+		info.firmware_len = m_NewFirmwareHeader->A_len;
+		memcpy(info.firmware_signature, m_NewFirmwareHeader->A_signature, sizeof (info.firmware_signature));
 		break;
 	default:
 		return;
 	}
-	memcpy(info.firmware_signature_pubkey, header->signature_pubkey, sizeof(info.firmware_signature_pubkey));
+	memcpy(info.firmware_signature_pubkey, m_NewFirmwareHeader->signature_pubkey, sizeof(info.firmware_signature_pubkey));
 
-	beginButtonWait("Update firmware", true);
+	if (buttonWait) {
+		beginButtonWait("Update firmware", true);
+	}
 	::signetdev_begin_update_firmware_hc(nullptr, &m_signetdevCmdToken, &info);
 }
 
