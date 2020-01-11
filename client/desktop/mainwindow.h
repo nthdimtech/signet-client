@@ -104,6 +104,8 @@ private:
 	bool m_loggedIn;
 	QTimer m_connectingTimer;
 	bool m_wasConnected;
+
+	int m_fwUpgradeState;
 	struct hc_firmware_file_header *m_NewFirmwareHeader;
 	struct hc_firmware_file_body *m_NewFirmwareBody;
 

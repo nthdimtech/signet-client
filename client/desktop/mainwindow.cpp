@@ -112,7 +112,8 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	m_signetdevCmdToken(-1),
 	m_startedExport(false),
 	m_NewFirmwareHeader(nullptr),
-	m_NewFirmwareBody(nullptr)
+	m_NewFirmwareBody(nullptr),
+	m_fwUpgradeState(0)
 {
 	SignetApplication *app = SignetApplication::get();
 	genericTypeDesc *g = new genericTypeDesc(-1);
@@ -381,10 +382,21 @@ void MainWindow::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_g
 			::signetdev_get_progress(nullptr, &m_signetdevCmdToken, data.total_progress, ERASING_PAGES);
 			break;
 		case INVALID_STATE: {
-			m_firmwareUpdateStage->setText("Writing firmware data...");
 			m_totalWritten = 0;
+			QString updatingString;
 
 			if (1) {
+				SignetApplication *app = SignetApplication::get();
+				auto bootMode = app->getBootMode();
+
+				switch (bootMode) {
+				case HC_BOOT_BOOTLOADER_MODE:
+					updatingString = "Writing stage 2 firmware...";
+					break;
+				case HC_BOOT_APPLICATION_MODE:
+					updatingString = "Writing stage 1 firmware...";
+					break;
+				}
 				m_writingAddr = 0;
 				int firmwareSize = firmwareSizeHC();
 				m_firmwareUpdateProgress->setRange(0, firmwareSize);
@@ -402,7 +414,9 @@ void MainWindow::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_g
 				m_writingSectionIter = m_fwSections.begin();
 				m_writingAddr = m_writingSectionIter->lma;
 				sendFirmwareWriteCmd();
+				updatingString = "Writing firmware...";
 			}
+			m_firmwareUpdateStage->setText(updatingString);
 		}
 		break;
 		case SIGNET_ERROR_DISCONNECT:
@@ -506,7 +520,27 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 			m_firmwareUpdateProgress->update();
 			if (1) { //TODO
 				if (m_totalWritten >= firmwareSizeHC()) {
-					::signetdev_switch_boot_mode(nullptr, &m_signetdevCmdToken);
+					SignetApplication *app = SignetApplication::get();
+					auto bootMode = app->getBootMode();
+					bool needReset = false;
+					switch (bootMode) {
+					case HC_BOOT_BOOTLOADER_MODE:
+						m_fwUpgradeState &= ~HC_UPGRADING_APPLICATION_MASK;
+						m_fwUpgradeState |= HC_UPGRADED_APPLICATION_MASK;
+						needReset = true;
+						break;
+					case HC_BOOT_APPLICATION_MODE:
+						m_fwUpgradeState &= ~HC_UPGRADING_BOOTLOADER_MASK;
+						m_fwUpgradeState |= HC_UPGRADED_BOOTLOADER_MASK;
+						needReset = (m_fwUpgradeState & HC_UPGRADED_APPLICATION_MASK) == 0;
+						break;
+					default:
+						//TODO
+						break;
+					}
+					if (needReset) {
+						::signetdev_switch_boot_mode(nullptr, &m_signetdevCmdToken);
+					}
 				} else {
 					sendFirmwareWriteCmdHC();
 				}
@@ -797,6 +831,20 @@ void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, signetdev_start
 		m_restoreFile->close();
 		delete m_restoreFile;
 		m_restoreFile = nullptr;
+	}
+
+	if (m_fwUpgradeState & HC_UPGRADED_APPLICATION_MASK) {
+		auto box = app->messageBoxError(QMessageBox::Information, "Firmware upgraded",
+										"The firmware has been upgraded to version " + QString::number(m_NewFirmwareHeader->fw_version.major)
+										+ "." + QString::number(m_NewFirmwareHeader->fw_version.minor)
+										+ "." + QString::number(m_NewFirmwareHeader->fw_version.step),
+										this);
+		m_fwUpgradeState = 0;
+		delete m_NewFirmwareBody;
+		delete m_NewFirmwareHeader;
+		m_NewFirmwareBody = nullptr;
+		m_NewFirmwareHeader = nullptr;
+		box->exec();
 	}
 
 	switch (code) {
@@ -1458,7 +1506,25 @@ void MainWindow::createFirmwareUpdateWidget()
 	QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
 	layout->setAlignment(Qt::AlignTop);
 	m_firmwareUpdateProgress = new QProgressBar();
-	m_firmwareUpdateStage = new QLabel("Erasing firmware pages...");
+	if (1) {
+		SignetApplication *app =  SignetApplication::get();
+		QString progressTitle;
+		auto btMode = app->getBootMode();
+		switch (btMode) {
+		case HC_BOOT_BOOTLOADER_MODE:
+			progressTitle = QString("Preparing to write stage 2 firmware...");
+			break;
+		case HC_BOOT_APPLICATION_MODE:
+			progressTitle = QString("Preparing to write stage 1 firmware...");
+			break;
+		default:
+			//TODO
+			break;
+		}
+		m_firmwareUpdateStage = new QLabel(progressTitle);
+	} else {
+		m_firmwareUpdateStage = new QLabel("Erasing firmware pages...");
+	}
 	layout->addWidget(m_firmwareUpdateStage);
 	layout->addWidget(m_firmwareUpdateProgress);
 	m_firmwareUpdateWidget->setLayout(layout);
@@ -1647,6 +1713,19 @@ void MainWindow::enterDeviceState(int state)
 	}
 	break;
 	case SignetApplication::STATE_UPDATING_FIRMWARE: {
+		SignetApplication *app = SignetApplication::get();
+		auto bootMode = app->getBootMode();
+		switch (bootMode) {
+		case HC_BOOT_BOOTLOADER_MODE:
+			m_fwUpgradeState |= HC_UPGRADING_APPLICATION_MASK;
+			break;
+		case HC_BOOT_APPLICATION_MODE:
+			m_fwUpgradeState |= HC_UPGRADING_BOOTLOADER_MASK;
+			break;
+		default:
+			//TODO
+			break;
+		}
 		createFirmwareUpdateWidget();
 
 		m_deviceMenu->setDisabled(true);
