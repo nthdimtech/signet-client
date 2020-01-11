@@ -223,6 +223,7 @@ private:
 	int firmwareSizeHC();
 	void createFirmwareUpdateWidget();
 	void updateFirmwareHCIter(bool buttonWait);
+	void firmwareUpgradeCompletionCheck();
 public slots:
 	void abort();
 	void quit();

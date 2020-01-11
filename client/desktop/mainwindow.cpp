@@ -391,10 +391,10 @@ void MainWindow::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_g
 
 				switch (bootMode) {
 				case HC_BOOT_BOOTLOADER_MODE:
-					updatingString = "Writing stage 2 firmware...";
+					updatingString = "Writing second stage firmware...";
 					break;
 				case HC_BOOT_APPLICATION_MODE:
-					updatingString = "Writing stage 1 firmware...";
+					updatingString = "Writing first stage firmware...";
 					break;
 				}
 				m_writingAddr = 0;
@@ -797,6 +797,24 @@ void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QBy
 	}
 }
 
+void MainWindow::firmwareUpgradeCompletionCheck()
+{
+	SignetApplication *app = SignetApplication::get();
+	if (m_fwUpgradeState & HC_UPGRADED_APPLICATION_MASK) {
+		auto box = app->messageBoxError(QMessageBox::Information, "Firmware upgraded",
+										"The firmware has been upgraded to version " + QString::number(m_NewFirmwareHeader->fw_version.major)
+										+ "." + QString::number(m_NewFirmwareHeader->fw_version.minor)
+										+ "." + QString::number(m_NewFirmwareHeader->fw_version.step),
+										this);
+		m_fwUpgradeState = 0;
+		delete m_NewFirmwareBody;
+		delete m_NewFirmwareHeader;
+		m_NewFirmwareBody = nullptr;
+		m_NewFirmwareHeader = nullptr;
+		box->exec();
+	}
+}
+
 void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, signetdev_startup_resp_data resp)
 {
 	if (info.token != m_signetdevCmdToken) {
@@ -833,31 +851,20 @@ void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, signetdev_start
 		m_restoreFile = nullptr;
 	}
 
-	if (m_fwUpgradeState & HC_UPGRADED_APPLICATION_MASK) {
-		auto box = app->messageBoxError(QMessageBox::Information, "Firmware upgraded",
-										"The firmware has been upgraded to version " + QString::number(m_NewFirmwareHeader->fw_version.major)
-										+ "." + QString::number(m_NewFirmwareHeader->fw_version.minor)
-										+ "." + QString::number(m_NewFirmwareHeader->fw_version.step),
-										this);
-		m_fwUpgradeState = 0;
-		delete m_NewFirmwareBody;
-		delete m_NewFirmwareHeader;
-		m_NewFirmwareBody = nullptr;
-		m_NewFirmwareHeader = nullptr;
-		box->exec();
-	}
-
 	switch (code) {
 	case UNKNOWN_DB_FORMAT:
 		enterDeviceState(SignetApplication::STATE_UNINITIALIZED);
+		firmwareUpgradeCompletionCheck();
 		break;
 	case OKAY:
 		switch (device_state) {
 		case LOGGED_OUT:
 			enterDeviceState(SignetApplication::STATE_LOGGED_OUT);
+			firmwareUpgradeCompletionCheck();
 			break;
 		case UNINITIALIZED:
 			enterDeviceState(SignetApplication::STATE_UNINITIALIZED);
+			firmwareUpgradeCompletionCheck();
 			break;
 		case BOOTLOADER:
 			if (m_NewFirmwareBody && m_NewFirmwareHeader) {
@@ -1512,10 +1519,10 @@ void MainWindow::createFirmwareUpdateWidget()
 		auto btMode = app->getBootMode();
 		switch (btMode) {
 		case HC_BOOT_BOOTLOADER_MODE:
-			progressTitle = QString("Preparing to write stage 2 firmware...");
+			progressTitle = QString("Preparing to write second stage firmware...");
 			break;
 		case HC_BOOT_APPLICATION_MODE:
-			progressTitle = QString("Preparing to write stage 1 firmware...");
+			progressTitle = QString("Preparing to write first stage firmware...");
 			break;
 		default:
 			//TODO
@@ -1600,14 +1607,18 @@ void MainWindow::enterDeviceState(int state)
 		QWidget *connecting_widget = new QWidget();
 		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
 		layout->setAlignment(Qt::AlignTop);
-		if (m_wasConnected) {
+		if (m_wasConnected && !m_fwUpgradeState) {
 			m_connectingLabel = new QLabel("No Signet device detected.\n\nPlease insert device.");
 			m_wasConnected = false;
 		} else {
-			m_connectingLabel = new QLabel("Connecting to device...");
-			m_connectingTimer.setSingleShot(true);
-			m_connectingTimer.setInterval(500);
-			m_connectingTimer.start();
+			if (m_fwUpgradeState) {
+				m_connectingLabel = new QLabel("Waiting for device...");
+			} else {
+				m_connectingLabel = new QLabel("Connecting to device...");
+				m_connectingTimer.setSingleShot(true);
+				m_connectingTimer.setInterval(2000);
+				m_connectingTimer.start();
+			}
 		}
 
 		layout->addWidget(m_connectingLabel);
