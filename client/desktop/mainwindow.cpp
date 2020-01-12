@@ -664,6 +664,12 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 			m_resetTimer.setSingleShot(true);
 			m_resetTimer.setInterval(500);
 			m_resetTimer.start();
+		} else if (code == INVALID_STATE) {
+			m_firmwareUpdateStage->setText("CRC validation failed");
+			m_firmwareUpdateProgress->hide();
+		} else if (code > 0){
+			m_firmwareUpdateStage->setText("Firmare upgrade failed");
+			m_firmwareUpdateProgress->hide();
 		}
 	}
 	break;
