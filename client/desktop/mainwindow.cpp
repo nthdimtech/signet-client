@@ -876,9 +876,7 @@ void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, signetdev_start
 			if (m_NewFirmwareBody && m_NewFirmwareHeader) {
 				updateFirmwareHCIter(false);
 			} else {
-				auto box = app->messageBoxError(QMessageBox::Warning, "Firmware upgrade incomplete", "A previous firmware upgrade process was interrupted. Select a new firmware file to proceed.", this);
-				box->exec();
-				//TODO
+				enterDeviceState(SignetApplication::STATE_BOOTLOADER);
 			}
 			break;
 		}
@@ -1780,6 +1778,32 @@ void MainWindow::enterDeviceState(int state)
 		setCentralStack(m_firmwareUpdateWidget);
 	}
 	break;
+	case SignetApplication::STATE_BOOTLOADER: {
+		SignetApplication *app = SignetApplication::get();
+		QIcon warn = app->style()->standardIcon(QStyle::SP_MessageBoxWarning);
+		QWidget *bootloaderWidget = new QWidget();
+		m_loggedIn = false;
+		m_deviceMenu->setDisabled(true);
+		m_fileMenu->setDisabled(false);
+		QVBoxLayout *layout = new QVBoxLayout();
+		layout->setAlignment(Qt::AlignTop);
+		QPushButton *upgradeButton = new QPushButton("Upgrade firmware");
+		QLabel *warningImage = new QLabel();
+		warningImage->setPixmap(warn.pixmap(64, 64));
+		warningImage->setAlignment(Qt::AlignHCenter);
+		QLabel *failureMessage = new QLabel("Firmware upgrade incomplete");
+		failureMessage->setStyleSheet(QString("font-weight: bold"));
+		failureMessage->setAlignment(Qt::AlignHCenter);
+		QLabel *instructionMessage = new QLabel("Click below to complete the upgrade and access your device.");
+		instructionMessage->setAlignment(Qt::AlignHCenter);
+		layout->addWidget(warningImage);
+		layout->addWidget(failureMessage);
+		layout->addWidget(instructionMessage);
+		layout->addWidget(upgradeButton);
+		connect(upgradeButton, SIGNAL(pressed()), this, SLOT(updateFirmwareUi()));
+		bootloaderWidget->setLayout(layout);
+		setCentralStack(bootloaderWidget);
+	} break;
 	case SignetApplication::STATE_UNINITIALIZED: {
 		m_loggedIn = false;
 		m_deviceMenu->setDisabled(false);
@@ -1880,6 +1904,7 @@ void MainWindow::enterDeviceState(int state)
 	bool fileActionsEnabled = (m_deviceState == SignetApplication::STATE_LOGGED_IN);
 	m_exportMenu->menuAction()->setVisible(fileActionsEnabled);
 	m_settingsAction->setVisible(fileActionsEnabled);
+	m_importMenu->setDisabled(databaseFile || m_deviceState == SignetApplication::STATE_BOOTLOADER);
 	m_importKeePassAction->setEnabled(fileActionsEnabled);
 #ifdef Q_OS_UNIX
 	m_importPassAction->setEnabled(fileActionsEnabled && m_passDatabaseFound);
