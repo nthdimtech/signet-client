@@ -290,7 +290,7 @@ void SignetApplication::init(bool startInTray, QString dbFilename)
 			 this, SLOT(trayActivated(QSystemTrayIcon::ActivationReason)));
 	QObject::connect(this, SIGNAL(signetdevEvent(int)), m_main_window, SLOT(signetDevEvent(int)));
 
-	m_main_window->setWindowTitle("Signet");
+	m_main_window->setWindowTitle("Signet HC");
 	QIcon app_icon = QIcon(":/images/signet.png");
 	m_main_window->setWindowIcon(app_icon);
 	m_systray->setIcon(app_icon);
