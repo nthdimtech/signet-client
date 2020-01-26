@@ -1,8 +1,6 @@
 #ifndef ABOUT_H
 #define ABOUT_H
 
-#include "gitversion.h"
-
 #include <QDialog>
 
 class About : public QDialog
