@@ -271,6 +271,7 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 		int rc = signetdev_open_connection();
 		if (rc == 0) {
 			::signetdev_startup(nullptr, &m_signetdevCmdToken);
+			enterDeviceState(SignetApplication::STATE_STARTING_DEVICE);
 		}
 #endif
 	}
@@ -321,6 +322,7 @@ void MainWindow::connectionError()
 		int rc = signetdev_open_connection();
 		if (rc == 0) {
 			::signetdev_startup(nullptr, &m_signetdevCmdToken);
+			enterDeviceState(SignetApplication::STATE_STARTING_DEVICE);
 		}
 	}
 }
@@ -340,6 +342,7 @@ bool MainWindow::nativeEvent(const QByteArray & eventType, void *message, long *
 void MainWindow::deviceOpened()
 {
 	::signetdev_startup(nullptr, &m_signetdevCmdToken);
+	enterDeviceState(SignetApplication::STATE_STARTING_DEVICE);
 }
 
 void MainWindow::deviceClosed()
@@ -1618,7 +1621,7 @@ void MainWindow::enterDeviceState(int state)
 			if (m_fwUpgradeState) {
 				m_connectingLabel = new QLabel("Waiting for device...");
 			} else {
-				m_connectingLabel = new QLabel("Connecting to device...");
+				m_connectingLabel = new QLabel("Searching for device...");
 				m_connectingTimer.setSingleShot(true);
 				m_connectingTimer.setInterval(2000);
 				m_connectingTimer.start();
@@ -1631,6 +1634,18 @@ void MainWindow::enterDeviceState(int state)
 		m_fileMenu->setDisabled(false);
 		connecting_widget->setLayout(layout);
 		setCentralStack(connecting_widget);
+	}
+	break;
+	case SignetApplication::STATE_STARTING_DEVICE: {
+		m_loggedIn = false;
+		QWidget *starting_widget = new QWidget();
+		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
+		layout->setAlignment(Qt::AlignTop);
+		layout->addWidget(new QLabel("Starting up device...."));
+		m_deviceMenu->setDisabled(true);
+		m_fileMenu->setDisabled(false);
+		starting_widget->setLayout(layout);
+		setCentralStack(starting_widget);
 	}
 	break;
 	case SignetApplication::STATE_RESET:
@@ -2351,14 +2366,14 @@ void MainWindow::backupDeviceUi()
 
 	QFileDialog fd(this, "Backup device to file");
 	QStringList filters;
-	filters.append("*.sdb");
+	filters.append("*.sdbhc");
 	filters.append("*");
 	fd.setDirectory(m_settings.localBackupPath);
 	fd.selectFile(backupFileName);
 	fd.setNameFilters(filters);
 	fd.setFileMode(QFileDialog::AnyFile);
 	fd.setAcceptMode(QFileDialog::AcceptSave);
-	fd.setDefaultSuffix(QString("sdb"));
+	fd.setDefaultSuffix(QString("sdbhc"));
 	fd.setWindowModality(Qt::WindowModal);
 	if (!fd.exec())
 		return;
