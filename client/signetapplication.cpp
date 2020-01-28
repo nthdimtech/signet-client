@@ -32,9 +32,9 @@ extern "C" {
 
 SignetApplication *SignetApplication::g_singleton = nullptr;
 
-void SignetApplication::deviceOpenedS(void *this_)
+void SignetApplication::deviceOpenedS(enum signetdev_device_type dev_type, void *this_)
 {
-	((SignetApplication *)this_)->deviceOpened();
+	((SignetApplication *)this_)->deviceOpened(dev_type);
 }
 
 void SignetApplication::deviceClosedS(void *this_)
@@ -177,7 +177,7 @@ void SignetApplication::commandRespS(void *cb_param, void *cmd_user_param, int c
 	}
 	break;
 	case SIGNETDEV_CMD_READ_BLOCK: {
-		QByteArray blk((const char *)resp_data, BLK_SIZE);
+		QByteArray blk((const char *)resp_data, ::signetdev_device_block_size());
 		this_->signetdevReadBlockResp(info, blk);
 	}
 	break;

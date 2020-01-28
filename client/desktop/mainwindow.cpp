@@ -113,7 +113,8 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	m_startedExport(false),
 	m_NewFirmwareHeader(nullptr),
 	m_NewFirmwareBody(nullptr),
-	m_fwUpgradeState(0)
+	m_fwUpgradeState(0),
+	m_deviceType(SIGNETDEV_DEVICE_NONE)
 {
 	SignetApplication *app = SignetApplication::get();
 	genericTypeDesc *g = new genericTypeDesc(-1);
@@ -131,7 +132,7 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 		}
 	}
 
-	connect(app, SIGNAL(deviceOpened()), this, SLOT(deviceOpened()));
+	connect(app, SIGNAL(deviceOpened(enum signetdev_device_type)), this, SLOT(deviceOpened(enum signetdev_device_type)));
 	connect(app, SIGNAL(deviceClosed()), this, SLOT(deviceClosed()));
 	connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
 		this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
@@ -339,14 +340,16 @@ bool MainWindow::nativeEvent(const QByteArray & eventType, void *message, long *
 }
 #endif
 
-void MainWindow::deviceOpened()
+void MainWindow::deviceOpened(enum signetdev_device_type dev_type)
 {
+	m_deviceType = dev_type;
 	::signetdev_startup(nullptr, &m_signetdevCmdToken);
 	enterDeviceState(SignetApplication::STATE_STARTING_DEVICE);
 }
 
 void MainWindow::deviceClosed()
 {
+	m_deviceType = SIGNETDEV_DEVICE_NONE;
 	emit connectionError();
 }
 
@@ -398,6 +401,9 @@ void MainWindow::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_g
 					break;
 				case HC_BOOT_APPLICATION_MODE:
 					updatingString = "Writing first stage firmware...";
+					break;
+				default:
+					abort();
 					break;
 				}
 				m_writingAddr = 0;
@@ -456,9 +462,9 @@ void MainWindow::signetdevReadBlockResp(signetdevCmdRespInfo info, QByteArray bl
 		}
 		m_backupBlock++;
 		m_backupProgress->setMinimum(0);
-		m_backupProgress->setMaximum(NUM_STORAGE_BLOCKS-1);
+		m_backupProgress->setMaximum(::signetdev_device_num_storage_blocks()-1);
 		m_backupProgress->setValue(m_backupBlock);
-		if (m_backupBlock > (NUM_STORAGE_BLOCKS-1)) {
+		if (m_backupBlock > (::signetdev_device_num_storage_blocks()-1)) {
 			::signetdev_end_device_backup(nullptr, &m_signetdevCmdToken);
 		} else {
 			::signetdev_read_block(nullptr, &m_signetdevCmdToken, m_backupBlock);
@@ -562,13 +568,13 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 		if (code == OKAY) {
 			m_restoreBlock++;
 			m_restoreProgress->setMinimum(0);
-			m_restoreProgress->setMaximum(NUM_DATA_BLOCKS);
+			m_restoreProgress->setMaximum(::signetdev_device_num_storage_blocks());
 
 			m_restoreProgress->setValue(m_restoreBlock);
-			if (m_restoreBlock < MAX_DATA_BLOCK) {
-				QByteArray block(BLK_SIZE, 0);
+			if (m_restoreBlock < ::signetdev_device_num_storage_blocks()) {
+				QByteArray block(::signetdev_device_block_size(), 0);
 				int sz = m_restoreFile->read(block.data(), block.length());
-				if (sz == BLK_SIZE) {
+				if (sz == ::signetdev_device_block_size()) {
 					::signetdev_write_block(nullptr, &m_signetdevCmdToken, m_restoreBlock, block.data());
 				} else {
 					QMessageBox *box = SignetApplication::messageBoxError(QMessageBox::Critical, "Restore device", "Failed to read from source file", this);
@@ -614,9 +620,9 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 			m_restoreProgress->setMinimum(0);
 			m_restoreProgress->setMaximum(NUM_DATA_BLOCKS);
 			m_restoreProgress->setValue(m_restoreBlock);
-			QByteArray block(BLK_SIZE, 0);
+			QByteArray block(::signetdev_device_block_size(), 0);
 			qint64 sz = m_restoreFile->read(block.data(), block.length());
-			if (sz == BLK_SIZE) {
+			if (sz == ::signetdev_device_block_size()) {
 				::signetdev_write_block(nullptr, &m_signetdevCmdToken, m_restoreBlock, block.data());
 			} else {
 				QMessageBox *box = SignetApplication::messageBoxError(QMessageBox::Critical, "Restore device", "Failed to read from source file", this);
@@ -2064,7 +2070,7 @@ int MainWindow::firmwareSizeHC()
 void MainWindow::sendFirmwareWriteCmdHC()
 {
 	auto app = SignetApplication::get();
-	unsigned int write_size = 512;// BLK_SIZE;
+	unsigned int write_size = 512;
 	const u8 *data = nullptr;
 	switch (app->getBootMode()) {
 	case HC_BOOT_BOOTLOADER_MODE:
@@ -2518,7 +2524,7 @@ void MainWindow::restoreDeviceUi()
 		SignetApplication::messageBoxError(QMessageBox::Warning, "Restore device from file", "Failed to open backup file", this);
 		return;
 	}
-	if (m_restoreFile->size() != BLK_SIZE * (NUM_DATA_BLOCKS + 1)) {
+	if (m_restoreFile->size() != ::signetdev_device_block_size() * (::signetdev_device_num_data_blocks() + ::signetdev_device_num_root_blocks())) {
 		delete m_restoreFile;
 		SignetApplication::messageBoxError(QMessageBox::Warning, "Restore device from file", "Backup file has wrong size", this);
 		return;

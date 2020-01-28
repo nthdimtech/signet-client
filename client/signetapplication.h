@@ -88,7 +88,7 @@ private:
 	QQmlApplicationEngine m_qmlEngine;
 	SignetDeviceManager *m_signetDeviceManager;
 #endif
-	static void deviceOpenedS(void *this_);
+	static void deviceOpenedS(enum signetdev_device_type dev_type, void *this_);
 	static void deviceClosedS(void *this_);
 	static void commandRespS(void *cb_param, void *cmd_user_param, int cmd_token, int cmd, int end_device_state, int messages_remaining, int resp_code, const void *resp_data);
 	static void deviceEventS(void *cb_param, int event_type, const void *data, int data_len);
@@ -240,7 +240,7 @@ public:
     void startWebsocketServer();
     void stopWebsocketServer();
 signals:
-	void deviceOpened();
+	void deviceOpened(enum signetdev_device_type dev_type);
 	void deviceClosed();
 	void connectionError();
 	void signetdevCmdResp(const signetdevCmdRespInfo info);

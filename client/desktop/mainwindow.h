@@ -159,6 +159,7 @@ private:
 	QAction *m_changePasswordAction;
 	QAction *m_updateFirmwareAction;
 	QMessageBox *m_wipeDeviceDialog;
+	enum signetdev_device_type m_deviceType;
 	int m_signetdevCmdToken;
 	bool m_startedExport;
 	KeyboardLayoutTester *m_keyboardLayoutTester;
@@ -198,7 +199,7 @@ private slots:
 	void openFileDialogFinished(int rc);
 public slots:
 	void signetDevEvent(int);
-	void deviceOpened();
+	void deviceOpened(enum signetdev_device_type dev_type);
 	void deviceClosed();
 	void signetdevCmdResp(signetdevCmdRespInfo info);
 	void signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_get_progress_resp_data data);
