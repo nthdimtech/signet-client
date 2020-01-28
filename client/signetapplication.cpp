@@ -51,7 +51,7 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 #ifdef Q_OS_ANDROID
 	QApplication(argc, argv),
 #else
-    QtSingleApplication("signetdev-" + QString(USB_VENDOR_ID) + "-" + QString(USB_SIGNET_DESKTOP_PRODUCT_ID),argc, argv),
+	QtSingleApplication("signetdev-1209-df11", argc, argv),
 #endif
 	m_signetAsyncListener(nullptr),
 	m_bootMode(HC_BOOT_UNKNOWN_MODE)
