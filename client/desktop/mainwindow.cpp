@@ -618,7 +618,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 			enterDeviceState(SignetApplication::STATE_RESTORING);
 			m_restoreBlock = 0;
 			m_restoreProgress->setMinimum(0);
-			m_restoreProgress->setMaximum(NUM_DATA_BLOCKS);
+			m_restoreProgress->setMaximum(signetdev_device_num_data_blocks());
 			m_restoreProgress->setValue(m_restoreBlock);
 			QByteArray block(::signetdev_device_block_size(), 0);
 			qint64 sz = m_restoreFile->read(block.data(), block.length());
