@@ -68,6 +68,7 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 	qRegisterMetaType<signetdev_get_progress_resp_data>();
 	qRegisterMetaType<cleartext_pass>();
 	qRegisterMetaType<QVector<int> >("QVector<int>");
+	qRegisterMetaType<enum signetdev_device_type>();
 }
 
 void SignetApplication::generateScryptKey(const QString &password, QByteArray &key, const QByteArray &salt, unsigned int N, unsigned int r, unsigned int s)

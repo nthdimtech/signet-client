@@ -46,6 +46,7 @@ Q_DECLARE_METATYPE(signetdevCmdRespInfo)
 Q_DECLARE_METATYPE(signetdev_startup_resp_data)
 Q_DECLARE_METATYPE(signetdev_get_progress_resp_data)
 Q_DECLARE_METATYPE(cleartext_pass)
+Q_DECLARE_METATYPE(enum signetdev_device_type)
 
 class SignetAsyncListener
 {

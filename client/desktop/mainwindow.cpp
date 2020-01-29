@@ -269,8 +269,8 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 		enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
 #ifdef Q_OS_UNIX
 		enterDeviceState(SignetApplication::STATE_CONNECTING);
-		int rc = signetdev_open_connection();
-		if (rc == 0) {
+		m_deviceType = signetdev_open_connection();
+		if (m_deviceType != SIGNETDEV_DEVICE_NONE) {
 			::signetdev_startup(nullptr, &m_signetdevCmdToken);
 			enterDeviceState(SignetApplication::STATE_STARTING_DEVICE);
 		}
@@ -320,8 +320,8 @@ void MainWindow::connectionError()
 	if (!m_resetTimer.isActive()) {
 		m_wasConnected = true;
 		enterDeviceState(SignetApplication::STATE_CONNECTING);
-		int rc = signetdev_open_connection();
-		if (rc == 0) {
+		m_deviceType = signetdev_open_connection();
+		if (m_deviceType != SIGNETDEV_DEVICE_NONE) {
 			::signetdev_startup(nullptr, &m_signetdevCmdToken);
 			enterDeviceState(SignetApplication::STATE_STARTING_DEVICE);
 		}
@@ -391,7 +391,7 @@ void MainWindow::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_g
 			m_totalWritten = 0;
 			QString updatingString;
 
-			if (1) {
+			if (m_deviceType == SIGNETDEV_DEVICE_HC) {
 				SignetApplication *app = SignetApplication::get();
 				auto bootMode = app->getBootMode();
 
@@ -527,7 +527,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 			m_totalWritten += m_writingSize;
 			m_firmwareUpdateProgress->setValue(m_totalWritten);
 			m_firmwareUpdateProgress->update();
-			if (1) { //TODO
+			if (m_deviceType == SIGNETDEV_DEVICE_HC) {
 				if (m_totalWritten >= firmwareSizeHC()) {
 					SignetApplication *app = SignetApplication::get();
 					auto bootMode = app->getBootMode();
@@ -908,8 +908,8 @@ void MainWindow::showEvent(QShowEvent *event)
 		if (m_deviceState == SignetApplication::STATE_NEVER_SHOWN) {
 			enterDeviceState(SignetApplication::STATE_CONNECTING);
 			signetdev_win32_set_window_handle((HANDLE)winId());
-			int rc = signetdev_open_connection();
-			if (rc == 0) {
+			m_deviceType = signetdev_open_connection();
+			if (m_deviceType != SIGNETDEV_DEVICE_NONE) {
 				deviceOpened();
 			}
 		}
@@ -1526,7 +1526,7 @@ void MainWindow::createFirmwareUpdateWidget()
 	QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
 	layout->setAlignment(Qt::AlignTop);
 	m_firmwareUpdateProgress = new QProgressBar();
-	if (1) {
+	if (m_deviceType == SIGNETDEV_DEVICE_HC) {
 		SignetApplication *app =  SignetApplication::get();
 		QString progressTitle;
 		auto btMode = app->getBootMode();
@@ -1766,7 +1766,7 @@ void MainWindow::enterDeviceState(int state)
 
 		m_deviceMenu->setDisabled(true);
 		m_fileMenu->setDisabled(true);
-		if (1) { //TODO
+		if (m_deviceType == SIGNETDEV_DEVICE_HC) {
 			::signetdev_erase_pages_hc(nullptr, &m_signetdevCmdToken);
 		} else {
 			QByteArray erase_pages_;
@@ -1992,11 +1992,9 @@ void MainWindow::closeUi()
 		m_dbFilename.clear();
 		enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
 		enterDeviceState(SignetApplication::STATE_CONNECTING);
-		int rc = signetdev_open_connection();
-		if (rc == 0) {
-			::signetdev_startup(
-
-				nullptr, &m_signetdevCmdToken);
+		m_deviceType = signetdev_open_connection();
+		if (m_deviceType != SIGNETDEV_DEVICE_NONE) {
+			::signetdev_startup(nullptr, &m_signetdevCmdToken);
 		}
 	}
 }
@@ -2044,8 +2042,8 @@ void MainWindow::resetTimer()
 	m_resetTimer.stop();
 	enterDeviceState(SignetApplication::STATE_CONNECTING);
 	m_wasConnected = false;
-	int rc = ::signetdev_open_connection();
-	if (rc == 0) {
+	m_deviceType = ::signetdev_open_connection();
+	if (m_deviceType != SIGNETDEV_DEVICE_NONE) {
 		::signetdev_startup(nullptr, &m_signetdevCmdToken);
 	}
 }
@@ -2255,7 +2253,11 @@ void MainWindow::updateFirmwareUi()
 {
 	QFileDialog fd(this);
 	QStringList filters;
-	filters.append("*.sfwhc");
+	if (m_deviceType == SIGNETDEV_DEVICE_HC) {
+		filters.append("*.sfwhc");
+	} else {
+		filters.append("*.sfw");
+	}
 	filters.append("*");
 	fd.setNameFilters(filters);
 	fd.setFileMode(QFileDialog::AnyFile);
@@ -2278,7 +2280,7 @@ void MainWindow::updateFirmwareUi()
 
 	QByteArray datum = firmware_update_file.readAll();
 	firmware_update_file.close();
-	if (1) {//TODO: Fixme
+	if (m_deviceType == SIGNETDEV_DEVICE_HC) {
 		updateFirmwareHC(datum);
 	} else {
 		updateFirmware(datum);
