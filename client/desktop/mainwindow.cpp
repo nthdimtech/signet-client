@@ -78,7 +78,10 @@ extern "C" {
 #include "generictypedesc.h"
 #include "esdb/generictype/esdbgenerictypemodule.h"
 
-#define SIGNET_DB_EXTENSION ".sdbhc"
+#define SIGNET_BACKUP_EXTENSION "sdb"
+#define SIGNET_HC_BACKUP_EXTENSION "sdbhc"
+#define SIGNET_FIRMWARE_SUFFIX "sfw"
+#define SIGNET_HC_FIRMWARE_SUFFIX "sfwhc"
 
 MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	QMainWindow(parent),
@@ -1086,11 +1089,25 @@ QString MainWindow::backupFileBaseName()
 	       QString("%1").arg(QString::number(currentTime.date().day()), 2, '0');
 }
 
+QString MainWindow::backupSuffix()
+{
+	if (m_deviceType == SIGNETDEV_DEVICE_HC) {
+		return QString(SIGNET_HC_BACKUP_EXTENSION);
+	} else {
+		return QString(SIGNET_BACKUP_EXTENSION);
+	}
+}
+
+QString MainWindow::backupFilter()
+{
+	return "*." + backupSuffix();
+}
+
 void MainWindow::autoBackupCheck()
 {
 	QDateTime currentTime = QDateTime::currentDateTime();
 	if (m_settings.localBackups) {
-		QString backupFileName = m_settings.localBackupPath + "/" + backupFileBaseName() + SIGNET_DB_EXTENSION;
+		QString backupFileName = m_settings.localBackupPath + "/" + backupFileBaseName() + "." + backupSuffix();
 		QDir backupPath(m_settings.localBackupPath);
 		if (!backupPath.exists()) {
 			QString dirName = backupPath.dirName();
@@ -1101,7 +1118,7 @@ void MainWindow::autoBackupCheck()
 		}
 		if (backupPath.exists()) {
 			QStringList nameFilters;
-			nameFilters.push_back(SIGNET_DB_EXTENSION);
+			nameFilters.push_back(backupFilter());
 			QFileInfoList files = backupPath.entryInfoList(nameFilters, QDir::Files, QDir::Time);
 			bool needToCreate = false;
 			if (files.size()) {
@@ -1179,10 +1196,7 @@ void MainWindow::backupDatabasePromptDialogFinished(int rc)
 			if (volumeFound) {
 				QString backupPath = storageInfo.rootPath() + "/" +
 							 m_settings.removableBackupPath;
-				QString backupFileName = backupPath + "/" +
-							 QString::number(currentTime.date().year()) + "-" +
-							 QString::number(currentTime.date().month()) + "-" +
-							 QString::number(currentTime.date().day()) + SIGNET_DB_EXTENSION;
+				QString backupFileName = backupPath + "/" + backupFileBaseName() + "." + backupSuffix();
 				QDir backupPathDir(backupPath);
 				if (!backupPathDir.exists()) {
 					QString dirName = backupPathDir.dirName();
@@ -1943,13 +1957,13 @@ void MainWindow::openUi()
 	QDir backupPath(m_settings.localBackupPath);
 	if (backupPath.exists()) {
 		QStringList nameFilters;
-		nameFilters.push_back(SIGNET_DB_EXTENSION);
+		nameFilters.push_back(backupFilter());
 		QFileInfoList files = backupPath.entryInfoList(nameFilters, QDir::Files, QDir::Time);
 		if (files.size()) {
 			fd->selectFile(files.first().fileName());
 		}
 	}
-	filters.append(SIGNET_DB_EXTENSION);
+	filters.append(backupFilter());
 	filters.append("*");
 	fd->setNameFilters(filters);
 	fd->setFileMode(QFileDialog::AnyFile);
@@ -2249,17 +2263,30 @@ void MainWindow::updateFirmware(QByteArray &datum)
 	}
 }
 
+QString MainWindow::firmwareSuffix()
+{
+	if (m_deviceType == SIGNETDEV_DEVICE_HC) {
+		return QString(SIGNET_HC_FIRMWARE_SUFFIX);
+	} else {
+		return QString(SIGNET_FIRMWARE_SUFFIX);
+	}
+}
+
+QString MainWindow::firmwareFilter()
+{
+	return "*." + firmwareSuffix();
+}
+
 void MainWindow::updateFirmwareUi()
 {
 	QFileDialog fd(this);
 	QStringList filters;
-	if (m_deviceType == SIGNETDEV_DEVICE_HC) {
-		filters.append("*.sfwhc");
-	} else {
-		filters.append("*.sfw");
-	}
+	QString downloadsFolder = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+
+	filters.append(firmwareFilter());
 	filters.append("*");
 	fd.setNameFilters(filters);
+	fd.setDirectory(downloadsFolder);
 	fd.setFileMode(QFileDialog::AnyFile);
 	fd.setAcceptMode(QFileDialog::AcceptOpen);
 	fd.setWindowModality(Qt::WindowModal);
@@ -2362,7 +2389,7 @@ void MainWindow::aboutUi()
 
 void MainWindow::backupDeviceUi()
 {
-	QString backupFileName = m_settings.localBackupPath + "/" + backupFileBaseName() + SIGNET_DB_EXTENSION;
+	QString backupFileName = m_settings.localBackupPath + "/" + backupFileBaseName() + "." + backupSuffix();
 	QDir backupPath(m_settings.localBackupPath);
 	if (!backupPath.exists()) {
 		QString dirName = backupPath.dirName();
@@ -2374,14 +2401,14 @@ void MainWindow::backupDeviceUi()
 
 	QFileDialog fd(this, "Backup device to file");
 	QStringList filters;
-	filters.append("*.sdbhc");
+	filters.append(backupFilter());
 	filters.append("*");
 	fd.setDirectory(m_settings.localBackupPath);
 	fd.selectFile(backupFileName);
 	fd.setNameFilters(filters);
 	fd.setFileMode(QFileDialog::AnyFile);
 	fd.setAcceptMode(QFileDialog::AcceptSave);
-	fd.setDefaultSuffix(QString("sdbhc"));
+	fd.setDefaultSuffix(backupSuffix());
 	fd.setWindowModality(Qt::WindowModal);
 	if (!fd.exec())
 		return;
@@ -2506,12 +2533,12 @@ void MainWindow::restoreDeviceUi()
 {
 	QFileDialog fd(this, "Restore device from file");
 	QStringList filters;
-	filters.append("*.sdb");
+	filters.append(backupFilter());
 	filters.append("*");
 	fd.setNameFilters(filters);
 	fd.setFileMode(QFileDialog::AnyFile);
 	fd.setAcceptMode(QFileDialog::AcceptOpen);
-	fd.setDefaultSuffix(QString("sdb"));
+	fd.setDefaultSuffix(backupSuffix());
 	fd.setWindowModality(Qt::WindowModal);
 	if (!fd.exec())
 		return;

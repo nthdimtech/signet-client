@@ -225,6 +225,10 @@ private:
 	void createFirmwareUpdateWidget();
 	void updateFirmwareHCIter(bool buttonWait);
 	void firmwareUpgradeCompletionCheck();
+	QString backupFilter();
+	QString backupSuffix();
+	QString firmwareFilter();
+	QString firmwareSuffix();
 public slots:
 	void abort();
 	void quit();
