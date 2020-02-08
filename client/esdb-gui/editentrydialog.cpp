@@ -113,7 +113,7 @@ void EditEntryDialog::oversizedDialog()
 	m_isOversized = true;
 	m_submitButton->setDisabled(true);
 	m_dataOversized->show();
-	auto mb = SignetApplication::messageBoxWarn("Entry too large", "This entry is too large. You must delete something to save it", this);
+	SignetApplication::messageBoxWarn("Entry too large", "This entry is too large. You must delete something to save it", this);
 }
 
 void EditEntryDialog::submitButtonPressed()

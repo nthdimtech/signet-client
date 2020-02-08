@@ -374,7 +374,7 @@ void MainWindow::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_g
 			m_wipeProgress->setRange(0, data.total_progress_maximum);
 			m_wipeProgress->setValue(data.total_progress);
 			m_wipeProgress->update();
-			::signetdev_get_progress(nullptr, &m_signetdevCmdToken, data.total_progress, WIPING);
+			::signetdev_get_progress(nullptr, &m_signetdevCmdToken, data.total_progress, DS_WIPING);
 			break;
 		case INVALID_STATE:
 			enterDeviceState(SignetApplication::STATE_UNINITIALIZED);
@@ -392,7 +392,7 @@ void MainWindow::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_g
 			m_firmwareUpdateProgress->setRange(0, data.total_progress_maximum);
 			m_firmwareUpdateProgress->setValue(data.total_progress);
 			m_firmwareUpdateProgress->update();
-			::signetdev_get_progress(nullptr, &m_signetdevCmdToken, data.total_progress, ERASING_PAGES);
+			::signetdev_get_progress(nullptr, &m_signetdevCmdToken, data.total_progress, DS_ERASING_PAGES);
 			break;
 		case INVALID_STATE: {
 			m_totalWritten = 0;
@@ -526,7 +526,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 		break;
 	case SIGNETDEV_CMD_ERASE_PAGES:
 		if (code == OKAY) {
-			::signetdev_get_progress(nullptr, &m_signetdevCmdToken, 0, ERASING_PAGES);
+			::signetdev_get_progress(nullptr, &m_signetdevCmdToken, 0, DS_ERASING_PAGES);
 		}
 		break;
 	case SIGNETDEV_CMD_WRITE_FLASH:
@@ -880,15 +880,15 @@ void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, signetdev_start
 		break;
 	case OKAY:
 		switch (device_state) {
-		case LOGGED_OUT:
+		case DS_LOGGED_OUT:
 			enterDeviceState(SignetApplication::STATE_LOGGED_OUT);
 			firmwareUpgradeCompletionCheck();
 			break;
-		case UNINITIALIZED:
+		case DS_UNINITIALIZED:
 			enterDeviceState(SignetApplication::STATE_UNINITIALIZED);
 			firmwareUpgradeCompletionCheck();
 			break;
-		case BOOTLOADER:
+		case DS_BOOTLOADER:
 			if (m_NewFirmwareBody && m_NewFirmwareHeader) {
 				updateFirmwareHCIter(false);
 			} else {
@@ -1688,7 +1688,7 @@ void MainWindow::enterDeviceState(int state)
 		m_deviceMenu->setDisabled(true);
 		m_fileMenu->setDisabled(true);
 		setCentralStack(m_wipingWidget);
-		::signetdev_get_progress(nullptr, &m_signetdevCmdToken, 0, WIPING);
+		::signetdev_get_progress(nullptr, &m_signetdevCmdToken, 0, DS_WIPING);
 	}
 	break;
 	case SignetApplication::STATE_LOGGED_IN_LOADING_ACCOUNTS: {

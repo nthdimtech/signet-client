@@ -217,7 +217,7 @@ void ResetDevice::signetdevCmdResp(signetdevCmdRespInfo info)
 		if (m_warningMessage) {
 			m_warningMessage->hide();
 		}
-		::signetdev_get_progress(NULL, &m_signetdevCmdToken, 0, INITIALIZING);
+		::signetdev_get_progress(NULL, &m_signetdevCmdToken, 0, DS_INITIALIZING);
 		break;
 	case BUTTON_PRESS_TIMEOUT:
 	case BUTTON_PRESS_CANCELED:
@@ -257,7 +257,7 @@ void ResetDevice::signetdevGetProgressResp(signetdevCmdRespInfo info, signetdev_
 			m_randomDataProgressBar->setValue(data.progress[1]);
 			m_randomDataProgressBar->update();
 		}
-		::signetdev_get_progress(nullptr, &m_signetdevCmdToken, data.total_progress, INITIALIZING);
+		::signetdev_get_progress(nullptr, &m_signetdevCmdToken, data.total_progress, DS_INITIALIZING);
 		break;
 	case INVALID_STATE: {
 		SignetApplication *app = SignetApplication::get();
