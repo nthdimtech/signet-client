@@ -918,7 +918,7 @@ void MainWindow::showEvent(QShowEvent *event)
 			m_deviceType = signetdev_open_connection();
 			SignetApplication::get()->setDeviceType(m_deviceType);
 			if (m_deviceType != SIGNETDEV_DEVICE_NONE) {
-				deviceOpened();
+				deviceOpened(m_deviceType);
 			}
 		}
 	}
