@@ -93,6 +93,27 @@ void SignetApplication::websocketResponse(int socketId, const QString &response)
 }
 #endif
 
+void SignetApplication::getFirmwareVersion(int &major, int &minor, int &step)
+{
+	switch (m_deviceType) {
+	case SIGNETDEV_DEVICE_HC:
+		major = 0;
+		minor = 1;
+		step = 2;
+		break;
+	case SIGNETDEV_DEVICE_ORIGINAL:
+		major = 1;
+		minor = 3;
+		step = 4;
+		break;
+	default:
+		major = 0;
+		minor = 0;
+		step = 0;
+		break;
+	}
+}
+
 void SignetApplication::generateKey(const QString &password, QByteArray &key, const QByteArray &hashfn, const QByteArray &salt, int keyLength)
 {
 	QByteArray s = password.toUtf8();

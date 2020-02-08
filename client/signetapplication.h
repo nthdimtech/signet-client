@@ -103,6 +103,7 @@ private:
 	int m_fwVersionMaj;
 	int m_fwVersionMin;
 	int m_fwVersionStep;
+	enum signetdev_device_type m_deviceType;
 	enum hc_boot_mode m_bootMode;
 	SignetAsyncListener *m_signetAsyncListener;
 public:
@@ -154,12 +155,7 @@ public:
 		subStep = 0;
 	}
 
-	void getFirmwareVersion(int &major, int &minor, int &step)
-	{
-		major = 1;
-		minor = 3;
-		step = 4;
-	}
+	void getFirmwareVersion(int &major, int &minor, int &step);
 
 	void getConnectedFirmwareVersion(int &major, int &minor, int &step)
 	{
@@ -223,6 +219,11 @@ public:
 	void setBootMode(enum hc_boot_mode mode)
 	{
 		m_bootMode = mode;
+	}
+
+	void setDeviceType(enum signetdev_device_type dev_type)
+	{
+		m_deviceType = dev_type;
 	}
 
 	enum hc_boot_mode getBootMode()

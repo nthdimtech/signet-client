@@ -273,6 +273,7 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 #ifdef Q_OS_UNIX
 		enterDeviceState(SignetApplication::STATE_CONNECTING);
 		m_deviceType = signetdev_open_connection();
+		SignetApplication::get()->setDeviceType(m_deviceType);
 		if (m_deviceType != SIGNETDEV_DEVICE_NONE) {
 			::signetdev_startup(nullptr, &m_signetdevCmdToken);
 			enterDeviceState(SignetApplication::STATE_STARTING_DEVICE);
@@ -324,6 +325,7 @@ void MainWindow::connectionError()
 		m_wasConnected = true;
 		enterDeviceState(SignetApplication::STATE_CONNECTING);
 		m_deviceType = signetdev_open_connection();
+		SignetApplication::get()->setDeviceType(m_deviceType);
 		if (m_deviceType != SIGNETDEV_DEVICE_NONE) {
 			::signetdev_startup(nullptr, &m_signetdevCmdToken);
 			enterDeviceState(SignetApplication::STATE_STARTING_DEVICE);
@@ -346,6 +348,7 @@ bool MainWindow::nativeEvent(const QByteArray & eventType, void *message, long *
 void MainWindow::deviceOpened(enum signetdev_device_type dev_type)
 {
 	m_deviceType = dev_type;
+	SignetApplication::get()->setDeviceType(m_deviceType);
 	::signetdev_startup(nullptr, &m_signetdevCmdToken);
 	enterDeviceState(SignetApplication::STATE_STARTING_DEVICE);
 }
@@ -353,6 +356,7 @@ void MainWindow::deviceOpened(enum signetdev_device_type dev_type)
 void MainWindow::deviceClosed()
 {
 	m_deviceType = SIGNETDEV_DEVICE_NONE;
+	SignetApplication::get()->setDeviceType(m_deviceType);
 	emit connectionError();
 }
 
@@ -912,6 +916,7 @@ void MainWindow::showEvent(QShowEvent *event)
 			enterDeviceState(SignetApplication::STATE_CONNECTING);
 			signetdev_win32_set_window_handle((HANDLE)winId());
 			m_deviceType = signetdev_open_connection();
+			SignetApplication::get()->setDeviceType(m_deviceType);
 			if (m_deviceType != SIGNETDEV_DEVICE_NONE) {
 				deviceOpened();
 			}
@@ -1882,7 +1887,7 @@ void MainWindow::enterDeviceState(int state)
 		SignetApplication::get()->getConnectedFirmwareVersion(fwMaj, fwMin, fwStep);
 
 		if (!databaseFile) {
-			if (fwMaj == 1 && fwMin == 2 && fwStep == 1) {
+			if ((m_deviceType == SIGNETDEV_DEVICE_ORIGINAL) && fwMaj == 1 && fwMin == 2 && fwStep == 1) {
 				//Version 1.2.1 has a glitch that causes a lockup when starting
 				// a restore from the logged out state
 				m_restoreAction->setVisible(false);
@@ -1926,7 +1931,7 @@ void MainWindow::enterDeviceState(int state)
 			int minor;
 			int step;
 			app->getConnectedFirmwareVersion(major, minor, step);
-			if (major == 1 && ((minor > 3) || (minor == 3 && step >= 2))) {
+			if (m_deviceType == SIGNETDEV_DEVICE_ORIGINAL && major == 1 && ((minor > 3) || (minor == 3 && step >= 2))) {
 				m_passwordSlots->setVisible(true);
 			}
 		}
@@ -2007,6 +2012,7 @@ void MainWindow::closeUi()
 		enterDeviceState(SignetApplication::STATE_NEVER_SHOWN);
 		enterDeviceState(SignetApplication::STATE_CONNECTING);
 		m_deviceType = signetdev_open_connection();
+		SignetApplication::get()->setDeviceType(m_deviceType);
 		if (m_deviceType != SIGNETDEV_DEVICE_NONE) {
 			::signetdev_startup(nullptr, &m_signetdevCmdToken);
 		}
@@ -2057,6 +2063,7 @@ void MainWindow::resetTimer()
 	enterDeviceState(SignetApplication::STATE_CONNECTING);
 	m_wasConnected = false;
 	m_deviceType = ::signetdev_open_connection();
+	SignetApplication::get()->setDeviceType(m_deviceType);
 	if (m_deviceType != SIGNETDEV_DEVICE_NONE) {
 		::signetdev_startup(nullptr, &m_signetdevCmdToken);
 	}
@@ -2475,6 +2482,7 @@ void MainWindow::startImport(DatabaseImporter *importer)
 	int stepVer;
 	app->getConnectedFirmwareVersion(majorVer, minorVer, stepVer);
 	bool useUpdateUids =
+		(m_deviceType == SIGNETDEV_DEVICE_ORIGINAL) &&
 		(majorVer == 1) &&
 		(
 			(minorVer > 3) ||
