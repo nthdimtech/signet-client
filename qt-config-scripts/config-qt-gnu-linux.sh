@@ -26,5 +26,5 @@ $1/configure \
 -skip qtfeedback \
 -skip qtdeclarative \
 -nomake examples -nomake tests \
--no-icu -no-mtdev -no-eglfs -no-linuxfb -no-libudev -no-egl -no-gstreamer -no-gbm -no-xcb-native-painting \
+-no-icu -no-mtdev -no-eglfs -no-linuxfb -no-libudev -no-egl -no-gstreamer -no-gbm -no-xcb-native-painting -no-sm \
 -qt-libjpeg -qt-libpng -qt-xcb -qt-pcre
