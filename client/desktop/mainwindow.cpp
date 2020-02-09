@@ -996,12 +996,10 @@ void MainWindow::logoutUi()
 
 void MainWindow::open()
 {
-	/*
 	show();
 	setWindowState((windowState() & ~Qt::WindowMinimized) | Qt::WindowActive);
 	raise();
 	activateWindow();
-	*/
 }
 
 void MainWindow::buttonWaitTimeout()
