@@ -139,19 +139,19 @@ public:
 
 	static QDate getReleaseDate()
 	{
-		return QDate(2019,7,9);
+		return QDate(2020,2,9);
 	}
 
 	static int releasePeriod()
 	{
-		return 60;
+		return 90;
 	}
 
 	void getClientVersion(int &major, int &minor, int &step, int &subStep)
 	{
 		major = 0;
 		minor = 9;
-		step = 14;
+		step = 15;
 		subStep = 0;
 	}
 
