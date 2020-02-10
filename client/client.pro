@@ -289,14 +289,14 @@ HEADERS +=  desktop/mainwindow.h \
         desktop/about.h \
         desktop/systemtray.h \
         desktop/resetdevice.h \
-        desktop\loggedinwidget.h \
-        desktop\aspectratiopixmaplabel.h \
-        desktop\changemasterpassword.h \
-        desktop\searchlistbox.h \
-        desktop\buttonwaitdialog.h \
-        desktop\buttonwaitwidget.h \
-        desktop\searchfilteredit.h \
-        desktop\loginwindow.h \
+        desktop/loggedinwidget.h \
+        desktop/aspectratiopixmaplabel.h \
+        desktop/changemasterpassword.h \
+        desktop/searchlistbox.h \
+        desktop/buttonwaitdialog.h \
+        desktop/buttonwaitwidget.h \
+        desktop/searchfilteredit.h \
+        desktop/loginwindow.h \
 	desktop/cleartextpasswordeditor.h \
 	desktop/cleartextpasswordselector.h \
 	desktop/datatypelistmodel.h
