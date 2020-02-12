@@ -69,6 +69,8 @@ class MainWindow : public QMainWindow
 	esdbTypeModule *m_bookmarkTypeModule;
 	esdbTypeModule *m_genericModule;
 	LoggedInWidget *m_loggedInWidget;
+
+	bool uninitializedFirmwareUpdateSupported();
 public:
 	explicit MainWindow(QString dbFilename, QWidget *parent = 0);
 	void closeEvent(QCloseEvent *event);
@@ -229,6 +231,7 @@ private:
 	QString backupSuffix();
 	QString firmwareFilter();
 	QString firmwareSuffix();
+	bool uninitializedWipeSupported();
 public slots:
 	void abort();
 	void quit();

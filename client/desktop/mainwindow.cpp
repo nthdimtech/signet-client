@@ -83,6 +83,20 @@ extern "C" {
 #define SIGNET_FIRMWARE_SUFFIX "sfw"
 #define SIGNET_HC_FIRMWARE_SUFFIX "sfwhc"
 
+bool MainWindow::uninitializedFirmwareUpdateSupported()
+{
+	int major, minor, step;
+	SignetApplication::get()->getConnectedFirmwareVersion(major, minor, step);
+	return (m_deviceType == SIGNETDEV_DEVICE_HC) && ((major > 0) || (minor > 1) || (step >=3));
+}
+
+bool MainWindow::uninitializedWipeSupported()
+{
+	int major, minor, step;
+	SignetApplication::get()->getConnectedFirmwareVersion(major, minor, step);
+	return (m_deviceType == SIGNETDEV_DEVICE_HC) && ((major > 0) || (minor > 1) || (step >=3));
+}
+
 MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	QMainWindow(parent),
 	m_dbFilename(dbFilename),
@@ -513,6 +527,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 	case BUTTON_PRESS_TIMEOUT:
 	case SIGNET_ERROR_DISCONNECT:
 	case SIGNET_ERROR_QUIT:
+	case DEVICE_NOT_WIPED:
 		break;
 	default:
 		do_abort = true;
@@ -659,6 +674,9 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 		endButtonWait();
 		if (code == OKAY) {
 			enterDeviceState(SignetApplication::STATE_UPDATING_FIRMWARE);
+		} else if (code == DEVICE_NOT_WIPED && uninitializedFirmwareUpdateSupported()) {
+			QMessageBox *box = SignetApplication::messageBoxError(QMessageBox::Critical, "Update firmware", "Device not wiped yet. Wipe device and try again", this);
+			connect(box, SIGNAL(finished(int)), this, SLOT(restoreError()));
 		}
 	}
 	break;
@@ -1855,9 +1873,18 @@ void MainWindow::enterDeviceState(int state)
 
 		m_logoutAction->setDisabled(true);
 		m_backupAction->setVisible(false);
-		m_wipeDeviceAction->setVisible(false);
+		if (uninitializedWipeSupported()) {
+			m_wipeDeviceAction->setVisible(true);
+		} else {
+			m_wipeDeviceAction->setVisible(false);
+		}
+
+		if (uninitializedFirmwareUpdateSupported()) {
+			m_updateFirmwareAction->setVisible(true);
+		} else {
+			m_updateFirmwareAction->setVisible(false);
+		}
 		m_changePasswordAction->setVisible(false);
-		m_updateFirmwareAction->setVisible(false);
 		m_passwordSlots->setVisible(false);
 
 		m_uninitPrompt = new QWidget();
