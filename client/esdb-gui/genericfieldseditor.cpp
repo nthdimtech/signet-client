@@ -1,8 +1,8 @@
 #include "genericfieldseditor.h"
-
 #include "genericfieldedit.h"
-
 #include "genericfieldeditfactory.h"
+#include "generictext.h"
+#include "emphasistext.h"
 
 #include <QHBoxLayout>
 #include <QLineEdit>
@@ -26,7 +26,7 @@ GenericFieldsEditor::GenericFieldsEditor(QList<fieldSpec> requiredFieldSpecs,
 	m_newFieldAddButton = new QPushButton(QIcon(":/images/plus.png"),"");
 	m_newFieldAddButton->setEnabled(!SignetApplication::get()->isDeviceEmulated());
 	QLayout *newFieldDescLayout = new QHBoxLayout();
-	newFieldDescLayout->addWidget(new QLabel("Field Name"));
+	newFieldDescLayout->addWidget(new genericText("Field Name"));
 	m_newFieldNameEdit = new QLineEdit();
 	m_newFieldNameEdit->setEnabled(!SignetApplication::get()->isDeviceEmulated());
 	newFieldDescLayout->addWidget(m_newFieldNameEdit);
@@ -59,8 +59,7 @@ GenericFieldsEditor::GenericFieldsEditor(QList<fieldSpec> requiredFieldSpecs,
 
 	newFieldDescLayout->addWidget(m_newFieldTypeCombo);
 	newFieldDescLayout->addWidget(m_newFieldAddButton);
-	QLabel *newFieldLabel = new QLabel("New Field");
-	newFieldLabel->setStyleSheet("font-weight: bold");
+	QLabel *newFieldLabel = new emphasisText("New Field");
 	QVBoxLayout *newFieldLayout = new QVBoxLayout();
 	m_newField->setLayout(newFieldLayout);
 	newFieldLayout->setContentsMargins(0,0,0,0);

@@ -8,6 +8,7 @@
 
 #include "buttonwaitdialog.h"
 #include "genericfieldseditor.h"
+#include "generictext.h"
 
 extern "C" {
 #include "signetdev/host/signetdev.h"
@@ -73,7 +74,7 @@ void EditGenericType::setup(QString name)
 	m_typeNameEdit = new QLineEdit(name);
 	m_typeNameEdit->setReadOnly(SignetApplication::get()->isDeviceEmulated());
 	m_genericFieldsEditor = new GenericFieldsEditor(QList<fieldSpec>(), nullptr, true);
-	typeName->addWidget(new QLabel("Type name"));
+	typeName->addWidget(new genericText("Type name"));
 	typeName->addWidget(m_typeNameEdit);
 	top->addLayout(typeName);
 	top->addWidget(m_genericFieldsEditor);

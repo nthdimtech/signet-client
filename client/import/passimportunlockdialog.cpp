@@ -10,6 +10,8 @@
 #include <QLineEdit>
 #include <QProcess>
 
+#include "style.h"
+
 PassImportUnlockDialog::PassImportUnlockDialog(PassImporter *importer, QWidget *parent) :
 	QDialog(parent),
 	m_importer(importer)
@@ -22,8 +24,8 @@ PassImportUnlockDialog::PassImportUnlockDialog(PassImporter *importer, QWidget *
 	QHBoxLayout *buttons = new QHBoxLayout();
 	m_passphraseEdit = new QLineEdit();
 	m_passphraseEdit->setEchoMode(QLineEdit::Password);
-	m_warnLabel = new QLabel("GPG passphrase incorrect");
-	m_warnLabel->setStyleSheet("QLabel { color : red; }");
+	m_warnLabel = new errorText("GPG passphrase incorrect");
+
 	m_warnLabel->hide();
 
 	m_passphraseEdit->setMinimumWidth(200);

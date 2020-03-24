@@ -8,6 +8,8 @@
 #include <QString>
 #include <QDialog>
 
+#include "style.h"
+
 EntryRenameDialog::EntryRenameDialog(QString initialName, QWidget *parent) :
 	QDialog(parent),
 	m_okayPressed(false)
@@ -16,8 +18,7 @@ EntryRenameDialog::EntryRenameDialog(QString initialName, QWidget *parent) :
 	QHBoxLayout *main = new QHBoxLayout();
 	QVBoxLayout *top = new QVBoxLayout();
 
-	m_warningLabel = new QLabel("New name must not be empty");
-	m_warningLabel->setStyleSheet("QLabel { color : red; }");
+	m_warningLabel = new errorText("New name must not be empty");
 	m_warningLabel->hide();
 
 	top->addLayout(main);

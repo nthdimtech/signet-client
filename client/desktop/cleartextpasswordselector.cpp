@@ -15,6 +15,7 @@ extern "C" {
 }
 
 #include "signetapplication.h"
+#include "generictext.h"
 
 cleartextPasswordSelector::cleartextPasswordSelector(QVector<int> formats, QStringList names, QWidget *parent) :
 	QDialog(parent),
@@ -44,7 +45,7 @@ cleartextPasswordSelector::cleartextPasswordSelector(QVector<int> formats, QStri
 			QHBoxLayout *slot = new QHBoxLayout();
 			QRadioButton *b = new QRadioButton(n);
 			connect(b, SIGNAL(pressed()), this, SLOT(selectionPressed()));
-			slot->addWidget(new QLabel("Slot #" + QString::number(i+1)));
+			slot->addWidget(new genericText("Slot #" + QString::number(i+1)));
 			slot->addWidget(b);
 
 			m_slotButtons.append(b);

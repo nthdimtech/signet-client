@@ -60,7 +60,29 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 	m_nextSocketId = 0;
     m_webSocketServer = nullptr;
 #endif
-	setStyleSheet("QPushButton {qproperty-iconSize: 32px;}\n QAbstractItemView {qproperty-iconSize: 32px;}");
+
+#ifndef Q_OS_ANDROID
+	QDesktopWidget desktop;
+	int desktopHeight = desktop.geometry().height();
+	int desktopWidth = desktop.geometry().width();
+	int iconPx;
+	if (desktopHeight >= 2000) {
+		iconPx = 32;
+	} else if (desktopHeight > 1100) {
+		iconPx = 24;
+	} else {
+		iconPx = 16;
+	}
+
+	QString iconPxStr = QString::number(iconPx);
+
+	setStyleSheet("QWidget { font-size: 9pt; qproperty-iconSize: " + iconPxStr + "px}\n"
+			"processingText { Font: italic bold}\n"
+			"noteText { Font: italic}\n"
+			"errorText { color: red }\n"
+			"emphasisText { Font: bold }\n"
+			"emphasisLargeText { font-size: 10pt; Font: bold }\n");
+#endif
 	g_singleton = this;
 	m_systray = new SystemTray();
 	qRegisterMetaType<signetdevCmdRespInfo>();

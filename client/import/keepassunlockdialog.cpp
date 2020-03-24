@@ -18,6 +18,8 @@
 #include <core/Group.h>
 #include <core/Entry.h>
 
+#include "style.h"
+
 KeePassUnlockDialog::KeePassUnlockDialog(QFile *file, QWidget *parent) :
 	QDialog(parent),
         m_keePassDatabase(NULL),
@@ -30,9 +32,8 @@ KeePassUnlockDialog::KeePassUnlockDialog(QFile *file, QWidget *parent) :
 	QHBoxLayout *password = new QHBoxLayout();
 	QHBoxLayout *keyFile = new QHBoxLayout();
 	QHBoxLayout *buttons = new QHBoxLayout();
-	m_warnLabel = new QLabel("Database read failed");
+	m_warnLabel = new errorText("Database read failed");
 	m_warnLabel->hide();
-	m_warnLabel->setStyleSheet("QLabel { color : red; }");
 
 	m_passwordCheckBox = new QCheckBox("Password");
 	m_passwordCheckBox->setChecked(false);

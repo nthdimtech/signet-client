@@ -15,6 +15,8 @@ extern "C" {
 #include <algorithm>
 #include <random>
 
+#include "style.h"
+
 ChangeMasterPassword::ChangeMasterPassword(QWidget *parent) :
 	QDialog(parent),
 	m_newPasswordWarningMessage(nullptr),
@@ -43,32 +45,29 @@ ChangeMasterPassword::ChangeMasterPassword(QWidget *parent) :
 	QBoxLayout *old_password_layout = new QBoxLayout(QBoxLayout::LeftToRight);
 	m_oldPasswordEdit = new QLineEdit();
 	m_oldPasswordEdit->setEchoMode(QLineEdit::Password);
-	old_password_layout->addWidget(new QLabel("Old password"));
+	old_password_layout->addWidget(new genericText("Old password"));
 	old_password_layout->addWidget(m_oldPasswordEdit);
 
-	m_generatingKeys = new QLabel("Generating login keys...");
-	m_generatingKeys->setStyleSheet("QLabel { font : italic bold }");
+	m_generatingKeys = new processingText("Generating login keys...");
 	m_generatingKeys->hide();
 
-	m_oldPasswordWarningMessage = new QLabel();
+	m_oldPasswordWarningMessage = new errorText("");
 	m_oldPasswordWarningMessage->hide();
-	m_oldPasswordWarningMessage->setStyleSheet("QLabel { color : red; }");
 
 	QBoxLayout *new_password_layout = new QBoxLayout(QBoxLayout::LeftToRight);
 	m_newPasswordEdit = new QLineEdit();
 	m_newPasswordEdit->setEchoMode(QLineEdit::Password);
-	new_password_layout->addWidget(new QLabel("New password"));
+	new_password_layout->addWidget(new genericText("New password"));
 	new_password_layout->addWidget(m_newPasswordEdit);
 
 	QBoxLayout *new_password_repeat_layout = new QBoxLayout(QBoxLayout::LeftToRight);
 	m_newPasswordRepeatEdit = new QLineEdit();
 	m_newPasswordRepeatEdit->setEchoMode(QLineEdit::Password);
-	new_password_repeat_layout->addWidget(new QLabel("New password (repeat) "));
+	new_password_repeat_layout->addWidget(new genericText("New password (repeat) "));
 	new_password_repeat_layout->addWidget(m_newPasswordRepeatEdit);
 
-	m_newPasswordWarningMessage = new QLabel();
+	m_newPasswordWarningMessage = new errorText("");
 	m_newPasswordWarningMessage->hide();
-	m_newPasswordWarningMessage->setStyleSheet("QLabel { color : red; }");
 
 	m_changePasswordBtn = new QPushButton("Change password");
 	m_changePasswordBtn->setAutoDefault(true);
@@ -78,12 +77,10 @@ ChangeMasterPassword::ChangeMasterPassword(QWidget *parent) :
 	m_authSecurityLevel->setValue(4);
 
 	auto securityLevelEdit = new QHBoxLayout();
-	securityLevelEdit->addWidget(new QLabel("New security level (1-8)"));
+	securityLevelEdit->addWidget(new genericText("New security level (1-8)"));
 	securityLevelEdit->addWidget(m_authSecurityLevel);
 
-	m_securityLevelComment = new QLabel("Note: The security level controls how long it takes to unlock your device. A value of (4) will secure your data against for most threats and allow you to unlock your device in 1-2 seconds. A value of (8) could increase login times to over a minute.");
-	m_securityLevelComment->setWordWrap(true);
-	m_securityLevelComment->setStyleSheet("QLabel { font : italic  }");
+	m_securityLevelComment = new noteText("Note: The security level controls how long it takes to unlock your device. A value of (4) will secure your data against for most threats and allow you to unlock your device in 1-2 seconds. A value of (8) could increase login times to over a minute.");
 
 	layout->addLayout(old_password_layout);
 	layout->addWidget(m_oldPasswordWarningMessage);

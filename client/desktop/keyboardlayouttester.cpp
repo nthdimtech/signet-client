@@ -15,6 +15,8 @@
 #include <X11/keysymdef.h>
 #endif
 
+#include "style.h"
+
 //Scancodes to test and their row/column position on most keyboards
 //Comments indicate expected key for an en/US keyboard layout
 KeyboardLayoutTester::scancodeInfo KeyboardLayoutTester::s_scancodeSequence[] = {
@@ -223,8 +225,7 @@ KeyboardLayoutTester::KeyboardLayoutTester(const QVector<struct signetdev_key> &
 		SLOT(pressTimeout()));
 	QLayout *buttonsLayout = new QHBoxLayout();
 
-	m_configurationWarning = new QLabel("Configuring... Don't use your mouse or keybord until configuration is complete.");
-	m_configurationWarning->setStyleSheet("font-weight: bold");
+	m_configurationWarning = new processingText("Configuring... Don't use your mouse or keybord until configuration is complete.");
 	m_configurationWarning->hide();
 	m_configurationWarning->setAlignment(Qt::AlignCenter);
 
@@ -278,22 +279,22 @@ void KeyboardLayoutTester::canelPressed()
 
 void KeyboardLayoutTester::initGridLayout()
 {
-	m_gridLayout->addWidget(new QLabel("Regular keys"), 0, 0, 1, 10);
-	m_gridLayout->addWidget(new QLabel("Shift keys"), 6, 0, 1, 10);
-	m_gridLayout->addWidget(new QLabel("R-Alt keys"), 0, 16, 1, 10);
-	m_gridLayout->addWidget(new QLabel("Shift + R-Alt keys"), 6, 16, 1, 10);
+	m_gridLayout->addWidget(new genericText("Regular keys"), 0, 0, 1, 10);
+	m_gridLayout->addWidget(new genericText("Shift keys"), 6, 0, 1, 10);
+	m_gridLayout->addWidget(new genericText("R-Alt keys"), 0, 16, 1, 10);
+	m_gridLayout->addWidget(new genericText("Shift + R-Alt keys"), 6, 16, 1, 10);
 	for (int i = 1; i <= 14 + 15; i++) {
-		QLabel *l = new QLabel("");
+		QLabel *l = new genericText("");
 		l->setMinimumSize(15,15);
 		m_gridLayout->addWidget(l, 1, i, 1, 1);
 	}
 	for (int j = 2; j <= 5; j++) {
-		QLabel *l = new QLabel("");
+		QLabel *l = new genericText("");
 		l->setMinimumSize(15,15);
 		m_gridLayout->addWidget(l, j, 1, 1, 1);
 	}
 	for (int j = 6; j <= 6+5; j++) {
-		QLabel *l = new QLabel("");
+		QLabel *l = new genericText("");
 		l->setMinimumSize(15,15);
 		m_gridLayout->addWidget(l, j, 1, 1, 1);
 	}
@@ -324,7 +325,7 @@ void KeyboardLayoutTester::showCurrentLayout()
 			int row = s_scancodeSequence[j].row;
 			int col = s_scancodeSequence[j].column;
 			if (row && col) {
-				QLabel *l = new QLabel(QChar((ushort)k.key));
+				QLabel *l = new genericText(QChar((ushort)k.key));
 				l->setMinimumSize(15,15);
 				if (k.phy_key[0].modifier & 0x40) {
 					col += 15;
@@ -500,7 +501,7 @@ void KeyboardLayoutTester::charactersTyped(QString t)
 			col += 15;
 		}
 		QLabel *label = NULL;
-		label = new QLabel(t);
+		label = new genericText(t);
 		m_gridLayout->addWidget(label, row, col, 1, 1);
 	}
 	m_layout.push_back(k);

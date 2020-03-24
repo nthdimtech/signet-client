@@ -21,6 +21,8 @@ extern "C" {
 #include "signetdev/host/signetdev.h"
 };
 
+#include "style.h"
+
 EditAccount::EditAccount(int id, QString entryName, QStringList groupList, QWidget *parent) :
 	EditEntryDialog("Account", id, parent),
         m_acct(nullptr),
@@ -54,13 +56,12 @@ void EditAccount::setup(QString name)
 	m_genericFieldsEditor = new GenericFieldsEditor(requiredGenericFields);
 
 	QBoxLayout *account_name_layout = new QBoxLayout(QBoxLayout::LeftToRight);
-	account_name_layout->addWidget(new QLabel("Account name"));
+	account_name_layout->addWidget(new genericText("Account name"));
 	account_name_layout->addWidget(m_accountNameEdit);
 	connect(m_accountNameEdit, SIGNAL(textEdited(QString)), this, SLOT(accountNameEdited()));
 	connect(m_accountNameEdit, SIGNAL(textEdited(QString)), this, SLOT(entryNameEdited()));
 
-	m_accountNameWarning = new QLabel();
-	m_accountNameWarning->setStyleSheet("QLabel { color : red; }");
+	m_accountNameWarning = new errorText("");
 	m_accountNameWarning->hide();
 
 	m_usernameField = new DatabaseField("username", 120, nullptr);

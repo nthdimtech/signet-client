@@ -48,6 +48,7 @@ extern "C" {
 #include "bookmark.h"
 #include "generic.h"
 #include "datatypelistmodel.h"
+#include "generictext.h"
 
 int iconAccount::matchQuality(esdbEntry *entry)
 {

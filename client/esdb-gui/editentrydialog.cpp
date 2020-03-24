@@ -13,6 +13,8 @@ extern "C" {
 #include <QLabel>
 #include <QCloseEvent>
 
+#include "style.h"
+
 EditEntryDialog::EditEntryDialog(QString typeName, int id, QWidget *parent) :
 	QDialog(parent),
     m_typeName(typeName),
@@ -81,8 +83,7 @@ void EditEntryDialog::setupBase()
 	}
 	m_buttons->addWidget(closeButton);
 
-	m_dataOversized = new QLabel("Warning: this entry is too large. You must delete something to save it");
-	m_dataOversized->setStyleSheet("QLabel { color : red; }");
+	m_dataOversized = new errorText("Warning: this entry is too large. You must delete something to save it");
 	m_dataOversized->hide();
 }
 

@@ -10,6 +10,8 @@
 #include <QLabel>
 #include <random>
 
+#include "style.h"
+
 PasswordEdit::PasswordEdit(QWidget *parent) :
 	QWidget(parent),
 	m_generatingDialog(NULL),
@@ -36,7 +38,7 @@ PasswordEdit::PasswordEdit(QWidget *parent) :
 	m_genSymbolSet->setMinimumWidth(150);
 
 	QHBoxLayout *num_chars_layout = new QHBoxLayout();
-	num_chars_layout->addWidget(new QLabel("Number of characters"));
+	num_chars_layout->addWidget(new genericText("Number of characters"));
 	num_chars_layout->addWidget(m_numGenChars);
 
 	QHBoxLayout *gen_symbols_layout = new QHBoxLayout();
@@ -87,7 +89,7 @@ void PasswordEdit::generatePassword()
 	m_generatingDialog->setWindowTitle("Password generate");
 	m_generatingDialog->setModal(true);
 	m_generatingDialog->setLayout(new QHBoxLayout());
-	m_generatingDialog->layout()->addWidget(new QLabel("Collecting random data from Signet..."));
+	m_generatingDialog->layout()->addWidget(new processingText("Collecting random data from Signet..."));
 	m_generatingDialog->show();
 	::signetdev_get_rand_bits(NULL, &m_signetdevCmdToken, m_numGenChars->value());
 }

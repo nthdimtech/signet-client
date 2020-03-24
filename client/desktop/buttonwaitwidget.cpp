@@ -6,6 +6,9 @@
 #include <QBoxLayout>
 #include <QPushButton>
 
+#include "generictext.h"
+#include "emphasislargetext.h"
+
 ButtonWaitWidget::ButtonWaitWidget(QString action, bool longPress, QWidget *parent) :
 	QWidget(parent),
 	m_timeLeft(sTimeoutPeriod),
@@ -14,7 +17,6 @@ ButtonWaitWidget::ButtonWaitWidget(QString action, bool longPress, QWidget *pare
     m_timeoutOccured(false)
 {
 	QPixmap pm(":/images/button_press.png");
-	//TODO: Add changable text to widget
     QLabel *image = new QLabel();
     image->setPixmap(pm.scaledToHeight(64));
 
@@ -22,18 +24,12 @@ ButtonWaitWidget::ButtonWaitWidget(QString action, bool longPress, QWidget *pare
     QBoxLayout *topRow = new QBoxLayout(QBoxLayout::LeftToRight);
     QBoxLayout *textColumn = new QBoxLayout(QBoxLayout::TopToBottom);
 
-    m_actionText = new QLabel();
-    m_timeoutText = new QLabel();
+    m_actionText = new emphasisLargeText("");
+    m_timeoutText = new emphasisLargeText("");
 
     int pxSz = m_timeoutText->fontInfo().pixelSize();
 
-    QString style = "font-weight: bold; font-size: " + QString::number((pxSz * 110) / 100) + "px";
-    //QString style = "font-weight: bold";
-
-    m_timeoutText->setStyleSheet(style);
-    m_actionText->setStyleSheet(style);
-
-	m_cancelButton = new QPushButton("Cancel");
+    m_cancelButton = new QPushButton("Cancel");
     connect(m_cancelButton, SIGNAL(clicked()), this, SIGNAL(canceled()));
     topLayout->setAlignment(Qt::AlignTop);
 

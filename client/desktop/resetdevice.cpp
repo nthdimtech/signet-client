@@ -25,6 +25,8 @@ extern "C" {
 #include "signetdev/host/signetdev.h"
 }
 
+#include "style.h"
+
 ResetDevice::ResetDevice(bool destructive, QWidget *parent) :
 	QDialog(parent),
 	m_buttonPrompt(nullptr),
@@ -59,10 +61,9 @@ ResetDevice::ResetDevice(bool destructive, QWidget *parent) :
 
 	QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
 	layout->setAlignment(Qt::AlignTop);
-	m_passwordEdit_1Label = new QLabel("Master password");
-	m_passwordEdit_2Label = new QLabel("Master password (repeat)");
-	m_generatingKeyLabel =  new QLabel("Generating login key...");
-	m_generatingKeyLabel->setStyleSheet("QLabel { font : bold italic }");
+	m_passwordEdit_1Label = new genericText("Master password");
+	m_passwordEdit_2Label = new genericText("Master password (repeat)");
+	m_generatingKeyLabel =  new processingText("Generating login key...");
 	m_passwordEdit_1 = new QLineEdit();
 	m_passwordEdit_2 = new QLineEdit();
 	m_passwordEdit_1->setEchoMode(QLineEdit::Password);
@@ -76,14 +77,14 @@ ResetDevice::ResetDevice(bool destructive, QWidget *parent) :
 	QObject::connect(m_resetButton, SIGNAL(pressed()), this, SLOT(reset()));
 	QObject::connect(cancel, SIGNAL(pressed()), this, SLOT(close()));
 
-	m_writeProgressLabel = new QLabel("Clearing device...");
+	m_writeProgressLabel = new processingText("Clearing device...");
 	m_writeProgressLabel->hide();
 	m_writeProgressBar = new QProgressBar();
 	m_writeProgressBar->setRange(0, 100);
 	m_writeProgressBar->setTextVisible(true);
 	m_writeProgressBar->hide();
 
-	m_randomDataProgressLabel = new QLabel("Collecting random data...");
+	m_randomDataProgressLabel = new processingText("Collecting random data...");
 	m_randomDataProgressLabel->hide();
 	m_randomDataProgressBar = new QProgressBar();
 	m_randomDataProgressBar->setRange(0, 100);
@@ -91,12 +92,11 @@ ResetDevice::ResetDevice(bool destructive, QWidget *parent) :
 	m_randomDataProgressBar->hide();
 
 	if (destructive) {
-		m_warningMessage = new QLabel("Warning, this permenantly erase the contents of your device.");
-		m_warningMessage->setStyleSheet("QLabel { color : red; }");
+		m_warningMessage = new errorText("Warning, this permenantly erase the contents of your device.");
 	} else {
 		m_warningMessage = nullptr;
 	}
-	m_passwordWarningMessage = new QLabel();
+	m_passwordWarningMessage = new errorText("");
 	m_passwordWarningMessage->hide();
 	m_generatingKeyLabel->hide();
 	if (m_destructive) {
@@ -107,12 +107,10 @@ ResetDevice::ResetDevice(bool destructive, QWidget *parent) :
 	m_authSecurityLevel->setRange(1, 8);
 	m_authSecurityLevel->setValue(4);
 
-	m_securityLevelComment = new QLabel("Note: The security level controls how long it takes to unlock your device. A value of (4) will secure your data against for most threats and allow you to unlock your device in 1-2 seconds. A value of (8) could increase login times to over a minute.");
-	m_securityLevelComment->setWordWrap(true);
-	m_securityLevelComment->setStyleSheet("QLabel { font : italic  }");
+	m_securityLevelComment = new noteText("Note: The security level controls how long it takes to unlock your device. A value of (4) will secure your data against for most threats and allow you to unlock your device in 1-2 seconds. A value of (8) could increase login times to over a minute.");
 
 	auto securityLevelEdit = new QHBoxLayout();
-	securityLevelEdit->addWidget(new QLabel("Security level (1-8)"));
+	securityLevelEdit->addWidget(new genericText("Security level (1-8)"));
 	securityLevelEdit->addWidget(m_authSecurityLevel);
 
 	layout->addWidget(m_passwordEdit_1Label);
@@ -163,7 +161,6 @@ void ResetDevice::keyGenerated()
 void ResetDevice::reset()
 {
 	if (m_passwordEdit_1->text() != m_passwordEdit_2->text()) {
-		m_passwordWarningMessage->setStyleSheet("QLabel { color : red; }");
 		m_passwordWarningMessage->setText("Passwords don't match, try again");
 		m_passwordWarningMessage->show();
 		m_passwordEdit_1->setText("");

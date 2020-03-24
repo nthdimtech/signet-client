@@ -1,4 +1,5 @@
 #include "genericfieldedit.h"
+#include "generictext.h"
 #include "buttonwaitdialog.h"
 #include "signetapplication.h"
 
@@ -41,7 +42,8 @@ void genericFieldEdit::createWidget(bool canRemove, QWidget *editWidget, bool ou
 	}
 	m_editWidget->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Ignored));
 	m_widget->layout()->setContentsMargins(0,0,0,0);
-	m_widget->layout()->addWidget(new QLabel(displayName()));
+	auto *displayLabel = new genericText(displayName());
+	m_widget->layout()->addWidget(displayLabel);
 	m_widget->layout()->addWidget(m_editWidget);
 
 	if (isSecretField()) {
@@ -88,7 +90,7 @@ void genericFieldEdit::createTallWidget(int rows, bool canRemove, QWidget *editW
 	m_editWidget->setContentsMargins(0,0,0,0);
 	grid->setContentsMargins(0,0,0,0);
 	grid->setColumnStretch(1,1);
-	QLabel *label = new QLabel(m_name);
+	QLabel *label = new genericText(m_name);
 	label->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 	grid->addWidget(label, 0, 0, 1, 1, Qt::AlignTop);
 	grid->addWidget(m_editWidget, 0, 1, rows, 1, Qt::AlignCenter);

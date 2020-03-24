@@ -151,6 +151,12 @@ SOURCES += esdb-gui/esdbmodel.cpp \
     esdb-gui/linefieldedit.cpp \
     esdb-gui/integerfieldedit.cpp \
     esdb-gui/textblockfieldedit.cpp \
+    esdb-gui/generictext.cpp \
+    esdb-gui/emphasistext.cpp \
+    esdb-gui/emphasislargetext.cpp \
+    esdb-gui/errortext.cpp \
+    esdb-gui/notetext.cpp \
+    esdb-gui/processingtext.cpp \
     esdb-gui/genericfieldedit.cpp \
     esdb-gui/genericfieldeditfactory.cpp \
     esdb-gui/genericfieldseditor.cpp \
@@ -173,6 +179,12 @@ HEADERS +=  esdb-gui/esdbmodel.h \
     esdb-gui/linefieldedit.h \
     esdb-gui/integerfieldedit.h \
     esdb-gui/textblockfieldedit.h \
+    esdb-gui/generictext.h \
+    esdb-gui/emphasistext.h \
+    esdb-gui/emphasislargetext.h \
+    esdb-gui/errortext.h \
+    esdb-gui/notetext.h \
+    esdb-gui/processingtext.h \
     esdb-gui/genericfieldedit.h \
     esdb-gui/genericfieldeditfactory.h \
     esdb-gui/genericfieldseditor.h \

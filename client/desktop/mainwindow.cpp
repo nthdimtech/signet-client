@@ -77,6 +77,7 @@ extern "C" {
 #include "esdbaccountmodule.h"
 #include "generictypedesc.h"
 #include "esdb/generictype/esdbgenerictypemodule.h"
+#include "style.h"
 
 #define SIGNET_BACKUP_EXTENSION "sdb"
 #define SIGNET_HC_BACKUP_EXTENSION "sdbhc"
@@ -1576,9 +1577,9 @@ void MainWindow::createFirmwareUpdateWidget()
 			//TODO
 			break;
 		}
-		m_firmwareUpdateStage = new QLabel(progressTitle);
+		m_firmwareUpdateStage = new genericText(progressTitle);
 	} else {
-		m_firmwareUpdateStage = new QLabel("Erasing firmware pages...");
+		m_firmwareUpdateStage = new processingText("Erasing firmware pages...");
 	}
 	layout->addWidget(m_firmwareUpdateStage);
 	layout->addWidget(m_firmwareUpdateProgress);
@@ -1638,7 +1639,7 @@ void MainWindow::enterDeviceState(int state)
 		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
 		layout->setAlignment(Qt::AlignTop);
 		disconnecting_widget->setLayout(layout);
-		QLabel *label = new QLabel("Disconnecting from device");
+		QLabel *label = new genericText("Disconnecting from device");
 		layout->addWidget(label);
 		disconnecting_widget->setLayout(layout);
 		setCentralStack(disconnecting_widget);
@@ -1656,13 +1657,13 @@ void MainWindow::enterDeviceState(int state)
 		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
 		layout->setAlignment(Qt::AlignTop);
 		if (m_wasConnected && !m_fwUpgradeState) {
-			m_connectingLabel = new QLabel("No Signet device detected.\n\nPlease insert device.");
+			m_connectingLabel = new genericText("No Signet device detected.\n\nPlease insert device.");
 			m_wasConnected = false;
 		} else {
 			if (m_fwUpgradeState) {
-				m_connectingLabel = new QLabel("Waiting for device...");
+				m_connectingLabel = new processingText("Waiting for device...");
 			} else {
-				m_connectingLabel = new QLabel("Searching for device...");
+				m_connectingLabel = new processingText("Searching for device...");
 				m_connectingTimer.setSingleShot(true);
 				m_connectingTimer.setInterval(2000);
 				m_connectingTimer.start();
@@ -1682,7 +1683,7 @@ void MainWindow::enterDeviceState(int state)
 		QWidget *starting_widget = new QWidget();
 		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
 		layout->setAlignment(Qt::AlignTop);
-		layout->addWidget(new QLabel("Starting up device...."));
+		layout->addWidget(new processingText("Starting up device...."));
 		m_deviceMenu->setDisabled(true);
 		m_fileMenu->setDisabled(false);
 		starting_widget->setLayout(layout);
@@ -1698,7 +1699,7 @@ void MainWindow::enterDeviceState(int state)
 		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
 		layout->setAlignment(Qt::AlignTop);
 		m_wipeProgress = new QProgressBar();
-		layout->addWidget(new QLabel("Wiping device..."));
+		layout->addWidget(new processingText("Wiping device..."));
 		layout->addWidget(m_wipeProgress);
 		m_wipingWidget->setLayout(layout);
 		m_deviceMenu->setDisabled(true);
@@ -1711,8 +1712,7 @@ void MainWindow::enterDeviceState(int state)
 		m_loggedIn = true;
 		m_deviceMenu->setDisabled(true);
 		m_fileMenu->setDisabled(true);
-		QLabel *loading_label = new QLabel("Loading...");
-		loading_label->setStyleSheet("font-weight: bold");
+		QLabel *loading_label = new processingText("Loading...");
 
 		QProgressBar *loading_progress = new QProgressBar();
 
@@ -1745,7 +1745,7 @@ void MainWindow::enterDeviceState(int state)
 		layout->setAlignment(Qt::AlignTop);
 		m_backupProgress = new QProgressBar();
 		QFileInfo fi(m_backupFile->fileName());
-		layout->addWidget(new QLabel("Backing up device to " + fi.fileName() + "..."));
+		layout->addWidget(new processingText("Backing up device to " + fi.fileName() + "..."));
 		layout->addWidget(m_backupProgress);
 		m_backupWidget->setLayout(layout);
 		m_deviceMenu->setDisabled(true);
@@ -1760,7 +1760,7 @@ void MainWindow::enterDeviceState(int state)
 		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
 		layout->setAlignment(Qt::AlignTop);
 		m_backupProgress = new QProgressBar();
-		layout->addWidget(new QLabel("Exporting to CSV"));
+		layout->addWidget(new genericText("Exporting to CSV"));
 		layout->addWidget(m_backupProgress);
 		m_backupWidget->setLayout(layout);
 		m_deviceMenu->setDisabled(true);
@@ -1775,7 +1775,7 @@ void MainWindow::enterDeviceState(int state)
 		QBoxLayout *layout = new QBoxLayout(QBoxLayout::TopToBottom);
 		layout->setAlignment(Qt::AlignTop);
 		m_restoreProgress = new QProgressBar();
-		layout->addWidget(new QLabel("Restoring device..."));
+		layout->addWidget(new processingText("Restoring device..."));
 		layout->addWidget(m_restoreProgress);
 		m_restoreWidget->setLayout(layout);
 		m_deviceMenu->setDisabled(true);
@@ -1847,10 +1847,9 @@ void MainWindow::enterDeviceState(int state)
 		QLabel *warningImage = new QLabel();
 		warningImage->setPixmap(warn.pixmap(64, 64));
 		warningImage->setAlignment(Qt::AlignHCenter);
-		QLabel *failureMessage = new QLabel("Firmware upgrade incomplete");
-		failureMessage->setStyleSheet(QString("font-weight: bold"));
+		QLabel *failureMessage = new emphasisLargeText("Firmware upgrade incomplete");
 		failureMessage->setAlignment(Qt::AlignHCenter);
-		QLabel *instructionMessage = new QLabel("Click below to complete the upgrade and access your device.");
+		QLabel *instructionMessage = new genericText("Click below to complete the upgrade and access your device.");
 		instructionMessage->setAlignment(Qt::AlignHCenter);
 		layout->addWidget(warningImage);
 		layout->addWidget(failureMessage);
@@ -1892,9 +1891,9 @@ void MainWindow::enterDeviceState(int state)
 		layout->setAlignment(Qt::AlignTop);
 		QPushButton *init_button = new QPushButton("Initialize for the first time");
 		QPushButton *restore_button = new QPushButton("Initialize from a backup file");
-		layout->addWidget(new QLabel("This device is uninitialized.\n\nSelect an option below to initialize the device.\n"));
+		layout->addWidget(new genericText("This device is uninitialized.\n\nSelect an option below to initialize the device.\n"));
 		layout->addWidget(init_button);
-		QLabel *orText = new QLabel("OR");
+		QLabel *orText = new genericText("OR");
 		orText->setAlignment(Qt::AlignCenter);
 		layout->addWidget(orText);
 		layout->addWidget(restore_button);

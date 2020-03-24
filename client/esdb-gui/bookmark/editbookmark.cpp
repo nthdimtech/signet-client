@@ -15,6 +15,7 @@ extern "C" {
 #include "bookmark.h"
 
 #include "signetapplication.h"
+#include "genericText.h"
 
 EditBookmark::EditBookmark(int id, const QString &name, QWidget *parent) :
 	EditEntryDialog("Bookmark", id, parent),
@@ -40,7 +41,7 @@ void EditBookmark::setup(QString name)
 	m_nameField = new QLineEdit(name);
 	m_nameField->setReadOnly(SignetApplication::get()->isDeviceEmulated());
 
-	nameLayout->addWidget(new QLabel("Name"));
+	nameLayout->addWidget(new genericText("Name"));
 	nameLayout->addWidget(m_nameField);
 
 	m_urlField = new DatabaseField("URL", 140);

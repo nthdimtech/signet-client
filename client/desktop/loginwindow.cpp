@@ -18,6 +18,9 @@ extern "C" {
 #include "../desktop/mainwindow.h"
 
 #include "buttonwaitwidget.h"
+#include "generictext.h"
+#include "errortext.h"
+#include "processingtext.h"
 
 LoginWindow::LoginWindow(QWidget *parent) : QWidget(parent),
 	m_parent(static_cast<MainWindow *>(parent)),
@@ -35,31 +38,29 @@ LoginWindow::LoginWindow(QWidget *parent) : QWidget(parent),
 
 	QLayout *top_layout = new QBoxLayout(QBoxLayout::TopToBottom);
 	QLayout *layout = new QBoxLayout(QBoxLayout::LeftToRight);
-	QLabel *password_label = new QLabel("Password");
+	QLabel *password_label = new genericText("Password");
 
-	m_incorrectPassword = new QLabel("Incorrect password");
-	m_incorrectPassword->setStyleSheet("QLabel { color : red; }");
+	m_incorrectPassword = new errorText("Incorrect password");
 	m_incorrectPassword->hide();
 	m_passwordInput = new QLineEdit();
 	m_passwordInput->setEchoMode(QLineEdit::Password);
 	m_loginButton = new QPushButton("Unlock");
 	m_loginButton->setAutoDefault(true);
 
-	m_preparingLabel = new QLabel("Generating authorization key...");
-	m_preparingLabel->setStyleSheet("QLabel { font : italic bold }");
+	m_preparingLabel = new processingText("Generating authorization key...");
 	m_preparingLabel->hide();
 
 	layout->addWidget(password_label);
 	layout->addWidget(m_passwordInput);
 	if (m_parent->getDatabaseFileName().size()) {
-		QLabel *l = new QLabel();
+		QLabel *l = new genericText("");
 		l->setText("Database file: " + m_parent->getDatabaseFileName());
 		QFrame *f = new QFrame();
 		f->setFrameStyle(QFrame::HLine);
 		top_layout->addWidget(l);
 		top_layout->addWidget(f);
 	}
-	top_layout->addWidget(new QLabel("Enter your master password"));
+	top_layout->addWidget(new genericText("Enter your master password"));
 	top_layout->addItem(layout);
 	top_layout->addWidget(m_incorrectPassword);
 	top_layout->addWidget(m_preparingLabel);

@@ -13,6 +13,8 @@ extern "C" {
 #include "signetdev/host/signetdev.h"
 };
 
+#include "genericText.h"
+
 DatabaseField::DatabaseField(const QString &name, int width, QList<QWidget *> &widgets, QWidget *parent) : QWidget(parent),
     m_buttonWait(nullptr),
 	m_name(name),
@@ -90,7 +92,7 @@ void DatabaseField::init(int width, QList<QWidget *> &widgets, bool stretch)
 	layout->setContentsMargins(0,0,0,0);
 	QString capitalized_name = m_name;
 	capitalized_name[0] = capitalized_name[0].toUpper();
-	layout->addWidget(new QLabel(capitalized_name));
+	layout->addWidget(new genericText(capitalized_name));
 	layout->addWidget(editWidget);
 	if (stretch) {
 		layout->addStretch();

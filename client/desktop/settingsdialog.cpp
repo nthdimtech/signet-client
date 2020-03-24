@@ -13,6 +13,8 @@
 #include <QFileDialog>
 #include <QDir>
 
+#include "style.h"
+
 SettingsDialog::SettingsDialog(MainWindow *mainWindow, bool initial) :
 	QDialog(mainWindow),
 	m_initial(initial)
@@ -62,43 +64,42 @@ SettingsDialog::SettingsDialog(MainWindow *mainWindow, bool initial) :
 	buttonLayout->addWidget(cancelButton);
 
 	QHBoxLayout *localBackupPathLayout = new QHBoxLayout();
-	localBackupPathLayout->addWidget(new QLabel("Local backup path"));
+	localBackupPathLayout->addWidget(new genericText("Local backup path"));
 	localBackupPathLayout->addWidget(m_localBackupPath);
 	localBackupPathLayout->addWidget(localBackupPathBrowseButton);
 
 	QHBoxLayout *localBackupIntervalLayout = new QHBoxLayout();
-	localBackupIntervalLayout->addWidget(new QLabel("Local backup every"));
+	localBackupIntervalLayout->addWidget(new genericText("Local backup every"));
 	localBackupIntervalLayout->addWidget(m_localBackupInterval);
 
 	QHBoxLayout *removableBackupVolumeLayout = new QHBoxLayout();
-	removableBackupVolumeLayout->addWidget(new QLabel("Removeable backup volume label"));
+	removableBackupVolumeLayout->addWidget(new genericText("Removeable backup volume label"));
 	removableBackupVolumeLayout->addWidget(m_removableBackupVolume);
 
 	QHBoxLayout *removableBackupDirectoryLayout = new QHBoxLayout();
-	removableBackupDirectoryLayout->addWidget(new QLabel("Removeable backup directory name"));
+	removableBackupDirectoryLayout->addWidget(new genericText("Removeable backup directory name"));
 	removableBackupDirectoryLayout->addWidget(m_removableBackupDirectory);
 
 	QHBoxLayout *removableBackupIntervalLayout = new QHBoxLayout();
-	removableBackupIntervalLayout->addWidget(new QLabel("Removable backup every"));
+	removableBackupIntervalLayout->addWidget(new genericText("Removable backup every"));
 	removableBackupIntervalLayout->addWidget(m_removableBackupInterval);
 
 	bool keyboardLayoutConfigured = !m_settings->keyboardLayouts.isEmpty();
 	QHBoxLayout *keyboardLayoutConfigurationLayout = new QHBoxLayout();
 	if (keyboardLayoutConfigured) {
-		keyboardLayoutConfigurationLayout->addWidget(new QLabel("Keyboard layout"));
+		keyboardLayoutConfigurationLayout->addWidget(new genericText("Keyboard layout"));
 		m_configureKeyboardLayout = new QPushButton("Re&configure");
 	} else {
-		keyboardLayoutConfigurationLayout->addWidget(new QLabel("Keyboard layout"));
+		keyboardLayoutConfigurationLayout->addWidget(new genericText("Keyboard layout"));
 		m_configureKeyboardLayout = new QPushButton("&Configure");
 	}
 	keyboardLayoutConfigurationLayout->addWidget(m_configureKeyboardLayout);
 	connect(m_configureKeyboardLayout, SIGNAL(pressed()),
 		this, SLOT(configureKeyboardLayout()));
 
-	m_keyboardLayoutUnconfiguredWarning = new QLabel(
+	m_keyboardLayoutUnconfiguredWarning = new emphasisText(
         "Note: Signet's keyboard layout is not configured. Signet will default to a English(US) keyboard layout which will cause incorrect keys to be generated if this system uses a different layout.");
 	m_keyboardLayoutUnconfiguredWarning->setWordWrap(true);
-	m_keyboardLayoutUnconfiguredWarning->setStyleSheet("font-weight: bold");
 	if (keyboardLayoutConfigured) {
 		m_keyboardLayoutUnconfiguredWarning->hide();
 	}

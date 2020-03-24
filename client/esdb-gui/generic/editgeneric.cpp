@@ -14,6 +14,7 @@
 #include "buttonwaitdialog.h"
 #include "signetapplication.h"
 #include "generic.h"
+#include "genericText.h"
 #include "generictypedesc.h"
 #include "genericfieldseditor.h"
 #include "groupdatabasefield.h"
@@ -106,7 +107,7 @@ void EditGeneric::setup(QString name)
 	m_groupField = new GroupDatabaseField(120, m_groupList, nullptr);
 
 	QBoxLayout *nameLayout = new QBoxLayout(QBoxLayout::LeftToRight);
-	nameLayout->addWidget(new QLabel("Name"));
+	nameLayout->addWidget(new genericText("Name"));
 	nameLayout->addWidget(m_genericNameEdit);
 
 	connect(m_genericNameEdit, SIGNAL(textEdited(QString)), this, SLOT(edited()));

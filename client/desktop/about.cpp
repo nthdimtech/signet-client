@@ -9,6 +9,8 @@
 
 #include "signetapplication.h"
 
+#include "style.h"
+
 //Remove this to display git revision in about window
 #undef GITVERSION
 
@@ -56,14 +58,12 @@ About::About(bool connectedDevice, QWidget *parent):
 	qDebug() << "VERSION: " << versionString;
 #endif
 
-	QLabel *title = new QLabel(versionString);
+	QLabel *title = new emphasisText(versionString);
 
-	title->setStyleSheet("font-weight: bold");
-
-	QLabel *releaseDate = new QLabel(QString("Released ") +
+	QLabel *releaseDate = new genericText(QString("Released ") +
 					 date.toString());
 
-	QLabel *targetFirmware = new QLabel(QString("Target firmware version ") +
+	QLabel *targetFirmware = new genericText(QString("Target firmware version ") +
 					    QString::number(firmwareMajVer) + "." +
 					    QString::number(firmwareMinVer) + "." +
 					    QString::number(firmwareStepVer));
@@ -73,7 +73,7 @@ About::About(bool connectedDevice, QWidget *parent):
 	right->addWidget(targetFirmware);
 
 	if (connectedDevice) {
-		QLabel *deviceFirmware = new QLabel(QString("Device firmware version ") +
+		QLabel *deviceFirmware = new genericText(QString("Device firmware version ") +
 						    QString::number(deviceFirwmareMajVer) + "." +
 						    QString::number(deviceFirwmareMinVer) + "." +
 						    QString::number(deviceFirwmareStepVer));
