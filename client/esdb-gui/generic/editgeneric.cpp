@@ -14,7 +14,7 @@
 #include "buttonwaitdialog.h"
 #include "signetapplication.h"
 #include "generic.h"
-#include "genericText.h"
+#include "generictext.h"
 #include "generictypedesc.h"
 #include "genericfieldseditor.h"
 #include "groupdatabasefield.h"

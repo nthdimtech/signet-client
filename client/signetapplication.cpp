@@ -67,6 +67,8 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 	int desktopWidth = desktop.geometry().width();
 	int iconPx;
 	if (desktopHeight >= 2000) {
+		iconPx = 36;
+	} else if (desktopHeight >= 1600) {
 		iconPx = 32;
 	} else if (desktopHeight > 1100) {
 		iconPx = 24;
@@ -76,12 +78,17 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 
 	QString iconPxStr = QString::number(iconPx);
 
-	setStyleSheet("QWidget { font-size: 9pt; qproperty-iconSize: " + iconPxStr + "px}\n"
-			"processingText { Font: italic bold}\n"
-			"noteText { Font: italic}\n"
-			"errorText { color: red }\n"
-			"emphasisText { Font: bold }\n"
-			"emphasisLargeText { font-size: 10pt; Font: bold }\n");
+	setStyleSheet("QPushButton { font-size: 9pt; qproperty-iconSize: " + iconPxStr + "px}\n"
+			"QAbstractItemView { font-size: 9pt; qproperty-iconSize: " + iconPxStr + "px}\n"
+			"processingText {font-size: 9pt; Font: italic bold}\n"
+			"noteText { font-size: 9pt; Font: italic}\n"
+			"errorText { font-size: 9pt; color: red }\n"
+			"emphasisText { font-size: 9pt; Font: bold }\n"
+			"emphasisLargeText { font-size: 10pt; Font: bold }\n"
+			"QCheckBox {font-size: 9pt}\n"
+			"QComboBox {font-size: 9pt}\n"
+			"QSpinBox {font-size: 9pt}\n"
+			"QMessageBox {font-size: 9pt}\n");
 #endif
 	g_singleton = this;
 	m_systray = new SystemTray();

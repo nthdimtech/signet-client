@@ -15,7 +15,7 @@ extern "C" {
 #include "bookmark.h"
 
 #include "signetapplication.h"
-#include "genericText.h"
+#include "style.h"
 
 EditBookmark::EditBookmark(int id, const QString &name, QWidget *parent) :
 	EditEntryDialog("Bookmark", id, parent),

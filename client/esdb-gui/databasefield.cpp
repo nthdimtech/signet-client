@@ -13,7 +13,7 @@ extern "C" {
 #include "signetdev/host/signetdev.h"
 };
 
-#include "genericText.h"
+#include "style.h"
 
 DatabaseField::DatabaseField(const QString &name, int width, QList<QWidget *> &widgets, QWidget *parent) : QWidget(parent),
     m_buttonWait(nullptr),
