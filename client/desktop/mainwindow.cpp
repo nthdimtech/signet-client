@@ -107,6 +107,7 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	m_quitting(false),
 	m_fileMenu(nullptr),
 	m_deviceMenu(nullptr),
+	m_backupRestoreSupported(false),
 	m_loggedInStack(nullptr),
 	m_buttonWaitWidget(nullptr),
 	m_connectingLabel(nullptr),
@@ -885,6 +886,24 @@ void MainWindow::signetdevStartupResp(signetdevCmdRespInfo info, signetdev_start
 	app->setKeyLength(keyLength);
 	app->setDBFormat(db_format);
 	app->setConnectedFirmwareVersion(resp.fw_major_version, resp.fw_minor_version, resp.fw_step_version);
+
+
+	switch (m_deviceType) {
+	case SIGNETDEV_DEVICE_HC:
+		if (resp.fw_major_version > 0) {
+			m_backupRestoreSupported = true;
+		} else if (resp.fw_major_version == 0 && resp.fw_minor_version >= 2) {
+			m_backupRestoreSupported = true;
+		} else {
+			m_backupRestoreSupported = false;
+		}
+		break;
+	case SIGNETDEV_DEVICE_ORIGINAL:
+		m_backupRestoreSupported = true;
+		break;
+	default:
+		break;
+	}
 
 	if (m_restoreFile) {
 		m_restoreFile->close();
@@ -1865,7 +1884,9 @@ void MainWindow::enterDeviceState(int state)
 		m_fileMenu->setDisabled(false);
 
 		if (!databaseFile) {
-			m_restoreAction->setVisible(true);
+			if (m_backupRestoreSupported) {
+				m_restoreAction->setVisible(true);
+			}
 			m_eraseDeviceAction->setVisible(true);
 			m_eraseDeviceAction->setText("Initialize");
 		}
@@ -1915,7 +1936,7 @@ void MainWindow::enterDeviceState(int state)
 				//Version 1.2.1 has a glitch that causes a lockup when starting
 				// a restore from the logged out state
 				m_restoreAction->setVisible(false);
-			} else {
+			} else if (m_backupRestoreSupported) {
 				m_restoreAction->setVisible(true);
 			}
 			m_wipeDeviceAction->setVisible(true);
@@ -1946,8 +1967,10 @@ void MainWindow::enterDeviceState(int state)
 		m_loggedInStack->setCurrentIndex(0);
 
 		if (!databaseFile) {
-			autoBackupCheck();
-			m_backupAction->setVisible(true);
+			if (m_backupRestoreSupported) {
+				autoBackupCheck();
+				m_backupAction->setVisible(true);
+			}
 			m_changePasswordAction->setVisible(true);
 			m_updateFirmwareAction->setVisible(true);
 			SignetApplication *app = SignetApplication::get();

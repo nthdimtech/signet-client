@@ -164,6 +164,7 @@ private:
 	enum signetdev_device_type m_deviceType;
 	int m_signetdevCmdToken;
 	bool m_startedExport;
+	bool m_backupRestoreSupported;
 	KeyboardLayoutTester *m_keyboardLayoutTester;
 
 #ifdef Q_OS_UNIX
