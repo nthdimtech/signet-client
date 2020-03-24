@@ -65,21 +65,25 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 	QDesktopWidget desktop;
 	int desktopHeight = desktop.geometry().height();
 	int desktopWidth = desktop.geometry().width();
-	int iconPx;
+	int toolIconPx;
+	int viewIconPx;
 	if (desktopHeight >= 2000) {
-		iconPx = 36;
+		viewIconPx = 32;
+		toolIconPx = 32;
 	} else if (desktopHeight >= 1600) {
-		iconPx = 32;
-	} else if (desktopHeight > 1100) {
-		iconPx = 24;
+		viewIconPx = 28;
+		toolIconPx = 28;
+	} else if (desktopHeight > 1000) {
+		viewIconPx = 22;
+		toolIconPx = 22;
 	} else {
-		iconPx = 16;
+		viewIconPx = 16;
+		toolIconPx = 16;
 	}
 
-	QString iconPxStr = QString::number(iconPx);
-
-	setStyleSheet("QPushButton { font-size: 9pt; qproperty-iconSize: " + iconPxStr + "px}\n"
-			"QAbstractItemView { font-size: 9pt; qproperty-iconSize: " + iconPxStr + "px}\n"
+	setStyleSheet("QPushButton { font-size: 9pt; qproperty-iconSize: " + QString::number(toolIconPx) + "px}\n"
+			"QAbstractItemView { font-size: 9pt; qproperty-iconSize: " + QString::number(viewIconPx) + "px}\n"
+			"genericText {font-size: 9pt}\n"
 			"processingText {font-size: 9pt; Font: italic bold}\n"
 			"noteText { font-size: 9pt; Font: italic}\n"
 			"errorText { font-size: 9pt; color: red }\n"
@@ -87,8 +91,10 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 			"emphasisLargeText { font-size: 10pt; Font: bold }\n"
 			"QCheckBox {font-size: 9pt}\n"
 			"QComboBox {font-size: 9pt}\n"
+			"QTextEdit {font-size: 9pt}\n"
+			"QLineEdit {font-size: 9pt}\n"
 			"QSpinBox {font-size: 9pt}\n"
-			"QMessageBox {font-size: 9pt}\n");
+			"QLabel {font-size: 9pt}\n");
 #endif
 	g_singleton = this;
 	m_systray = new SystemTray();
