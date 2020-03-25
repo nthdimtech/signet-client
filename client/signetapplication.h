@@ -74,6 +74,7 @@ public:
 		return g_singleton;
 	}
 private:
+	int m_iconPixelsDefault;
 #ifndef Q_OS_ANDROID
 	SystemTray *m_systray;
 	MainWindow *m_main_window;
@@ -107,6 +108,9 @@ private:
 	enum hc_boot_mode m_bootMode;
 	SignetAsyncListener *m_signetAsyncListener;
 public:
+	int defaultIconHeight() {
+		return m_iconPixelsDefault;
+	}
 #ifdef Q_OS_ANDROID
 	QQmlApplicationEngine &qmlEngine()
 	{

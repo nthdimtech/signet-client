@@ -15,6 +15,7 @@
 #include <QApplication>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QStyleFactory>
 
 extern "C" {
 #include "signetdev/host/signetdev.h"
@@ -66,35 +67,65 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 	int desktopHeight = desktop.geometry().height();
 	int desktopWidth = desktop.geometry().width();
 	int toolIconPx;
+	int fontPx;
+	int fontLargePx;
 	int viewIconPx;
+	int marginPx;
+	int paddingPx;
+
 	if (desktopHeight >= 2000) {
 		viewIconPx = 32;
 		toolIconPx = 32;
+		marginPx = 3;
+		paddingPx = 3;
+		fontPx = 18;
+		fontLargePx = 22;
 	} else if (desktopHeight >= 1600) {
 		viewIconPx = 28;
 		toolIconPx = 28;
+		marginPx = 3;
+		paddingPx = 3;
+		fontPx = 12;
+		fontLargePx = 15;
 	} else if (desktopHeight > 1000) {
 		viewIconPx = 22;
 		toolIconPx = 22;
+		marginPx = 2;
+		paddingPx = 2;
+		fontPx = 9;
+		fontLargePx = 11;
 	} else {
 		viewIconPx = 16;
 		toolIconPx = 16;
+		marginPx = 2;
+		paddingPx = 2;
+		fontPx = 9;
+		fontLargePx = 11;
 	}
 
-	setStyleSheet("QPushButton { font-size: 9pt; qproperty-iconSize: " + QString::number(toolIconPx) + "px}\n"
-			"QAbstractItemView { font-size: 9pt; qproperty-iconSize: " + QString::number(viewIconPx) + "px}\n"
-			"genericText {font-size: 9pt}\n"
-			"processingText {font-size: 9pt; Font: italic bold}\n"
-			"noteText { font-size: 9pt; Font: italic}\n"
-			"errorText { font-size: 9pt; color: red }\n"
-			"emphasisText { font-size: 9pt; Font: bold }\n"
-			"emphasisLargeText { font-size: 10pt; Font: bold }\n"
-			"QCheckBox {font-size: 9pt}\n"
-			"QComboBox {font-size: 9pt}\n"
-			"QTextEdit {font-size: 9pt}\n"
-			"QLineEdit {font-size: 9pt}\n"
-			"QSpinBox {font-size: 9pt}\n"
-			"QLabel {font-size: 9pt}\n");
+	m_iconPixelsDefault = toolIconPx;
+
+	QString fontPxStr = QString::number(fontPx);
+	QString fontLargePxStr = QString::number(fontLargePx);
+	QString marginPxStr = QString::number(marginPx);
+	QString paddingPxStr = QString::number(marginPx);
+
+	setStyle(QStyleFactory::create("Fusion"));
+
+	setStyleSheet("QPushButton { font-size: " + fontPxStr + "px; qproperty-iconSize: " + QString::number(toolIconPx) + "px}\n"
+			"QAbstractItemView { font-size: " + fontPxStr + "px; qproperty-iconSize: " + QString::number(viewIconPx) + "px}\n"
+			"genericText {font-size: " + fontPxStr + "px}\n"
+			"processingText {font-size: " + fontPxStr + "px; Font: italic bold}\n"
+			"noteText { font-size: " + fontPxStr + "px; Font: italic}\n"
+			"errorText { font-size: " + fontPxStr + "px; color: red }\n"
+			"emphasisText { font-size: " + fontPxStr + "px; Font: bold }\n"
+			"emphasisLargeText { font-size: " + fontLargePxStr + "px; Font: bold }\n"
+			"QCheckBox {font-size: " + fontPxStr + "px}\n"
+			"QComboBox {font-size: " + fontPxStr + "px; padding:"+ paddingPxStr +"}\n"
+			"QTextEdit {font-size: " + fontPxStr + "px; padding:"+ paddingPxStr + "}\n"
+			"QLineEdit {font-size: " + fontPxStr + "px; padding:"+ paddingPxStr + "}\n"
+			"QSpinBox {font-size: " + fontPxStr + "px; padding:"+ paddingPxStr + "}\n"
+			"QLabel {font-size: " + fontPxStr + "px; margin: "+ marginPxStr +"px}\n");
 #endif
 	g_singleton = this;
 	m_systray = new SystemTray();

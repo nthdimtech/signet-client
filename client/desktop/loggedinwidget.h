@@ -119,7 +119,7 @@ class LoggedInWidget : public QWidget
 
 	void entryIconCheck(esdbEntry *acct);
 
-	AspectRatioPixmapLabel *m_filterLabel;
+	QLabel *m_filterLabel;
 	QPushButton *m_newAcctButton;
 
 	QMap<QString, int> m_entryActionTokens;

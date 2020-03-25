@@ -17,7 +17,7 @@ GroupDatabaseField::GroupDatabaseField(int width, QStringList currentGroups, QWi
 	connect(m_groupCombo, SIGNAL(currentTextChanged(QString)), this, SIGNAL(textEdited(QString)));
 	m_customEdit = m_groupCombo;
 	m_customEdit->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred));
-    init(width, widgets, true);
+	init(width, widgets, true);
 }
 
 GroupDatabaseField::~GroupDatabaseField()

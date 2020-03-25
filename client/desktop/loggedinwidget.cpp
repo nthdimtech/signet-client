@@ -282,10 +282,13 @@ LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, Q
 		m_actionBarStack->addWidget(iter->actionBar);
 	}
 
-	m_filterLabel = new AspectRatioPixmapLabel();
+	int iconSize = (app->defaultIconHeight()*12)/10;
+	m_filterLabel = new QLabel();
+	//new AspectRatioPixmapLabel();
 	QIcon icn = QIcon(":/images/search.png");
-	QPixmap pm = icn.pixmap(QSize(128,128));
+	QPixmap pm = icn.pixmap(QSize(iconSize,iconSize));
 	m_filterLabel->setPixmap(pm);
+	m_filterLabel->setScaledContents(true);
 	m_filterLabel->setToolTip("Account search");
 
 	m_searchListbox = new SearchListbox(m_filterEdit, m_activeType->model);
