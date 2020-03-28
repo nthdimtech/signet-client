@@ -73,34 +73,60 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 	int marginPx;
 	int paddingPx;
 
-	if (desktopHeight >= 2000) {
+	if (desktopHeight >= 1600) {
 		viewIconPx = 32;
 		toolIconPx = 32;
 		marginPx = 3;
 		paddingPx = 3;
+#ifdef Q_OS_LINUX
+		fontPx = 24;
+		fontLargePx = 26;
+#elif defined(Q_OS_WINDOWS)
 		fontPx = 18;
 		fontLargePx = 22;
-	} else if (desktopHeight >= 1600) {
-		viewIconPx = 28;
-		toolIconPx = 28;
-		marginPx = 3;
-		paddingPx = 3;
-		fontPx = 15;
-		fontLargePx = 18;
+#elif defined(Q_OS_MACOS)
+		fontPx = 18;
+		fontLargePx = 22;
+#else
+		fontPx = 18;
+		fontLargePx = 22;
+#endif
 	} else if (desktopHeight > 1000) {
 		viewIconPx = 22;
 		toolIconPx = 22;
 		marginPx = 2;
 		paddingPx = 2;
+#ifdef Q_OS_LINUX
+		fontPx = 15;
+		fontLargePx = 19;
+#elif defined(Q_OS_WINDOWS)
 		fontPx = 13;
 		fontLargePx = 16;
+#elif defined(Q_OS_MACOS)
+		fontPx = 13;
+		fontLargePx = 16;
+#else
+		fontPx = 13;
+		fontLargePx = 16;
+#endif
 	} else {
 		viewIconPx = 16;
 		toolIconPx = 16;
 		marginPx = 2;
 		paddingPx = 2;
+#ifdef Q_OS_LINUX
+		fontPx = 12;
+		fontLargePx = 14;
+#elif defined(Q_OS_WINDOWS)
 		fontPx = 10;
 		fontLargePx = 13;
+#elif defined(Q_OS_MACOS)
+		fontPx = 10;
+		fontLargePx = 13;
+#else
+		fontPx = 10;
+		fontLargePx = 13;
+#endif
 	}
 
 	m_iconPixelsDefault = toolIconPx;
@@ -121,6 +147,8 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 			"emphasisLargeText { font-size: " + fontLargePxStr + "px; Font: bold }\n"
 			"QProgressBar {font-size: " + fontPxStr + "px}\n"
 			"QCheckBox {font-size: " + fontPxStr + "px}\n"
+			"QMenu {font-size: " + fontPxStr + "px}\n"
+			"QWindow {font-size: " + fontPxStr + "px}\n"
 			"QComboBox {font-size: " + fontPxStr + "px; padding:" + paddingPxStr +"}\n"
 			"QTextEdit {font-size: " + fontPxStr + "px; padding:" + paddingPxStr + "}\n"
 			"QLineEdit {font-size: " + fontPxStr + "px; padding:" + paddingPxStr + "}\n"

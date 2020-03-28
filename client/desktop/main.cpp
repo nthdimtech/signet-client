@@ -8,6 +8,7 @@
 
 int main(int argc, char **argv)
 {
+	QCoreApplication::setAttribute(Qt::AA_DisableHighDpiScaling);
 	SignetApplication *app = new SignetApplication(argc, argv);
 
 	Crypto::init();
