@@ -18,8 +18,7 @@ ButtonWaitWidget::ButtonWaitWidget(QString action, bool longPress, QWidget *pare
 {
 	QPixmap pm(":/images/button_press.png");
     QLabel *image = new QLabel();
-    image->setPixmap(pm.scaledToHeight(64));
-
+    image->setPixmap(pm.scaledToHeight(SignetApplication::get()->defaultIconHeight()*2));
     QBoxLayout *topLayout = new QBoxLayout(QBoxLayout::TopToBottom);
     QBoxLayout *topRow = new QBoxLayout(QBoxLayout::LeftToRight);
     QBoxLayout *textColumn = new QBoxLayout(QBoxLayout::TopToBottom);

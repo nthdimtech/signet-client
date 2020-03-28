@@ -130,6 +130,8 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 	}
 
 	m_iconPixelsDefault = toolIconPx;
+	m_textPixelsDefault = fontPx;
+	m_largeTextPixelsDefault = fontLargePx;
 
 	QString fontPxStr = QString::number(fontPx);
 	QString fontLargePxStr = QString::number(fontLargePx);

@@ -13,7 +13,7 @@ ButtonWaitDialog::ButtonWaitDialog(QString title, QString action, QWidget *paren
 	setWindowModality(Qt::WindowModal);
 
 	QPixmap pm(":/images/button_press.png");
-	setIconPixmap(pm.scaledToHeight(40));
+	setIconPixmap(pm.scaledToHeight(SignetApplication::get()->defaultIconHeight() * 2));
 	updateText();
 
 	SignetApplication *app = SignetApplication::get();

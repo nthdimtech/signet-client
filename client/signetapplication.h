@@ -75,6 +75,8 @@ public:
 	}
 private:
 	int m_iconPixelsDefault;
+	int m_textPixelsDefault;
+	int m_largeTextPixelsDefault;
 #ifndef Q_OS_ANDROID
 	SystemTray *m_systray;
 	MainWindow *m_main_window;
@@ -110,6 +112,12 @@ private:
 public:
 	int defaultIconHeight() {
 		return m_iconPixelsDefault;
+	}
+	int defaultTextHeight() {
+		return m_textPixelsDefault;
+	}
+	int largeTextHeight() {
+		return m_largeTextPixelsDefault;
 	}
 #ifdef Q_OS_ANDROID
 	QQmlApplicationEngine &qmlEngine()
