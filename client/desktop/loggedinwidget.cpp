@@ -359,6 +359,7 @@ ButtonWaitWidget *LoggedInWidget::beginButtonWait(QString action, bool longPress
 		m_buttonWaitWidget = new ButtonWaitWidget(action, longPress);
 		int idx = m_mainWindow->loggedInStack()->addWidget(m_buttonWaitWidget);
 		m_mainWindow->loggedInStack()->setCurrentIndex(idx);
+		m_mainWindow->updateGeometry();
 	}
 	return m_buttonWaitWidget;
 }
