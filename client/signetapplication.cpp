@@ -149,6 +149,7 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 			"QCheckBox {font-size: " + fontPxStr + "px}\n"
 			"QMenu {font-size: " + fontPxStr + "px}\n"
 			"QWindow {font-size: " + fontPxStr + "px}\n"
+			"QRadioButton {font-size: " + fontPxStr + "px}\n"
 			"QComboBox {font-size: " + fontPxStr + "px; padding:" + paddingPxStr +"}\n"
 			"QTextEdit {font-size: " + fontPxStr + "px; padding:" + paddingPxStr + "}\n"
 			"QLineEdit {font-size: " + fontPxStr + "px; padding:" + paddingPxStr + "}\n"
