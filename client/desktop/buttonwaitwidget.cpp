@@ -24,9 +24,8 @@ ButtonWaitWidget::ButtonWaitWidget(QString action, bool longPress, QWidget *pare
     QBoxLayout *textColumn = new QBoxLayout(QBoxLayout::TopToBottom);
 
     m_actionText = new emphasisLargeText("");
+    m_actionText->setWordWrap(true);
     m_timeoutText = new emphasisLargeText("");
-
-    int pxSz = m_timeoutText->fontInfo().pixelSize();
 
     m_cancelButton = new QPushButton("Cancel");
     connect(m_cancelButton, SIGNAL(clicked()), this, SIGNAL(canceled()));
