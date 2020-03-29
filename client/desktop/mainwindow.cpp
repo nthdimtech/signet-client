@@ -2333,25 +2333,26 @@ QString MainWindow::firmwareFilter()
 
 void MainWindow::updateFirmwareUi()
 {
-	QFileDialog fd(this);
+	QFileDialog *fd = new QFileDialog(this);
 	QStringList filters;
 	QString downloadsFolder = QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
 
 	filters.append(firmwareFilter());
 	filters.append("*");
-	fd.setNameFilters(filters);
-	fd.setDirectory(downloadsFolder);
-	fd.setFileMode(QFileDialog::AnyFile);
-	fd.setAcceptMode(QFileDialog::AcceptOpen);
-	fd.setWindowModality(Qt::WindowModal);
-	if (!fd.exec())
+	fd->setNameFilters(filters);
+	fd->setDirectory(downloadsFolder);
+	fd->setFileMode(QFileDialog::AnyFile);
+	fd->setAcceptMode(QFileDialog::AcceptOpen);
+	if (!fd->exec())
 		return;
-	QStringList sl = fd.selectedFiles();
+	QStringList sl = fd->selectedFiles();
 	if (sl.empty()) {
+		fd->deleteLater();
 		return;
 	}
 
 	QFile firmware_update_file(sl.first());
+	fd->deleteLater();
 	bool result = firmware_update_file.open(QFile::ReadWrite);
 	if (!result) {
 		firmware_update_file.close();
@@ -2453,20 +2454,23 @@ void MainWindow::backupDeviceUi()
 		}
 	}
 
-	QFileDialog fd(this, "Backup device to file");
+	QFileDialog * fd = new QFileDialog(this, "Backup device to file");
 	QStringList filters;
 	filters.append(backupFilter());
 	filters.append("*");
-	fd.setDirectory(m_settings.localBackupPath);
-	fd.selectFile(backupFileName);
-	fd.setNameFilters(filters);
-	fd.setFileMode(QFileDialog::AnyFile);
-	fd.setAcceptMode(QFileDialog::AcceptSave);
-	fd.setDefaultSuffix(backupSuffix());
-	fd.setWindowModality(Qt::WindowModal);
-	if (!fd.exec())
+	fd->setDirectory(m_settings.localBackupPath);
+	fd->selectFile(backupFileName);
+	fd->setNameFilters(filters);
+	fd->setFileMode(QFileDialog::AnyFile);
+	fd->setAcceptMode(QFileDialog::AcceptSave);
+	fd->setDefaultSuffix(backupSuffix());
+	int rc = fd->exec();
+	if (!rc) {
+		fd->deleteLater();
 		return;
-	QStringList sl = fd.selectedFiles();
+	}
+	QStringList sl = fd->selectedFiles();
+	fd->deleteLater();
 	if (sl.empty())
 		return;
 	backupDevice(sl.first());
@@ -2474,7 +2478,7 @@ void MainWindow::backupDeviceUi()
 
 void MainWindow::exportCSVUi()
 {
-	QFileDialog fd(this, "Export device to CSV file");
+	QFileDialog *fd = new QFileDialog(this, "Export device to CSV file");
 	QStringList filters;
 	filters.append("*.csv");
 	filters.append("*.txt");
@@ -2484,16 +2488,18 @@ void MainWindow::exportCSVUi()
 	QString documentsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 	QString backupFileName = documentsPath + "/" + fileName + ".csv";
 
-	fd.setNameFilters(filters);
-	fd.setDirectory(documentsPath);
-	fd.selectFile(fileName);
-	fd.setFileMode(QFileDialog::AnyFile);
-	fd.setAcceptMode(QFileDialog::AcceptSave);
-	fd.setDefaultSuffix(QString("csv"));
-	fd.setWindowModality(Qt::WindowModal);
-	if (!fd.exec())
+	fd->setNameFilters(filters);
+	fd->setDirectory(documentsPath);
+	fd->selectFile(fileName);
+	fd->setFileMode(QFileDialog::AnyFile);
+	fd->setAcceptMode(QFileDialog::AcceptSave);
+	fd->setDefaultSuffix(QString("csv"));
+	if (!fd->exec()) {
+		fd->deleteLater();
 		return;
-	QStringList sl = fd.selectedFiles();
+	}
+	QStringList sl = fd->selectedFiles();
+	fd->deleteLater();
 	if (sl.empty())
 		return;
 	m_backupFile = new QFile(sl.first());
@@ -2586,18 +2592,20 @@ void MainWindow::importCSVUI()
 
 void MainWindow::restoreDeviceUi()
 {
-	QFileDialog fd(this, "Restore device from file");
+	QFileDialog *fd = new QFileDialog(this, "Restore device from file");
 	QStringList filters;
 	filters.append(backupFilter());
 	filters.append("*");
-	fd.setNameFilters(filters);
-	fd.setFileMode(QFileDialog::AnyFile);
-	fd.setAcceptMode(QFileDialog::AcceptOpen);
-	fd.setDefaultSuffix(backupSuffix());
-	fd.setWindowModality(Qt::WindowModal);
-	if (!fd.exec())
+	fd->setNameFilters(filters);
+	fd->setFileMode(QFileDialog::AnyFile);
+	fd->setAcceptMode(QFileDialog::AcceptOpen);
+	fd->setDefaultSuffix(backupSuffix());
+	if (!fd->exec()) {
+		fd->deleteLater();
 		return;
-	QStringList sl = fd.selectedFiles();
+	}
+	QStringList sl = fd->selectedFiles();
+	fd->deleteLater();
 	if (sl.empty()) {
 		return;
 	}
