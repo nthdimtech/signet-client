@@ -107,6 +107,8 @@ SettingsDialog::SettingsDialog(MainWindow *mainWindow, bool initial) :
 #ifndef Q_OS_MACOS
 	m_minimizeToTray = new QCheckBox("&Minimize window to system tray");
 	m_minimizeToTray->setChecked(m_settings->minimizeToTray);
+#else
+	m_minimizeToTray = nullptr;
 #endif
 
     m_browserPluginSupport = new QCheckBox("Enable browser plugin support");
@@ -186,7 +188,7 @@ void SettingsDialog::setEnableDisable()
 
 void SettingsDialog::okayPressed()
 {
-    m_settings->browserPluginSupport = m_browserPluginSupport->isChecked();
+	m_settings->browserPluginSupport = m_browserPluginSupport->isChecked();
 	m_settings->localBackups = m_localBackups->isChecked();
 	m_settings->localBackupPath = m_localBackupPath->text();
 	m_settings->localBackupInterval = m_localBackupInterval->value();
@@ -196,7 +198,9 @@ void SettingsDialog::okayPressed()
 	m_settings->removableBackupInterval = m_removableBackupInterval->value();
 	m_settings->activeKeyboardLayout = m_activeKeyboardLayout;
 	m_settings->keyboardLayouts = m_keyboardLayouts;
+#ifndef Q_OS_MACOS
 	m_settings->minimizeToTray = m_minimizeToTray->isChecked();
+#endif
 	done(0);
 }
 

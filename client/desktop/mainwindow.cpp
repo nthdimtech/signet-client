@@ -1077,7 +1077,13 @@ void MainWindow::saveSettings()
 	QString configFileName = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) +
 				 "/signet/config.json";
 	QFile configFile(configFileName);
-	configFile.open(QFile::WriteOnly);
+	if (!configFile.open(QFile::WriteOnly)) {
+		auto box = SignetApplication::get()->messageBoxError(QMessageBox::Warning, "Couldn't write settings",
+									"Failed to write settings file at " + configFileName,
+									this);
+		box->exec();
+		return;
+	}
 	QJsonDocument doc;
 	QJsonObject obj;
 	obj.insert("browserPluginSupport", QJsonValue(m_settings.browserPluginSupport));
