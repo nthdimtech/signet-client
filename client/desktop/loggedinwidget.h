@@ -227,6 +227,8 @@ private slots:
 #ifdef WITH_BROWSER_PLUGINS
 	void websocketMessage(int socketId, QString message);
 #endif
+	void buttonWaitTimeout();
+	void buttonWaitCanceled();
 private:
         ButtonWaitWidget *m_buttonWaitWidget;
 	int m_socketId;

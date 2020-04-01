@@ -635,9 +635,24 @@ void LoggedInWidget::websocketRequestFields(int socketId, const QString &path, c
 			}
 			m_requestedFields = requestedFields;
 			m_socketId = socketId;
-			beginButtonWait(QString("Read entry ") +  QString("\"") + matchingEntry->getTitle() + QString("\""), false);
+			auto waitWidget = beginButtonWait(QString("Read entry ") +  QString("\"") + matchingEntry->getTitle() + QString("\""), false);
+			connect(waitWidget, SIGNAL(timeout()), this, SLOT(buttonWaitTimeout()));
+			connect(waitWidget, SIGNAL(canceled()), this, SLOT(buttonWaitCanceled()));
 		}
 	}
+}
+
+void LoggedInWidget::buttonWaitTimeout()
+{
+	endButtonWait();
+	finishTask();
+}
+
+void LoggedInWidget::buttonWaitCanceled()
+{
+	::signetdev_cancel_button_wait();
+	endButtonWait();
+	finishTask();
 }
 
 void LoggedInWidget::websocketMessage(int socketId, QString message)
