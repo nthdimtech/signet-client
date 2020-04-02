@@ -184,6 +184,7 @@ void ChangeMasterPassword::changePasswordFinished(int code)
 	if (code != QMessageBox::Ok) {
 		m_securityLevelComment->show();
 		::signetdev_cancel_button_wait();
+		m_changePasswordBtn->setEnabled(true);
 	}
 }
 
