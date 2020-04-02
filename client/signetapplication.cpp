@@ -195,8 +195,8 @@ void SignetApplication::getFirmwareVersion(int &major, int &minor, int &step)
 	switch (m_deviceType) {
 	case SIGNETDEV_DEVICE_HC:
 		major = 0;
-		minor = 1;
-		step = 2;
+		minor = 2;
+		step = 0;
 		break;
 	case SIGNETDEV_DEVICE_ORIGINAL:
 		major = 1;
