@@ -283,6 +283,9 @@ void ResetDevice::resetButtonPromptFinished(int code)
 {
 	if (code != QMessageBox::Ok) {
 		m_securityLevelComment->show();
+		m_passwordEdit_1->setDisabled(false);
+		m_passwordEdit_2->setDisabled(false);
+		m_resetButton->setDisabled(false);
 		::signetdev_cancel_button_wait();
 	}
 	m_buttonPrompt->deleteLater();
