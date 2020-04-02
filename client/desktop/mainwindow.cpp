@@ -331,7 +331,16 @@ QString MainWindow::csvQuote(const QString &s)
 
 void MainWindow::startOnlineHelp()
 {
-	QUrl url("https://nthdimtech.com/signet");
+	QUrl url;
+	switch (m_deviceType) {
+	case SIGNETDEV_DEVICE_HC:
+		url.setUrl("https://nthdimtech.com/signet-hc");
+		break;
+	case SIGNETDEV_DEVICE_ORIGINAL:
+	case SIGNETDEV_DEVICE_NONE:
+		url.setUrl("https://nthdimtech.com/signet");
+		break;
+	}
 	QDesktopServices::openUrl(url);
 }
 
