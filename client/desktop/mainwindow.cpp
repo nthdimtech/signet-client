@@ -2611,6 +2611,7 @@ void MainWindow::restoreDeviceUi()
 	QStringList filters;
 	filters.append(backupFilter());
 	filters.append("*");
+	fd->setDirectory(m_settings.localBackupPath);
 	fd->setNameFilters(filters);
 	fd->setFileMode(QFileDialog::AnyFile);
 	fd->setAcceptMode(QFileDialog::AcceptOpen);
