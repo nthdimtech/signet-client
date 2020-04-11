@@ -2550,14 +2550,19 @@ void MainWindow::startImport(DatabaseImporter *importer)
 	int stepVer;
 	app->getConnectedFirmwareVersion(majorVer, minorVer, stepVer);
 	bool useUpdateUids =
-		(m_deviceType == SIGNETDEV_DEVICE_ORIGINAL) &&
-		(majorVer == 1) &&
 		(
-			(minorVer > 3) ||
+			(m_deviceType == SIGNETDEV_DEVICE_ORIGINAL) &&
+			(majorVer == 1) &&
 			(
-				(minorVer == 3) &&
-				(stepVer >= 3)
+			(minorVer > 3) ||
+				(
+					(minorVer == 3) &&
+					(stepVer >= 3)
+				)
 			)
+		) ||
+		(
+			m_deviceType == SIGNETDEV_DEVICE_HC
 		);
 	m_dbImportController = new DatabaseImportController(importer, m_loggedInWidget, useUpdateUids);
 	connect(m_dbImportController, SIGNAL(done(bool)), this, SLOT(importDone(bool)));
