@@ -133,7 +133,8 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	m_NewFirmwareHeader(nullptr),
 	m_NewFirmwareBody(nullptr),
 	m_fwUpgradeState(0),
-	m_deviceType(SIGNETDEV_DEVICE_NONE)
+	m_deviceType(SIGNETDEV_DEVICE_NONE),
+	m_autoBackupCheckPerformed(false)
 {
 	SignetApplication *app = SignetApplication::get();
 	genericTypeDesc *g = new genericTypeDesc(-1);
@@ -1178,10 +1179,13 @@ void MainWindow::autoBackupCheck()
 			QFileInfoList files = backupPath.entryInfoList(nameFilters, QDir::Files, QDir::Time);
 			bool needToCreate = false;
 			if (files.size()) {
-				QDateTime lastModified = files[0].lastModified();
-				qint64 delta = lastModified.daysTo(currentTime);
-				if (delta > m_settings.localBackupInterval) {
-					needToCreate = true;
+				needToCreate = true;
+				for (auto f : files) {
+					QDateTime lastModified = f.lastModified();
+					qint64 delta = lastModified.daysTo(currentTime);
+					if (delta < m_settings.localBackupInterval) {
+						needToCreate = false;
+					}
 				}
 			} else {
 				needToCreate = true;
@@ -1982,7 +1986,8 @@ void MainWindow::enterDeviceState(int state)
 		m_loggedInStack->setCurrentIndex(0);
 
 		if (!databaseFile) {
-			if (m_backupRestoreSupported) {
+			if (m_backupRestoreSupported && !m_autoBackupCheckPerformed) {
+				m_autoBackupCheckPerformed = true;
 				autoBackupCheck();
 				m_backupAction->setVisible(true);
 			}
@@ -2001,6 +2006,10 @@ void MainWindow::enterDeviceState(int state)
 	break;
 	default:
 		break;
+	}
+
+	if (!m_loggedIn) {
+		m_autoBackupCheckPerformed = false;
 	}
 
 	bool fileActionsEnabled = (m_deviceState == SignetApplication::STATE_LOGGED_IN);
