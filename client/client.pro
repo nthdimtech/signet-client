@@ -57,7 +57,11 @@ QMAKE_LFLAGS += -L/usr/local/lib
 QMAKE_INFO_PLIST = macos/Info.plist
 }
 
-linux-g++ {
+linux-g++ | linux-g++-32 | linux-g++-64 {
+	CONFIG+=gnu_linux
+}
+
+gnu_linux {
 	linux_static_deps {
 		LIBS += -l:libgcrypt.a -l:libgpg-error.a -l:libz.a -lX11
 	} else {
@@ -83,7 +87,7 @@ HEADERS += websockethandler.h
 }
 
 
-macx|linux-g++ {
+macx|gnu_linux {
 HEADERS += import/passimporter.h \
     import/passimportunlockdialog.h
 SOURCES += import/passimporter.cpp \
@@ -99,7 +103,7 @@ macx {
 SOURCES += ../signet-base/signetdev/host/signetdev_osx.c
 }
 
-linux-g++ {
+gnu_linux {
 SOURCES += ../signet-base/signetdev/host/signetdev_linux.c
 }
 
@@ -139,7 +143,7 @@ HEADERS += esdb/esdb.h \
     esdb/generic/esdbgenericmodule.h \
     esdb/generictype/esdbgenerictypemodule.h
 
-win32|linux-g++|macx {
+win32|gnu_linux|macx {
 
 #
 # ESDB GUI sources
@@ -245,7 +249,7 @@ use_sse {
     HEADERS += ../scrypt/crypto_scrypt_smix_sse2.h
 }
 
-linux-g++|macx|win32 {
+gnu_linux|macx|win32 {
 
 
 INCLUDEPATH += desktop
@@ -332,7 +336,7 @@ win32 {
 SOURCES += qtsingleapplication/src/qtlockedfile_win.cpp
 }
 
-macx:linux-g++ {
+macx:gnu_linux {
 SOURCES += qtsingleapplication/src/qtlockedfile_unix.cpp
 }
 
