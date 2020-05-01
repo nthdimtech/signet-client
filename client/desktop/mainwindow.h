@@ -18,6 +18,8 @@
 
 #include <QVector>
 
+#include "zip.h"
+
 struct signetdevCmdRespInfo;
 
 namespace Ui
@@ -57,12 +59,15 @@ struct fwSection {
 
 struct exportType {
 	QList<QVector<QString> > m_data;
+	QMap<QString, int> m_exportFieldMap;
+	QVector<QString> m_exportField;
 };
 
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
 	QString m_dbFilename;
+	QString m_backupDirectory;
 	localSettings m_settings;
 	esdbTypeModule *m_genericTypeModule;
 	esdbTypeModule *m_accountTypeModule;
@@ -114,8 +119,6 @@ private:
 
 	keePassImportController *m_keePassImportController;
 
-	QMap<QString, int> m_exportFieldMap;
-	QVector<QString> m_exportField;
 	QMap<QString, exportType> m_exportData;
 
 	enum SignetApplication::device_state m_deviceState;
@@ -125,6 +128,7 @@ private:
 	DatabaseImportController *m_dbImportController;
 	int m_backupBlock;
 	QFile *m_backupFile;
+	zipFile m_backupZipFile;
 	enum SignetApplication::device_state m_backupPrevState;
 
 	QWidget *m_restoreWidget;
@@ -167,6 +171,15 @@ private:
 	bool m_startedExport;
 	bool m_backupRestoreSupported;
 	KeyboardLayoutTester *m_keyboardLayoutTester;
+	bool m_firmwareUpdate;
+	bool m_factoryFirmwareUpdate;
+	bool m_factoryFirmwareUpdateWiped;
+	bool m_factoryFirmwareUpdateComplete;
+
+	QLabel *m_uninitTestButtonCountWidget;
+	int m_uninitTestButtonCount;
+
+	void firmwareUpdateCompleteMessageBox();
 
 #ifdef Q_OS_UNIX
 	QAction *m_importPassAction;
@@ -201,6 +214,7 @@ private slots:
 	void keyboardLayoutNotConfiguredDialogFinished(int rc);
 	void backupDatabasePromptDialogFinished(int rc);
 	void openFileDialogFinished(int rc);
+	void resetUninitTestButtonCount();
 public slots:
 	void signetDevEvent(int);
 	void deviceOpened(enum signetdev_device_type dev_type);
@@ -218,17 +232,18 @@ public slots:
 	void open();
 	void buttonWaitTimeout();
 	void buttonWaitCancel();
+	void nextFactoryFirmwareUpdateUi();
 private:
 	QFileDialog *m_openFileDialog;
 	void setCentralStack(QWidget *w);
-	void updateFirmwareHC(QByteArray &datum);
+	bool updateFirmwareHC(QByteArray &datum);
 	void updateFirmware(QByteArray &datum);
 	void firmwareFileInvalidMsg();
 	void sendFirmwareWriteCmdHC();
 	int firmwareSizeHC();
 	void createFirmwareUpdateWidget();
 	void updateFirmwareHCIter(bool buttonWait);
-	void firmwareUpgradeCompletionCheck();
+	bool firmwareUpgradeCompletionCheck();
 	QString backupFilter();
 	QString backupSuffix();
 	QString firmwareFilter();

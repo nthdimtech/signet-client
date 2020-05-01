@@ -252,7 +252,15 @@ use_sse {
 gnu_linux|macx|win32 {
 
 
-INCLUDEPATH += desktop
+INCLUDEPATH += desktop minizip
+
+#
+# Minizip sources
+#
+SOURCES += minizip/unzip.c \
+	minizip/zip.c \
+	minizip/ioapi.c \
+	minizip/mztools.c
 
 #
 # Importer sources

@@ -762,8 +762,6 @@ void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QBy
 		m_backupProgress->setValue(0);
 		m_startedExport = false;
 		m_exportData.clear();
-		m_exportField.clear();
-		m_exportFieldMap.clear();
 	} else {
 		m_backupProgress->setValue(m_backupProgress->maximum() - info.messages_remaining);
 	}
@@ -801,43 +799,55 @@ void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QBy
 				QVector<genericField> fields;
 				entry->getFields(fields);
 				for (genericField field : fields) {
-					auto iter = m_exportFieldMap.find(field.name);
-					if (iter == m_exportFieldMap.end()) {
-						m_exportField.push_back(field.name);
-						m_exportFieldMap[field.name] = m_exportField.size() - 1;
+					auto iter = exportType.m_exportFieldMap.find(field.name);
+					if (iter == exportType.m_exportFieldMap.end()) {
+						exportType.m_exportField.push_back(field.name);
+						exportType.m_exportFieldMap[field.name] = exportType.m_exportField.size() - 1;
 					}
 				}
 				exportType.m_data.push_back(QVector<QString>());
 				QVector<QString> &csvEntry = exportType.m_data.back();
-				csvEntry.resize(m_exportField.size() + 1);
+				csvEntry.resize(exportType.m_exportField.size() + 1);
 				for (genericField field : fields) {
-					int index = m_exportFieldMap[field.name];
+					int index = exportType.m_exportFieldMap[field.name];
 					csvEntry[index] = field.value;
 				}
 			}
 		}
 	}
 	if (!info.messages_remaining) {
-		QTextStream out(m_backupFile);
-
-		out << "typeName,";
-		for (auto x : m_exportField) {
-			out << csvQuote(x) << ",";
-		}
-		out << endl;
 		QMap<QString, exportType>::iterator exportType;
-		for (exportType = m_exportData.begin(); exportType != m_exportData.end(); exportType++) {
-			for (auto entry : exportType.value().m_data) {
-				out << csvQuote(exportType.key()) << ",";
+		for (auto x = m_exportData.begin(); x != m_exportData.end(); x++) {
+
+			zip_fileinfo zfi = { 0 };
+			zipOpenNewFileInZip(m_backupZipFile,
+				(x.key() + ".csv").toLatin1().data(),
+				&zfi,
+				NULL, 0, NULL, 0, NULL,
+				Z_DEFLATED,
+				Z_DEFAULT_COMPRESSION);
+
+			auto exportType = x.value();
+			QString outStr;
+			QTextStream out(&outStr);
+			for (auto x : exportType.m_exportField) {
+				out << csvQuote(x) << ",";
+			}
+			out << endl;
+			for (auto entry : exportType.m_data) {
 				for (auto value : entry) {
 					out << csvQuote(value) << ",";
 				}
 				out << endl;
 			}
+			out.flush();
+			QByteArray outUTF8 = outStr.toUtf8();
+			zipWriteInFileInZip(m_backupZipFile, outUTF8.data() , outUTF8.size());
+			zipCloseFileInZip(m_backupZipFile);
+
 		}
-		m_backupFile->close();
-		delete m_backupFile;
-		m_backupFile = nullptr;
+		zipClose(m_backupZipFile, NULL);
+		m_backupZipFile = nullptr;
 		QMessageBox *box = new QMessageBox(QMessageBox::Information,
 						   "Export database to CSV",
 						   "Export successful",
@@ -2502,22 +2512,20 @@ void MainWindow::backupDeviceUi()
 
 void MainWindow::exportCSVUi()
 {
-	QFileDialog *fd = new QFileDialog(this, "Export device to CSV file");
+	QFileDialog *fd = new QFileDialog(this, "Export device to CSV archive");
 	QStringList filters;
-	filters.append("*.csv");
-	filters.append("*.txt");
+	filters.append("*.zip");
 	filters.append("*");
-
 	QString fileName = backupFileBaseName();
 	QString documentsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-	QString backupFileName = documentsPath + "/" + fileName + ".csv";
-
+	QString backupFileName = documentsPath + "/" + fileName + ".zip";
 	fd->setNameFilters(filters);
+
 	fd->setDirectory(documentsPath);
 	fd->selectFile(fileName);
 	fd->setFileMode(QFileDialog::AnyFile);
 	fd->setAcceptMode(QFileDialog::AcceptSave);
-	fd->setDefaultSuffix(QString("csv"));
+	fd->setDefaultSuffix(QString("zip"));
 	if (!fd->exec()) {
 		fd->deleteLater();
 		return;
@@ -2526,13 +2534,12 @@ void MainWindow::exportCSVUi()
 	fd->deleteLater();
 	if (sl.empty())
 		return;
-	m_backupFile = new QFile(sl.first());
-	bool result = m_backupFile->open(QFile::WriteOnly);
-	if (!result) {
-		SignetApplication::messageBoxError(QMessageBox::Warning, "Export to CSV", "Failed to create CSV file", this);
+	m_backupZipFile = zipOpen(sl.first().toLatin1().data(), APPEND_STATUS_CREATE);
+	if (!m_backupZipFile) {
+		SignetApplication::messageBoxError(QMessageBox::Warning, "Export to CSV archive", "Failed to create CSV archive", this);
 		return;
 	}
-	beginButtonWait("export to CSV", true);
+	beginButtonWait("export to CSV archive", true);
 	m_startedExport = true;
 	::signetdev_read_all_uids(nullptr, &m_signetdevCmdToken, 0);
 }
