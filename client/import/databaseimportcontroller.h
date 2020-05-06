@@ -16,6 +16,7 @@ class DatabaseImportController : public QObject
 	DatabaseImporter *m_importer;
 	DatabaseImporter::database *m_db;
 	DatabaseImporter::databaseIter m_dbIter;
+	DatabaseImporter::databaseIter m_dbIterStart;
 	DatabaseImporter::databaseTypeIter m_dbTypeIter;
 	ButtonWaitDialog *m_buttonWaitDialog;
 	esdbEntry *m_entry;

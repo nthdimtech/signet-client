@@ -214,7 +214,6 @@ private slots:
 	void keyboardLayoutNotConfiguredDialogFinished(int rc);
 	void backupDatabasePromptDialogFinished(int rc);
 	void openFileDialogFinished(int rc);
-	void resetUninitTestButtonCount();
 public slots:
 	void signetDevEvent(int);
 	void deviceOpened(enum signetdev_device_type dev_type);
@@ -232,18 +231,17 @@ public slots:
 	void open();
 	void buttonWaitTimeout();
 	void buttonWaitCancel();
-	void nextFactoryFirmwareUpdateUi();
 private:
 	QFileDialog *m_openFileDialog;
 	void setCentralStack(QWidget *w);
-	bool updateFirmwareHC(QByteArray &datum);
+	void updateFirmwareHC(QByteArray &datum);
 	void updateFirmware(QByteArray &datum);
 	void firmwareFileInvalidMsg();
 	void sendFirmwareWriteCmdHC();
 	int firmwareSizeHC();
 	void createFirmwareUpdateWidget();
 	void updateFirmwareHCIter(bool buttonWait);
-	bool firmwareUpgradeCompletionCheck();
+	void firmwareUpgradeCompletionCheck();
 	QString backupFilter();
 	QString backupSuffix();
 	QString firmwareFilter();

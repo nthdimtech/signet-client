@@ -36,7 +36,12 @@ void DatabaseImportController::advanceDbTypeIter()
 	m_dbTypeIter++;
 	if (m_dbTypeIter == t->end()) {
 		m_dbIter++;
-		if (m_dbIter != m_db->end()) {
+		if (m_dbIter == m_db->end()) {
+			m_dbIter = m_db->begin();
+		}
+		if (m_dbIter == m_dbIterStart) {
+			m_dbIter = m_db->end();
+		} else {
 			t = m_dbIter.value();
 			m_dbTypeIter = t->begin();
 		}
@@ -69,6 +74,9 @@ bool DatabaseImportController::nextEntry()
 		return true;
 	}
 	esdbEntry *importEntry = *m_dbTypeIter;
+	//TODO: Check if there is a module already for importEntry
+	//  Yes: Use it. If generic apply type ID to entry
+	//  No: Default to Misc module and use Misc type ID
 	const esdbEntry *existingEntry = m_loggedInWidget->findEntry(m_dbIter.key(), importEntry->getFullTitle());
 
 	bool overwrite = false;
@@ -196,6 +204,16 @@ void DatabaseImportController::importDone(bool success)
 	if (success) {
 		m_db = m_importer->getDatabase();
 		m_dbIter = m_db->begin();
+		m_dbIterStart = m_db->begin();
+		for (;m_dbIter != m_db->end(); m_dbIter++) {
+			if (m_dbIter.key() == "Data types") {
+				m_dbIterStart = m_dbIter;
+				break;
+			}
+		}
+		if (m_dbIter == m_db->end()) {
+			m_dbIter = m_db->begin();
+		}
 		DatabaseImporter::databaseType *t = m_dbIter.value();
 		m_dbTypeIter = t->begin();
 
