@@ -88,6 +88,14 @@ esdbEntry *esdbGenericModule::decodeEntry(const QVector<genericField> &fields, b
 		nameAliases.push_back("address");
 	}
 	aliasedFields.push_back(nameAliases);
+
+	QStringList pathAliases;
+	pathAliases.push_back("path");
+	if (doAliasMatch) {
+		pathAliases.push_back("group");
+	}
+	aliasedFields.push_back(pathAliases);
+
 	QStringList fieldNames;
 	for (auto f : fields) {
 		fieldNames.append(f.name);
@@ -96,6 +104,7 @@ esdbEntry *esdbGenericModule::decodeEntry(const QVector<genericField> &fields, b
 	QVector<QStringList::const_iterator> aliasMatched = aliasMatch(aliasedFields, fieldNames);
 	QVector<QString> fieldValues = aliasMatchValues(aliasedFields, aliasMatched, fields, &g->fields);
 	g->name = fieldValues[0];
+	g->path = fieldValues[1];
 	g->typeId = m_typeDesc->typeId;
 	return g;
 }

@@ -60,5 +60,6 @@ int generic::matchQuality(const QString &search) const
 void generic::getFields(QVector<genericField> &fields_) const
 {
 	fields_.push_back(genericField("name", "", name));
+	fields_.push_back(genericField("path", "", path));
 	fields.getFields(fields_);
 }
