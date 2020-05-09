@@ -44,11 +44,29 @@ esdbEntry *esdbGenericTypeModule::decodeEntry(int id, int revision, esdbEntry *p
 	return entry;
 }
 
-esdbEntry *esdbGenericTypeModule::decodeEntry(const QVector<genericField> &fields, bool aliasMatch) const
+esdbEntry *esdbGenericTypeModule::decodeEntry(const QVector<genericField> &fields, bool doAliasMatch) const
 {
-	Q_UNUSED(fields);
-	Q_UNUSED(aliasMatch);
-	genericTypeDesc *desc = new genericTypeDesc(-1);
-	//TODO
+	QVector<QStringList> aliasedFields;
+	QStringList nameAliases;
+	QStringList pathAliases;
+	nameAliases.push_back("name");
+	pathAliases.push_back("path");
+	aliasedFields.push_back(nameAliases);
+	aliasedFields.push_back(pathAliases);
+	QStringList fieldNames;
+	for (auto f : fields) {
+		fieldNames.append(f.name);
+	}
+	genericFields genFields;
+	QVector<QStringList::const_iterator> aliasMatched = aliasMatch(aliasedFields, fieldNames);
+	QVector<QString> fieldValues = aliasMatchValues(aliasedFields, aliasMatched, fields, &genFields);
+	genericTypeDesc *desc = new genericTypeDesc(-1); //TODO: Get real ID assigned
+	for (int i = 0; i < genFields.fieldCount(); i++) {
+		auto f = genFields.getField(i);
+		desc->fields.append(fieldSpec(f.name, f.value));
+	}
+	desc->typeId = generic::invalidTypeId;
+	desc->name = fieldValues[0];
+	desc->group = fieldValues[1];
 	return desc;
 }
