@@ -747,9 +747,8 @@ void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QBy
 
 	if (info.resp_code != OKAY) {
 		endButtonWait();
-		m_backupFile->remove();
-		delete m_backupFile;
-		m_backupFile = nullptr;
+		zipClose(m_backupZipFile, NULL);
+		m_backupZipFile = nullptr;
 		enterDeviceState(SignetApplication::STATE_LOGGED_IN);
 		return;
 	}
@@ -818,8 +817,14 @@ void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QBy
 	if (!info.messages_remaining) {
 		QMap<QString, exportType>::iterator exportType;
 		for (auto x = m_exportData.begin(); x != m_exportData.end(); x++) {
-
+			QDateTime current = QDateTime::currentDateTime();
 			zip_fileinfo zfi = { 0 };
+			zfi.tmz_date.tm_year = current.date().year();
+			zfi.tmz_date.tm_mon = current.date().month() - 1;
+			zfi.tmz_date.tm_mday = current.date().day();
+			zfi.tmz_date.tm_hour = current.time().hour();
+			zfi.tmz_date.tm_min = current.time().minute();
+			zfi.tmz_date.tm_sec = current.time().second();
 			zipOpenNewFileInZip(m_backupZipFile,
 				(x.key() + ".csv").toLatin1().data(),
 				&zfi,
