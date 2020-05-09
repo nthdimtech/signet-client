@@ -16,7 +16,8 @@ class CSVImporter : public DatabaseImporter
 	QWidget *m_parent;
 	QList<esdbTypeModule *> m_typeModules;
 public:
-	CSVImporter(QList<esdbTypeModule *> typeModules, QWidget *parent);
+	CSVImporter(QList<esdbTypeModule *> typeModules,
+			QWidget *parent);
 	QString databaseTypeName()
 	{
 		return QString("CSV");

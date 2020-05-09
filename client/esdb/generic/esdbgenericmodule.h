@@ -15,14 +15,12 @@ class esdbGenericModule : public esdbTypeModule
 {
 	genericTypeDesc *m_typeDesc;
 private:
-	//genericTypeDesc *m_typeDesc;
 	esdbEntry *decodeEntry(int id, int revision, esdbEntry *prev, struct block *blk) const override;
-	//bool m_userDefined;
 	esdbEntry *decodeEntry(const QVector<genericField> &fields, bool doAliasMatch) const override;
 public:
 	esdbGenericModule(genericTypeDesc *typeDesc);
-
 	QString name() const override;
+	u16 typeId() const;
 };
 
 #endif // ESDBGENERICMODULE_H

@@ -13,8 +13,10 @@
 #include "generictypedesc.h"
 #include "esdbgenericmodule.h"
 #include "unzip.h"
+#include "generic.h"
 
-CSVImporter::CSVImporter(QList<esdbTypeModule *> typeModules, QWidget *parent) :
+CSVImporter::CSVImporter(QList<esdbTypeModule *> typeModules,
+	QWidget *parent) :
 	DatabaseImporter(parent),
 	m_parent(parent),
 	m_typeModules(typeModules)
@@ -37,9 +39,8 @@ void CSVImporter::start()
 {
 	QFileDialog *fd = new QFileDialog(m_parent, "CSV Import");
 	QStringList filters;
-	filters.append("*.csv");
-	filters.append("*.txt");
-	filters.append("*.zip");
+	filters.append("CSV archive (*.zip)");
+	filters.append("CSV file (*.csv *.txt)");
 	filters.append("*");
 	fd->setNameFilters(filters);
 	fd->setFileMode(QFileDialog::AnyFile);
@@ -136,6 +137,7 @@ void CSVImporter::start()
 	}
 
 	genericTypeDesc *typeDesc = new genericTypeDesc(-1);
+	typeDesc->typeId = generic::invalidTypeId;
 	auto tempGenericModule = new esdbGenericModule(typeDesc);
 #if 0
 	if (!m_typeModules.size()) {
@@ -152,7 +154,6 @@ void CSVImporter::start()
 
 	esdbTypeModule *t = config->typeModule();
 #endif
-
 	m_db = new database();
 
 	for (auto csvData : csvDataList) {
@@ -176,6 +177,7 @@ void CSVImporter::start()
 		}
 		auto csvIter = csvData->data.begin();
 		auto header = *(csvIter++);
+
 		for (; csvIter != csvData->data.end(); csvIter++) {
 			QVector<genericField> fields;
 			QStringList row = *csvIter;

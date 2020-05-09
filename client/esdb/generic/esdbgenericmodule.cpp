@@ -18,6 +18,11 @@ QString esdbGenericModule::name() const
 	return m_typeDesc->name;
 }
 
+u16 esdbGenericModule::typeId() const
+{
+	return m_typeDesc->typeId;
+}
+
 esdbEntry *esdbGenericModule::decodeEntry(int id, int revision, esdbEntry *prev, struct block *blk) const
 {
 	generic *g = nullptr;

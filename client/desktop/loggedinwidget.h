@@ -174,6 +174,7 @@ class LoggedInWidget : public QWidget
 	void websocketRequestFields(int socketId, const QString &path, const QString &title, const QStringList &requestedFields);
 #endif
 public:
+	const std::vector<esdbGenericModule *> &getGenericModules() const;
 	enum ID_TASK {
 		ID_TASK_NONE,
 		ID_TASK_DELETE,

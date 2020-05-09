@@ -120,6 +120,11 @@ void LoggedInWidget::getCurrentGroups(QString typeName, QStringList &groups)
 	}
 }
 
+const std::vector<esdbGenericModule *> &LoggedInWidget::getGenericModules() const
+{
+	return m_genericModules;
+}
+
 LoggedInWidget::LoggedInWidget(QProgressBar *loading_progress, MainWindow *mw, QWidget *parent) : QWidget(parent),
 	m_mainWindow(mw),
 	m_activeType(nullptr),
@@ -1188,7 +1193,7 @@ int LoggedInWidget::getUnusedTypeId()
 		if (!match[i])
 			return static_cast<int>(i);
 	}
-	return -1;
+	return generic::invalidTypeId;
 }
 
 int LoggedInWidget::getUnusedId()

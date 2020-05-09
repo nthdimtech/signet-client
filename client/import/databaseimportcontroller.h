@@ -8,6 +8,7 @@
 
 class LoggedInWidget;
 class ButtonWaitDialog;
+class esdbGenericModule;
 
 class DatabaseImportController : public QObject
 {

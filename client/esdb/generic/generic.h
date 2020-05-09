@@ -74,7 +74,7 @@ struct generic : public esdbEntry {
 	QString path;
 	genericFields fields;
 	u16 typeId;
-
+	static const u16 invalidTypeId = 0xffff;
 	void fromBlock(block *blk);
 	void toBlock(block *blk) const;
 	generic(int id_) : esdbEntry(id_, ESDB_TYPE_GENERIC, 4, id_, 1) { }

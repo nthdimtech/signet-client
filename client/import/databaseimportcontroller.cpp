@@ -6,6 +6,8 @@
 #include "entryrenamedialog.h"
 #include "loggedinwidget.h"
 #include "buttonwaitdialog.h"
+#include "generictypedesc.h"
+#include "generic.h"
 
 #include <QPushButton>
 
@@ -74,9 +76,6 @@ bool DatabaseImportController::nextEntry()
 		return true;
 	}
 	esdbEntry *importEntry = *m_dbTypeIter;
-	//TODO: Check if there is a module already for importEntry
-	//  Yes: Use it. If generic apply type ID to entry
-	//  No: Default to Misc module and use Misc type ID
 	const esdbEntry *existingEntry = m_loggedInWidget->findEntry(m_dbIter.key(), importEntry->getFullTitle());
 
 	bool overwrite = false;
@@ -92,7 +91,7 @@ bool DatabaseImportController::nextEntry()
 		}
 		QMessageBox *resolution = new QMessageBox(QMessageBox::Warning,
 		                m_importer->databaseTypeName() + " Import",
-		                "Entry \"" + fullTitle +
+		                "\"" + m_dbIter.key() + "\" " + "entry \"" + fullTitle +
 		                "\" " +
 		                progressString() +
 		                " already exists",
@@ -150,6 +149,28 @@ bool DatabaseImportController::nextEntry()
 	QString fullTitle = importEntry->getFullTitle();
 	if (fullTitle.at(0) == '/') {
 		fullTitle.remove(0, 1);
+	}
+
+	if (importEntry->type == ESDB_TYPE_GENERIC) {
+		generic *g = static_cast<generic *>(importEntry);
+		if (g->typeId == generic::invalidTypeId) {
+			const std::vector<esdbGenericModule *> &gm = m_loggedInWidget->getGenericModules();
+			g->typeId = 0; //TODO: This is the type ID for misc but it shouldn't be hard coded
+			for (auto m : gm) {
+				if (m->name() == m_dbIter.key()) {
+					g->typeId = m->typeId();
+					break;
+				}
+			}
+		}
+	} else if (importEntry->type == ESDB_TYPE_GENERIC_TYPE_DESC) {
+		genericTypeDesc *gt = static_cast<genericTypeDesc *>(importEntry);
+		if (!m_entryNew) {
+			const genericTypeDesc *gtExisting = static_cast<const genericTypeDesc *>(existingEntry);
+			gt->typeId = gtExisting->typeId;
+		} else {
+			gt->typeId = m_loggedInWidget->getUnusedTypeId();
+		}
 	}
 
 	if (m_useUpdateUids) {
