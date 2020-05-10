@@ -9,7 +9,7 @@ class integerFieldEdit : public genericFieldEdit
 {
 	QSpinBox *m_spinBoxEdit;
 public:
-	integerFieldEdit(const QString &name, bool canRemove, QWidget *parent = nullptr);
+	integerFieldEdit(const QString &name, bool canRemove, bool secretField, QWidget *parent = nullptr);
 	QString toString() const;
 	void fromString(const QString &s);
 	QString type()

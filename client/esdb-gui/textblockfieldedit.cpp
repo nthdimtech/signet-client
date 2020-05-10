@@ -3,8 +3,8 @@
 #include <QTextEdit>
 #include <QString>
 
-textBlockFieldEdit::textBlockFieldEdit(const QString &name, bool canRemove, QWidget *parent) :
-    genericFieldEdit(name, parent)
+textBlockFieldEdit::textBlockFieldEdit(const QString &name, bool canRemove, bool secretField, QWidget *parent) :
+    genericFieldEdit(name, secretField, parent)
 {
 	m_textEdit = new QTextEdit();
 	m_textEdit->setReadOnly(SignetApplication::get()->isDeviceEmulated());

@@ -16,16 +16,24 @@ extern "C" {
 #include "signetdev/host/signetdev.h"
 }
 
-genericFieldEdit::genericFieldEdit(const QString &name, QWidget *parent) :
-    m_name(name),
-    m_parent(parent),
+genericFieldEdit::genericFieldEdit(const QString &name, bool secretField, QWidget *parent) :
+	m_name(name),
+	m_parent(parent),
 	m_widget(nullptr),
-    m_signetdevCmdToken(-1)
+	m_signetdevCmdToken(-1),
+	m_enableHideCheckbox(true),
+	m_secretField(secretField)
 {
 	SignetApplication *app = SignetApplication::get();
 	QObject::connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
 			 this, SLOT(signetdevCmdResp(signetdevCmdRespInfo)));
 }
+
+bool genericFieldEdit::isSecretField() const
+{
+	return m_secretField;
+}
+
 void genericFieldEdit::createWidget(bool canRemove, QWidget *editWidget, bool outputEnable)
 {
 	m_editWidget = editWidget;
@@ -46,7 +54,7 @@ void genericFieldEdit::createWidget(bool canRemove, QWidget *editWidget, bool ou
 	m_widget->layout()->addWidget(displayLabel);
 	m_widget->layout()->addWidget(m_editWidget);
 
-	if (isSecretField()) {
+	if (isSecretField() && m_enableHideCheckbox) {
 		m_secretCheckbox = new QCheckBox("Hide");
 		m_secretCheckbox->setCheckState(Qt::Checked);
 		hideContent();

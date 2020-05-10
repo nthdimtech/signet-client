@@ -26,7 +26,7 @@ cleartextPasswordEditor::cleartextPasswordEditor(int index, struct cleartext_pas
 	QVBoxLayout *l = new QVBoxLayout();
 	QLabel *heading = new genericText("Password slot #" + QString::number(index + 1));
 	l->addWidget(heading);
-	m_nameEdit = new lineFieldEdit("Name", false);
+	m_nameEdit = new lineFieldEdit("Name", false, false);
 	m_passwordEdit = new PasswordEdit();
 	l->addWidget(m_nameEdit->widget());
 	l->addWidget(m_passwordEdit);

@@ -1,5 +1,6 @@
 #include "esdbgenerictypemodule.h"
 #include "generic/generictypedesc.h"
+#include "generic/generic.h"
 
 esdbGenericTypeModule::esdbGenericTypeModule() : esdbTypeModule("Data types")
 {

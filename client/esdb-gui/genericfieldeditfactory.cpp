@@ -13,17 +13,22 @@ genericFieldEditFactory::genericFieldEditFactory()
 
 genericFieldEdit *genericFieldEditFactory::generate(const QString &fieldName, const QString &typeName, bool canRemove, QWidget *parent)
 {
-	Q_UNUSED(typeName);
-    if (!typeName.compare("type desc", Qt::CaseInsensitive)) {
-		return new typeDescEdit(fieldName,canRemove, parent);
-	} else if (!typeName.compare("text", Qt::CaseInsensitive)) {
-		return new lineFieldEdit(fieldName, canRemove, parent);
-	} else if (!typeName.compare("integer", Qt::CaseInsensitive)) {
-		return new integerFieldEdit(fieldName, canRemove, parent);
-	} else if (!typeName.compare("text block", Qt::CaseInsensitive)) {
-		return new textBlockFieldEdit(fieldName, canRemove, parent);
+	QString typeName_ = typeName;
+	bool secretField = false;
+	if (typeName_[0] == '.') {
+		typeName_.remove(0,1);
+		secretField = true;
+	}
+	if (!typeName_.compare("type desc", Qt::CaseInsensitive)) {
+		return new typeDescEdit(fieldName, canRemove, secretField, parent);
+	} else if (!typeName_.compare("text", Qt::CaseInsensitive)) {
+		return new lineFieldEdit(fieldName, canRemove, secretField, parent);
+	} else if (!typeName_.compare("integer", Qt::CaseInsensitive)) {
+		return new integerFieldEdit(fieldName, canRemove, secretField, parent);
+	} else if (!typeName_.compare("text block", Qt::CaseInsensitive)) {
+		return new textBlockFieldEdit(fieldName, canRemove, secretField, parent);
 	} else {
-		return new lineFieldEdit(fieldName, canRemove, parent);
+		return new lineFieldEdit(fieldName, canRemove, secretField, parent);
 	}
 }
 

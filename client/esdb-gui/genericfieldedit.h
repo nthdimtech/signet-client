@@ -24,7 +24,9 @@ class genericFieldEdit : public QObject
 	ButtonWaitDialog *m_buttonWait;
 	QVector<u16> m_keysToType;
 	QCheckBox *m_secretCheckbox;
+	bool m_secretField;
 protected:
+	bool m_enableHideCheckbox;
 	void createWidget(bool canRemove, QWidget *editWidget, bool outputEnable = true);
 	void createTallWidget(int rows, bool canRemove, QWidget *editWidget);
 	virtual void showContent()
@@ -36,7 +38,7 @@ protected:
 
 	}
 public:
-	genericFieldEdit(const QString &name, QWidget *parent);
+	genericFieldEdit(const QString &name, bool secretField, QWidget *parent);
 
 	virtual QString toString() const = 0;
 
@@ -57,12 +59,9 @@ public:
 		}
 	}
 
-	bool isSecretField() const
-	{
-		return (m_name.size() >0 && m_name[0] == '.');
-	}
-
 	virtual void fromString(const QString &s) = 0;
+
+	bool isSecretField() const;
 
 	QWidget *widget() const
 	{

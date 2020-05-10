@@ -14,7 +14,7 @@ class lineFieldEdit : public genericFieldEdit
 	void showContent();
 	void hideContent();
 public:
-	lineFieldEdit(const QString &name, bool canRemove, QWidget *parent = nullptr);
+	lineFieldEdit(const QString &name, bool canRemove, bool secretField, QWidget *parent = nullptr);
 	QString toString() const;
 	void fromString(const QString &s);
 	QString type()

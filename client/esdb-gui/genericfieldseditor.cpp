@@ -113,6 +113,7 @@ genericFieldEdit *GenericFieldsEditor::createFieldEdit(QString name, QString typ
 	genericFieldEdit *fieldEdit = nullptr;
 	if (m_descEdit) {
 		fieldEdit = fieldEditFactory->generate(name, QString("type desc"), canRemove, this);
+		fieldEdit->fromString(type);
 	} else {
 		fieldEdit = fieldEditFactory->generate(name, type, canRemove, this);
 	}
@@ -131,10 +132,6 @@ void GenericFieldsEditor::addNewFieldUI()
 	if (fieldName.size()) {
 		m_newFieldNameEdit->clear();
 		QString dataType = m_newFieldTypeCombo->currentData().toString();
-		if (dataType[0] == '.') {
-			dataType.remove(0, 1);
-			fieldName.prepend('.');
-		}
 		addNewField(fieldName, dataType);
 		emit edited();
 	}

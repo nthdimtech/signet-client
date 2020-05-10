@@ -41,6 +41,13 @@ void genericFields::fromBlock(block *blk)
 		genericField fld;
 		blk->readString(fld.name);
 		blk->readString(fld.type);
+
+		if (fld.name[0] == '.') {
+			fld.name.remove(0,1);
+			if (fld.type[0] != '.') {
+				fld.type.prepend(".");
+			}
+		}
 		blk->readLongString(fld.value);
 		m_fields.push_back(fld);
 	}
@@ -57,6 +64,12 @@ void genericFields::toBlock(block *blk) const
 	blk->writeU8(count);
 	for (auto fld : m_fields) {
 		if (fld.value.size()) {
+			if (fld.type[0] == '.') {
+				fld.type.remove(0,1);
+				if (fld.name[0] != '.') {
+					fld.name.prepend(".");
+				}
+			}
 			blk->writeString(fld.name, true);
 			blk->writeString(fld.type, true);
 			blk->writeLongString(fld.value, true);
