@@ -42,9 +42,9 @@ void genericFields::fromBlock(block *blk)
 		blk->readString(fld.name);
 		blk->readString(fld.type);
 
-		if (fld.name[0] == '.') {
+		if (fld.name.size() > 0 && fld.name[0] == '.') {
 			fld.name.remove(0,1);
-			if (fld.type[0] != '.') {
+			if (fld.type.size() > 0 && fld.type[0] != '.') {
 				fld.type.prepend(".");
 			}
 		}

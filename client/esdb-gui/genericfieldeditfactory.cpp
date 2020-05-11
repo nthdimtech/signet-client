@@ -15,7 +15,7 @@ genericFieldEdit *genericFieldEditFactory::generate(const QString &fieldName, co
 {
 	QString typeName_ = typeName;
 	bool secretField = false;
-	if (typeName_[0] == '.') {
+	if (typeName_.size() > 0 && typeName_[0] == '.') {
 		typeName_.remove(0,1);
 		secretField = true;
 	}
