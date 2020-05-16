@@ -2551,7 +2551,7 @@ void MainWindow::exportCSVUi()
 
 void MainWindow::importDone(bool success)
 {
-	if (success) {
+	if (m_dbImportController->getImportState() == DatabaseImportController::IMPORT_STATE_WRITE_COMPLETE) {
 		QString typeName = m_dbImportController->importer()->databaseTypeName();
 		QMessageBox *mb = SignetApplication::messageBoxError(QMessageBox::Information,
 				  typeName + " Import",

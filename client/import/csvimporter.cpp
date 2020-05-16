@@ -15,6 +15,8 @@
 #include "unzip.h"
 #include "generic.h"
 
+#include <QStandardPaths>
+
 CSVImporter::CSVImporter(QList<esdbTypeModule *> typeModules,
 	QWidget *parent) :
 	DatabaseImporter(parent),
@@ -42,7 +44,9 @@ void CSVImporter::start()
 	filters.append("CSV archive (*.zip)");
 	filters.append("CSV file (*.csv *.txt)");
 	filters.append("*");
+	QString documentsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
 	fd->setNameFilters(filters);
+	fd->setDirectory(documentsPath);
 	fd->setFileMode(QFileDialog::AnyFile);
 	fd->setAcceptMode(QFileDialog::AcceptOpen);
 	fd->setWindowModality(Qt::WindowModal);

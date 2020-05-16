@@ -9,6 +9,9 @@
 class LoggedInWidget;
 class ButtonWaitDialog;
 class esdbGenericModule;
+class QDialog;
+class QProgressBar;
+class QStackedWidget;
 
 class DatabaseImportController : public QObject
 {
@@ -31,7 +34,71 @@ class DatabaseImportController : public QObject
 	bool m_updatePending;
 	bool iteratorsAtEnd();
 	bool m_useUpdateUids;
-	bool m_firstEntry;
+
+	QDialog *m_importProgressDialog;
+	QStackedWidget *m_importProgressStack;
+	QProgressBar *m_importProgressBar;
+	QLabel *m_importProgressLabel;
+	QLabel *m_importConflictLabel;
+
+	enum conflictResponse {
+		CONFLICT_RESPONSE_NONE,
+		CONFLICT_RESPONSE_CANCEL,
+		CONFLICT_RESPONSE_OVERWRITE_ALL,
+		CONFLICT_RESPONSE_OVERWRITE,
+		CONFLICT_RESPONSE_SKIP_ALL,
+		CONFLICT_RESPONSE_SKIP,
+		CONFLICT_RESPONSE_RENAME
+	};
+	enum conflictResponse m_conflictResponse;
+	void conflictResponse();
+	bool m_importCancel;
+public:
+	enum importState {
+		IMPORT_STATE_NO_SOURCE,
+		IMPORT_STATE_READING,
+		IMPORT_STATE_CONFLICT_RESOLUTION,
+		IMPORT_STATE_CONFLICT_RESOLUTION_CANCEL,
+		IMPORT_STATE_WRITING,
+		IMPORT_STATE_WRITE_CANCEL,
+		IMPORT_STATE_WRITE_COMPLETE
+	};
+	enum importState getImportState() {
+		return m_importState;
+	}
+private:
+	enum importState m_importState;
+	int m_importIndex;
+	QVector <esdbEntry *> m_importEntries;
+private slots:
+
+	void importFinished(int);
+	void cancelConflictResponse() {
+		m_conflictResponse = CONFLICT_RESPONSE_CANCEL;
+		conflictResponse();
+	}
+	void skipConflictResponse() {
+		m_conflictResponse = CONFLICT_RESPONSE_SKIP;
+		conflictResponse();
+	}
+	void skipAllConflictResponse() {
+		m_conflictResponse = CONFLICT_RESPONSE_SKIP_ALL;
+		conflictResponse();
+	}
+	void overwriteConflictResponse() {
+		m_conflictResponse = CONFLICT_RESPONSE_OVERWRITE;
+		conflictResponse();
+	}
+	void overwriteAllConflictResponse() {
+		m_conflictResponse = CONFLICT_RESPONSE_OVERWRITE_ALL;
+		conflictResponse();
+	}
+	void renameConflictResponse() {
+		m_conflictResponse = CONFLICT_RESPONSE_RENAME;
+		conflictResponse();
+	}
+
+	void importCancel();
 public:
 	explicit DatabaseImportController(DatabaseImporter *importer, LoggedInWidget *parent, bool useUpdateUids);
 	DatabaseImporter *importer()
