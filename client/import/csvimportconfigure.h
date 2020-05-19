@@ -5,21 +5,34 @@
 class CSVImporter;
 class QComboBox;
 struct esdbTypeModule;
+class QLabel;
+class QLineEdit;
 
 class CSVImportConfigure : public QDialog
 {
 	Q_OBJECT
 	CSVImporter *m_importer;
 	QComboBox *m_dataTypeCombo;
+	QLineEdit *m_dataTypeEdit;
 	esdbTypeModule *m_typeModule;
+	QLabel *m_errorLabel;
+	QString m_basename;
+	int m_selectionIndex;
+
+private slots:
+	void currentSelectionIndexChanged(int idx);
+	void dataTypeTextEdited();
 public:
-	CSVImportConfigure(CSVImporter *importer, QWidget *parent = nullptr);
+	QString selectedType(bool &isNew);
+	static const int m_skippedResponseCode = QDialog::Accepted + 1;
+	CSVImportConfigure(CSVImporter *importer, QString basename, QString filename, QWidget *parent = nullptr);
 	esdbTypeModule *typeModule()
 	{
 		return m_typeModule;
 	}
 private slots:
 	void okPressed();
+	void skipPressed();
 	void cancelPressed();
 };
 

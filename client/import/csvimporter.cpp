@@ -34,6 +34,7 @@ void CSVImporter::failedToOpenCSVDialogFinished(int rc)
 
 struct csvData {
 	QString basename;
+	QString filename;
 	QList<QStringList> data;
 };
 
@@ -67,16 +68,28 @@ void CSVImporter::start()
 		QFile *csvFile = new QFile(fn);
 		QFileInfo csvFileInfo(*csvFile);
 		QString csvBasename = csvFileInfo.baseName();
+		QString csvFilename = csvFileInfo.fileName();
 		QString csvSuffix = csvFileInfo.suffix();
 		if (csvSuffix == "zip") {
 			csvFile->deleteLater();
 			csvFile = nullptr;
 			unzFile unzFile = unzOpen(fn.toLatin1().data());
 			if (unzFile == nullptr) {
-				//TODO
+				SignetApplication::messageBoxError(QMessageBox::Warning,
+						"CSV Import",
+						"Failed to open zip file",
+						m_parent);
+				done(false);
+				return;
 			}
 			if (UNZ_OK != unzGoToFirstFile(unzFile)) {
-				//TODO
+				unzClose(unzFile);
+				SignetApplication::messageBoxError(QMessageBox::Warning,
+						"CSV Import",
+						"Error reading zip file",
+						m_parent);
+				done(false);
+				return;
 			}
 			while(1) {
 				QByteArray filename(256, 0);
@@ -87,32 +100,39 @@ void CSVImporter::start()
 						NULL, 0, NULL, 0);
 				QFile zipInnerFile(QString::fromLatin1(filename));
 				QFileInfo zipInnerFileInfo(zipInnerFile);
-				QString csvBasename = zipInnerFileInfo.baseName();
 
-				unzOpenCurrentFile(unzFile);
-				QByteArray contents(finfo.uncompressed_size, 0);
-				unzReadCurrentFile(unzFile, contents.data(), finfo.uncompressed_size);
+				if (!zipInnerFileInfo.suffix().compare("csv", Qt::CaseInsensitive) ||
+					!zipInnerFileInfo.suffix().compare("txt", Qt::CaseInsensitive)) {
+					unzOpenCurrentFile(unzFile);
+					QByteArray contents(finfo.uncompressed_size, 0);
+					unzReadCurrentFile(unzFile, contents.data(), finfo.uncompressed_size);
+					unzCloseCurrentFile(unzFile);
 
-				QtCSV::Reader reader;
-				QBuffer buffer(&contents);
-				csvData *d = new csvData();
-				d->basename = csvBasename;
-				d->data = reader.readToList(buffer);
-				if (d->data.length() < 2) {
-					delete d;
-					done(false); //TODO
-					return;
+					QtCSV::Reader reader;
+					QBuffer buffer(&contents);
+					csvData *d = new csvData();
+					d->basename = zipInnerFileInfo.baseName();
+					d->filename = csvFilename + ":" + zipInnerFileInfo.filePath();
+					d->data = reader.readToList(buffer);
+					if (d->data.length() >= 2) {
+						csvDataList.push_back(d);
+					}
 				}
-				csvDataList.push_back(d);
 
 				int rc = unzGoToNextFile(unzFile);
 				if (rc == UNZ_END_OF_LIST_OF_FILE) {
 					break;
 				} else if (rc != UNZ_OK) {
-					done(false); //TODO
+					unzClose(unzFile);
+					SignetApplication::messageBoxError(QMessageBox::Warning,
+							"CSV Import",
+							"Error reading zip file",
+							m_parent);
+					done(false);
 					return;
 				}
 			}
+			unzClose(unzFile);
 		} else {
 			QString csvBasename = csvFileInfo.baseName();
 			if (!csvFile->open(QFile::ReadOnly)) {
@@ -127,12 +147,17 @@ void CSVImporter::start()
 			QtCSV::Reader reader;
 			csvData *d = new csvData();
 			d->basename = csvBasename;
+			d->filename = csvFilename;
 			d->data = reader.readToList(*csvFile);
 			csvFile->deleteLater();
 			csvFile = nullptr;
 			if (d->data.length() < 2) {
+				SignetApplication::messageBoxError(QMessageBox::Warning,
+						"CSV Import",
+						"CSV file has no entries",
+						m_parent);
 				delete d;
-				done(false); //TODO
+				done(false);
 				return;
 			} else {
 				csvDataList.push_back(d);
@@ -143,27 +168,24 @@ void CSVImporter::start()
 	genericTypeDesc *typeDesc = new genericTypeDesc(-1);
 	typeDesc->typeId = generic::invalidTypeId;
 	auto tempGenericModule = new esdbGenericModule(typeDesc);
-#if 0
-	if (!m_typeModules.size()) {
-		done(false);
-		return;
-	}
-	CSVImportConfigure *config = new CSVImportConfigure(this, m_parent);
-	config->setWindowTitle("CSV Import Settings");
-	int rc = config->exec();
-	if (rc != 0) {
-		done(false);
-		return;
-	}
-
-	esdbTypeModule *t = config->typeModule();
-#endif
 	m_db = new database();
 
 	for (auto csvData : csvDataList) {
 		esdbTypeModule *module = nullptr;
+
+		CSVImportConfigure *config = new CSVImportConfigure(this, csvData->basename, csvData->filename, m_parent);
+		config->setWindowTitle("CSV Import");
+		int rc = config->exec();
+		if (rc == QDialog::Rejected) {
+			done(false);
+			return;
+		} else if (rc == CSVImportConfigure::m_skippedResponseCode) {
+			continue;
+		}
+		bool isNew;
+		QString name = config->selectedType(isNew);
 		for (auto m : m_typeModules) {
-			if (m->name() == csvData->basename) {
+			if (m->name() == name) {
 				module = m;
 				break;
 			}
@@ -172,12 +194,12 @@ void CSVImporter::start()
 			module = tempGenericModule;
 		}
 		databaseType *dbType = nullptr;
-		auto iter = m_db->find(csvData->basename);
+		auto iter = m_db->find(name);
 		if (iter != m_db->end()) {
 			dbType = *iter;
 		} else {
 			dbType = new databaseType();
-			m_db->insert(csvData->basename, dbType);
+			m_db->insert(name, dbType);
 		}
 		auto csvIter = csvData->data.begin();
 		auto header = *(csvIter++);

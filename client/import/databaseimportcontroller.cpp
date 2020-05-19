@@ -135,6 +135,7 @@ bool DatabaseImportController::nextEntry()
 			return true;
 		}
 		m_entry = m_importEntries[m_importIndex];
+		m_typeName = m_importTypenames[m_importIndex];
 		QString fullTitle = m_entry->getFullTitle();
 		if (m_useUpdateUids) {
 			if (m_importIndex == 0) {
@@ -164,7 +165,7 @@ bool DatabaseImportController::nextEntry()
 						m_entry->id,
 						blk.data.size(),
 						(const u8 *)blk.data.data(),
-						(const u8 *)blk.mask.data(), 1);
+						(const u8 *)blk.mask.data(), m_importEntries.size() - m_importIndex - 1);
 		} else {
 			::signetdev_update_uid(nullptr, &m_signetdevCmdToken,
 					       m_entry->id,
@@ -237,11 +238,9 @@ bool DatabaseImportController::nextEntry()
 		}
 		if (overwrite) {
 			importEntry->id = existingEntry->id;
-			m_entryNew = false;
 		} else {
 			importEntry->id = m_loggedInWidget->getUnusedId(m_reservedIds);
 			m_reservedIds.insert(importEntry->id);
-			m_entryNew = true;
 			//TODO handle when no ID's available
 		}
 
@@ -264,7 +263,7 @@ bool DatabaseImportController::nextEntry()
 			}
 		} else if (importEntry->type == ESDB_TYPE_GENERIC_TYPE_DESC) {
 			genericTypeDesc *gt = static_cast<genericTypeDesc *>(importEntry);
-			if (!m_entryNew) {
+			if (overwrite) {
 				const genericTypeDesc *gtExisting = static_cast<const genericTypeDesc *>(existingEntry);
 				gt->typeId = gtExisting->typeId;
 			} else {
@@ -273,6 +272,8 @@ bool DatabaseImportController::nextEntry()
 			}
 		}
 		m_importEntries.push_back(importEntry);
+		m_importTypenames.push_back(m_dbIter.key());
+		m_importOverwrite.push_back(overwrite);
 		return false;
 	} else {
 		return false;
@@ -281,11 +282,14 @@ bool DatabaseImportController::nextEntry()
 
 void DatabaseImportController::importAccountFinished(int code)
 {
-	if (code != QMessageBox::Ok) {
-		::signetdev_cancel_button_wait();
-	}
 	m_buttonWaitDialog->deleteLater();
 	m_buttonWaitDialog = NULL;
+	if (code != QMessageBox::Ok) {
+		::signetdev_cancel_button_wait();
+		m_importState = IMPORT_STATE_WRITE_CANCEL;
+		m_importProgressDialog->done(QDialog::Rejected);
+		done(false);
+	}
 }
 
 void DatabaseImportController::importDone(bool success)
@@ -406,7 +410,7 @@ void DatabaseImportController::signetdevCmdResp(signetdevCmdRespInfo info)
 		m_buttonWaitDialog->done(QMessageBox::Ok);
 	}
 
-	QString typeName = m_dbIter.key();
+	bool overwrite = m_importOverwrite[m_importIndex];
 
 	advanceDbTypeIter();
 
@@ -415,8 +419,8 @@ void DatabaseImportController::signetdevCmdResp(signetdevCmdRespInfo info)
 		switch (info.cmd) {
 		case SIGNETDEV_CMD_UPDATE_UIDS:
 		case SIGNETDEV_CMD_UPDATE_UID:
-			if (m_entryNew) {
-				entryCreated(typeName, m_entry);
+			if (!overwrite) {
+				entryCreated(m_typeName, m_entry);
 			} else {
 				entryChanged(m_entry->id);
 			}

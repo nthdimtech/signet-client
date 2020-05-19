@@ -24,10 +24,8 @@ class DatabaseImportController : public QObject
 	DatabaseImporter::databaseIter m_dbIterStart;
 	DatabaseImporter::databaseTypeIter m_dbTypeIter;
 	ButtonWaitDialog *m_buttonWaitDialog;
-	esdbEntry *m_entry;
 	bool m_overwriteAll;
 	bool m_skipAll;
-	bool m_entryNew;
 	void advanceDbTypeIter();
 	bool nextEntry();
 	QString progressString();
@@ -56,6 +54,8 @@ class DatabaseImportController : public QObject
 	bool m_importCancel;
 	QSet<int> m_reservedIds;
 	QSet<int> m_reservedTypeIds;
+	esdbEntry *m_entry;
+	QString m_typeName;
 public:
 	enum importState {
 		IMPORT_STATE_NO_SOURCE,
@@ -73,6 +73,8 @@ private:
 	enum importState m_importState;
 	int m_importIndex;
 	QVector <esdbEntry *> m_importEntries;
+	QVector <QString> m_importTypenames;
+	QVector <bool> m_importOverwrite;
 private slots:
 
 	void importFinished(int);
