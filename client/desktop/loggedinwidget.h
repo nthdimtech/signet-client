@@ -26,6 +26,7 @@ class QRadioButton;
 class QProgressBar;
 class QComboBox;
 class QStackedWidget;
+template <typename T> class QSet;
 #include <map>
 
 struct account;
@@ -188,7 +189,9 @@ public:
 	ButtonWaitWidget *beginButtonWait(QString action, bool longPress);
 	void endButtonWait();
 	void getSelectedAccountRect(QRect &r);
+	int getUnusedId(const QSet<int> &reserved);
 	int getUnusedId();
+	int getUnusedTypeId(const QSet<int> &reserved);
 	int getUnusedTypeId();
 	esdbEntry *findEntry(QString type, QString name) const;
 	const QMap<int, esdbEntry *> *entryToEntryMap(esdbEntry *entry);

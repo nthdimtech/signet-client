@@ -20,6 +20,7 @@
 #include <QProgressBar>
 #include <QStackedWidget>
 #include <QStringList>
+#include <QSet>
 #include "esdb.h"
 #include "esdbmodel.h"
 #include "aspectratiopixmaplabel.h"
@@ -1169,9 +1170,20 @@ void LoggedInWidget::filterEditPressed()
 
 int LoggedInWidget::getUnusedTypeId()
 {
-	std::vector<int> match;
-	match.push_back(0);
-	match.push_back(0);
+	QSet<int> reserved;
+	return getUnusedTypeId(reserved);
+}
+
+int LoggedInWidget::getUnusedTypeId(const QSet<int> &reserved)
+{
+	int match[MAX_UID+1];
+	for (int i = 0; i <= MAX_UID; i++) {
+		match[i] = 0;
+	}
+	match[0] = 1;
+	for (auto r : reserved) {
+		match[r] = 1;
+	}
 	for (esdbEntry *entry : m_entries) {
 		int typeIdx = -1;
 		if (entry->type == ESDB_TYPE_GENERIC) {
@@ -1181,27 +1193,32 @@ int LoggedInWidget::getUnusedTypeId()
 			genericTypeDesc *gt = static_cast<genericTypeDesc *>(entry);
 			typeIdx = gt->typeId;
 		}
-		if (typeIdx >= 0 && (typeIdx + 1) >= match.size()) {
-			match.resize(typeIdx + 2, 0);
-		}
 		if (typeIdx >= 0) {
 			match[typeIdx] = 1;
 		}
 	}
-
-	for (size_t i = 1; i < match.size(); i++) {
+	for (int i = 0; i < (MAX_UID+1); i++) {
 		if (!match[i])
-			return static_cast<int>(i);
+			return i;
 	}
 	return generic::invalidTypeId;
 }
 
 int LoggedInWidget::getUnusedId()
 {
+	QSet<int> reserved;
+	return getUnusedId(reserved);
+}
+
+int LoggedInWidget::getUnusedId(const QSet<int> &reserved)
+{
 	int entriesValid[MAX_UID+1];
 	//TODO: optimize this
 	for (int i = MIN_UID; i <= MAX_UID; i++) {
 		entriesValid[i] = 0;
+	}
+	for (auto r : reserved) {
+		entriesValid[r] = 1;
 	}
 	for (auto entry : m_entries) {
 		entriesValid[entry->id] = 1;

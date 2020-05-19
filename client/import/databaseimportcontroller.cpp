@@ -239,7 +239,8 @@ bool DatabaseImportController::nextEntry()
 			importEntry->id = existingEntry->id;
 			m_entryNew = false;
 		} else {
-			importEntry->id = m_loggedInWidget->getUnusedId();
+			importEntry->id = m_loggedInWidget->getUnusedId(m_reservedIds);
+			m_reservedIds.insert(importEntry->id);
 			m_entryNew = true;
 			//TODO handle when no ID's available
 		}
@@ -267,7 +268,8 @@ bool DatabaseImportController::nextEntry()
 				const genericTypeDesc *gtExisting = static_cast<const genericTypeDesc *>(existingEntry);
 				gt->typeId = gtExisting->typeId;
 			} else {
-				gt->typeId = m_loggedInWidget->getUnusedTypeId();
+				gt->typeId = m_loggedInWidget->getUnusedTypeId(m_reservedTypeIds);
+				m_reservedTypeIds.insert(gt->typeId);
 			}
 		}
 		m_importEntries.push_back(importEntry);

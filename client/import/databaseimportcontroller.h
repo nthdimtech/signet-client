@@ -2,6 +2,7 @@
 #define DATABASEIMPORTCONTROLLER_H
 
 #include <QObject>
+#include <QSet>
 
 #include "databaseimporter.h"
 #include "signetapplication.h"
@@ -53,6 +54,8 @@ class DatabaseImportController : public QObject
 	enum conflictResponse m_conflictResponse;
 	void conflictResponse();
 	bool m_importCancel;
+	QSet<int> m_reservedIds;
+	QSet<int> m_reservedTypeIds;
 public:
 	enum importState {
 		IMPORT_STATE_NO_SOURCE,
