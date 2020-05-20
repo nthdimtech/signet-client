@@ -151,7 +151,7 @@ public:
 
 	static QDate getReleaseDate()
 	{
-		return QDate(2020,4,11);
+		return QDate(2020,5,20);
 	}
 
 	static int releasePeriod()
@@ -163,8 +163,8 @@ public:
 	{
 		major = 0;
 		minor = 9;
-		step = 16;
-		subStep = 3;
+		step = 17;
+		subStep = 0;
 	}
 
 	void getFirmwareVersion(int &major, int &minor, int &step);
@@ -250,9 +250,9 @@ public:
 
 	static void generateKey(const QString &password, QByteArray &key, const QByteArray &hashfn, const QByteArray &salt, int keyLength);
 	void setAsyncListener(SignetAsyncListener *l);
-    bool isDeviceEmulated();
-    void startWebsocketServer();
-    void stopWebsocketServer();
+	bool isDeviceEmulated();
+	void startWebsocketServer();
+	void stopWebsocketServer();
 signals:
 	void deviceOpened(enum signetdev_device_type dev_type);
 	void deviceClosed();
