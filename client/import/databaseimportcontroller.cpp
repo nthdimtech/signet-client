@@ -29,7 +29,8 @@ DatabaseImportController::DatabaseImportController(DatabaseImporter *importer, L
 	m_importProgressStack(nullptr),
 	m_conflictResponse(CONFLICT_RESPONSE_NONE),
 	m_importCancel(false),
-	m_importState(IMPORT_STATE_NO_SOURCE)
+	m_importState(IMPORT_STATE_NO_SOURCE),
+	m_typeIdMapBuilt(false)
 {
 	importer->setParent(this);
 	connect(m_importer, SIGNAL(done(bool)), this, SLOT(importDone(bool)));
@@ -181,9 +182,27 @@ bool DatabaseImportController::nextEntry()
 			m_importIndex = -1; //Will be incremented to 0 by advance function
 			return false;
 		}
+		QString typeName = m_dbIter.key();
+		if (typeName != "Data types" && m_typeIdMapBuilt == false) {
+				m_typeIdMapBuilt = true;
+				auto iter = m_db->find("Data types");
+				if (iter != m_db->end()) {
+					for (auto e : *iter.value()) {
+						auto gt = static_cast<genericTypeDesc *>(e);
+						m_typeIdMap.insert(e->getTitle(), gt->typeId);
+					}
+				}
+				const std::vector<esdbGenericModule *> &gm = m_loggedInWidget->getGenericModules();
+				for (auto m : gm) {
+					if (m->name() == typeName) {
+						m_typeIdMap.insert(m->name(), m->typeId());
+						break;
+					}
+				}
+		}
 		m_importProgressStack->setCurrentIndex(1);
 		esdbEntry *importEntry = *m_dbTypeIter;
-		const esdbEntry *existingEntry = m_loggedInWidget->findEntry(m_dbIter.key(), importEntry->getFullTitle());
+		const esdbEntry *existingEntry = m_loggedInWidget->findEntry(typeName, importEntry->getFullTitle());
 
 		bool overwrite = false;
 
@@ -252,13 +271,31 @@ bool DatabaseImportController::nextEntry()
 		if (importEntry->type == ESDB_TYPE_GENERIC) {
 			generic *g = static_cast<generic *>(importEntry);
 			if (g->typeId == generic::invalidTypeId) {
-				const std::vector<esdbGenericModule *> &gm = m_loggedInWidget->getGenericModules();
-				g->typeId = 0; //TODO: This is the type ID for misc but it shouldn't be hard coded
-				for (auto m : gm) {
-					if (m->name() == m_dbIter.key()) {
-						g->typeId = m->typeId();
-						break;
+				auto iter = m_typeIdMap.find(typeName);
+				if (iter == m_typeIdMap.end()) {
+					int newId = m_loggedInWidget->getUnusedId(m_reservedIds);
+					m_reservedIds.insert(newId);
+					genericTypeDesc *typeDesc = new genericTypeDesc(newId);
+					typeDesc->typeId = m_loggedInWidget->getUnusedTypeId(m_reservedTypeIds);
+					m_reservedTypeIds.insert(typeDesc->typeId);
+					typeDesc->name = typeName;
+
+					//TODO: Ideally we shouldn't base the type description on a single entry
+					QVector<genericField> fields;
+					g->typeId = typeDesc->typeId;
+					g->getFields(fields);
+					for (auto f : fields) {
+						fieldSpec fs;
+						fs.name = f.name;
+						fs.type = f.type;
+						typeDesc->fields.push_back(fs);
 					}
+					m_importEntries.push_back(typeDesc);
+					m_importTypenames.push_back("Data types");
+					m_importOverwrite.push_back(false);
+					m_typeIdMap.insert(typeName, typeDesc->typeId);
+				} else {
+					g->typeId = iter.value();
 				}
 			}
 		} else if (importEntry->type == ESDB_TYPE_GENERIC_TYPE_DESC) {

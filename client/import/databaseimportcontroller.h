@@ -72,9 +72,11 @@ public:
 private:
 	enum importState m_importState;
 	int m_importIndex;
-	QVector <esdbEntry *> m_importEntries;
-	QVector <QString> m_importTypenames;
-	QVector <bool> m_importOverwrite;
+	QList <esdbEntry *> m_importEntries;
+	QList <QString> m_importTypenames;
+	QList <bool> m_importOverwrite;
+	QMap <QString, int> m_typeIdMap;
+	bool m_typeIdMapBuilt;
 private slots:
 
 	void importFinished(int);
