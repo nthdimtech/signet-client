@@ -2,6 +2,7 @@
 #define CSVIMPORTCONFIGURE_H
 
 #include <QDialog>
+template <typename T> class QSet;
 class CSVImporter;
 class QComboBox;
 struct esdbTypeModule;
@@ -18,14 +19,14 @@ class CSVImportConfigure : public QDialog
 	QLabel *m_errorLabel;
 	QString m_basename;
 	int m_selectionIndex;
-
+	const QSet<QString> &m_usedTypeNames;
 private slots:
 	void currentSelectionIndexChanged(int idx);
 	void dataTypeTextEdited();
 public:
 	QString selectedType(bool &isNew);
 	static const int m_skippedResponseCode = QDialog::Accepted + 1;
-	CSVImportConfigure(CSVImporter *importer, QString basename, QString filename, QWidget *parent = nullptr);
+	CSVImportConfigure(CSVImporter *importer, const QSet<QString> &usedTypeNames, QString basename, QString filename, QWidget *parent = nullptr);
 	esdbTypeModule *typeModule()
 	{
 		return m_typeModule;

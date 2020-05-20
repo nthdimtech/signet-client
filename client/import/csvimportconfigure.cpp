@@ -6,6 +6,7 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QLineEdit>
+#include <QSet>
 
 #include "csvimporter.h"
 #include "esdbtypemodule.h"
@@ -13,8 +14,13 @@
 #include "emphasistext.h"
 #include "errortext.h"
 
-CSVImportConfigure::CSVImportConfigure(CSVImporter *importer, QString basename, QString filename, QWidget *parent) :
+CSVImportConfigure::CSVImportConfigure(CSVImporter *importer,
+		const QSet<QString> &usedTypeNames,
+		QString basename,
+		QString filename,
+		QWidget *parent) :
 	QDialog(parent),
+	m_usedTypeNames(usedTypeNames),
 	m_importer(importer),
         m_dataTypeCombo(nullptr),
         m_typeModule(nullptr),
@@ -103,9 +109,17 @@ void CSVImportConfigure::skipPressed()
 
 void CSVImportConfigure::okPressed()
 {
-	if (m_selectionIndex == 0 && m_dataTypeEdit->text().isEmpty()) {
-		m_errorLabel->setText("Select a new data type name");
-		m_errorLabel->setVisible(true);
+	if (m_selectionIndex == 0) {
+		QString typeName = m_dataTypeEdit->text();
+		if (typeName.isEmpty()) {
+			m_errorLabel->setText("Select a new data type name");
+			m_errorLabel->setVisible(true);
+		} else if (m_usedTypeNames.contains(typeName)) {
+			m_errorLabel->setText("Type name \"" + typeName + "\" is already used");
+			m_errorLabel->setVisible(true);
+		} else {
+			done(QDialog::Accepted);
+		}
 	} else {
 		done(QDialog::Accepted);
 	}

@@ -5,6 +5,7 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QBuffer>
+#include <QSet>
 
 #include "qtcsv/reader.h"
 #include "esdb.h"
@@ -63,6 +64,11 @@ void CSVImporter::start()
 	fd->deleteLater();
 
 	QList<csvData *> csvDataList;
+	QSet<QString> usedTypeNames;
+
+	for (auto m : m_typeModules) {
+		usedTypeNames.insert(m->name());
+	}
 
 	for (auto fn : sl) {
 		QFile *csvFile = new QFile(fn);
@@ -170,10 +176,11 @@ void CSVImporter::start()
 	auto tempGenericModule = new esdbGenericModule(typeDesc);
 	m_db = new database();
 
+
 	for (auto csvData : csvDataList) {
 		esdbTypeModule *module = nullptr;
 
-		CSVImportConfigure *config = new CSVImportConfigure(this, csvData->basename, csvData->filename, m_parent);
+		CSVImportConfigure *config = new CSVImportConfigure(this, usedTypeNames, csvData->basename, csvData->filename, m_parent);
 		config->setWindowTitle("CSV Import");
 		int rc = config->exec();
 		if (rc == QDialog::Rejected) {
@@ -192,6 +199,9 @@ void CSVImporter::start()
 		}
 		if (!module) {
 			module = tempGenericModule;
+		}
+		if (!usedTypeNames.contains(name)) {
+			usedTypeNames.insert(name);
 		}
 		databaseType *dbType = nullptr;
 		auto iter = m_db->find(name);
