@@ -8,7 +8,7 @@
 #include "signetapplication.h"
 
 class LoggedInWidget;
-class ButtonWaitDialog;
+class ButtonWaitWidget;
 class esdbGenericModule;
 class QDialog;
 class QProgressBar;
@@ -23,7 +23,7 @@ class DatabaseImportController : public QObject
 	DatabaseImporter::databaseIter m_dbIter;
 	DatabaseImporter::databaseIter m_dbIterStart;
 	DatabaseImporter::databaseTypeIter m_dbTypeIter;
-	ButtonWaitDialog *m_buttonWaitDialog;
+	ButtonWaitWidget *m_buttonWaitWidget;
 	bool m_overwriteAll;
 	bool m_skipAll;
 	void advanceDbTypeIter();
@@ -78,7 +78,8 @@ private:
 	QMap <QString, int> m_typeIdMap;
 	bool m_typeIdMapBuilt;
 private slots:
-
+	void buttonTimeout();
+	void buttonCanceled();
 	void importFinished(int);
 	void cancelConflictResponse() {
 		m_conflictResponse = CONFLICT_RESPONSE_CANCEL;
@@ -122,8 +123,6 @@ public slots:
 	void importDone(bool success);
 	void start();
 	void signetdevCmdResp(signetdevCmdRespInfo info);
-private slots:
-	void importAccountFinished(int code);
 };
 
 #endif // DATABASEIMPORTCONTROLLER_H

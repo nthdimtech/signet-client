@@ -5,7 +5,7 @@
 #include "account.h"
 #include "entryrenamedialog.h"
 #include "loggedinwidget.h"
-#include "buttonwaitdialog.h"
+#include "buttonwaitwidget.h"
 #include "generictypedesc.h"
 #include "generic.h"
 #include "generictext.h"
@@ -130,6 +130,8 @@ bool DatabaseImportController::nextEntry()
 				m_importState = IMPORT_STATE_WRITE_CANCEL;
 			} else {
 				m_importState = IMPORT_STATE_WRITE_COMPLETE;
+				m_importProgressStack->setCurrentIndex(3);
+				return true;
 			}
 			done(true);
 			m_importProgressDialog->done(QDialog::Accepted);
@@ -140,18 +142,10 @@ bool DatabaseImportController::nextEntry()
 		QString fullTitle = m_entry->getFullTitle();
 		if (m_useUpdateUids) {
 			if (m_importIndex == 0) {
-				m_buttonWaitDialog = new ButtonWaitDialog(m_importer->databaseTypeName() + " Import",
-						"begin importing", (QWidget *)m_importProgressDialog, true);
+				m_importProgressStack->setCurrentIndex(2);
 			}
 		} else {
-			m_buttonWaitDialog = new ButtonWaitDialog(m_importer->databaseTypeName() + " Import",
-					"import \"" + fullTitle + "\" " +
-					progressString(), (QWidget *)m_importProgressDialog);
-		}
-
-		if (m_buttonWaitDialog) {
-			m_buttonWaitDialog->show();
-			connect(m_buttonWaitDialog, SIGNAL(finished(int)), this, SLOT(importAccountFinished(int)));
+			m_importProgressStack->setCurrentIndex(2);
 		}
 
 		m_importProgressBar->setMinimum(0);
@@ -317,16 +311,19 @@ bool DatabaseImportController::nextEntry()
 	}
 }
 
-void DatabaseImportController::importAccountFinished(int code)
+void DatabaseImportController::buttonCanceled()
 {
-	m_buttonWaitDialog->deleteLater();
-	m_buttonWaitDialog = NULL;
-	if (code != QMessageBox::Ok) {
-		::signetdev_cancel_button_wait();
-		m_importState = IMPORT_STATE_WRITE_CANCEL;
-		m_importProgressDialog->done(QDialog::Rejected);
-		done(false);
-	}
+	m_importProgressStack->setCurrentIndex(0);
+	::signetdev_cancel_button_wait();
+	m_importState = IMPORT_STATE_WRITE_CANCEL;
+	m_importProgressDialog->done(QDialog::Rejected);
+}
+
+void DatabaseImportController::buttonTimeout()
+{
+	m_importProgressStack->setCurrentIndex(0);
+	m_importState = IMPORT_STATE_WRITE_CANCEL;
+	m_importProgressDialog->done(QDialog::Rejected);
 }
 
 void DatabaseImportController::importDone(bool success)
@@ -411,8 +408,25 @@ void DatabaseImportController::importDone(bool success)
 
 		vbox->addLayout(hbox, Qt::AlignBottom);
 		m_importProgressStack->addWidget(conflictWidget);
-		m_importProgressDialog->show();
+
+		m_buttonWaitWidget = new ButtonWaitWidget("begin importing " + m_importer->databaseTypeName(), true);
+		m_importProgressStack->addWidget(m_buttonWaitWidget);
+		connect(m_buttonWaitWidget, SIGNAL(timeout()), this, SLOT(buttonTimeout()));
+		connect(m_buttonWaitWidget, SIGNAL(canceled()), this, SLOT(buttonCanceled()));
+
+		QWidget *importCompleteWidget = new QWidget();
+		vbox = new QVBoxLayout();
+		vbox->setAlignment(Qt::AlignTop);
+		vbox->addWidget(new genericText(m_importer->databaseTypeName() + " import complete"));
+		QPushButton *ok = new QPushButton("Ok");
+		connect(ok, SIGNAL(pressed()), m_importProgressDialog, SLOT(accept()));
+		vbox->addWidget(ok);
+		importCompleteWidget->setLayout(vbox);
+		m_importProgressStack->addWidget(importCompleteWidget);
+
 		m_importProgressStack->setCurrentIndex(0);
+
+		m_importProgressDialog->show();
 
 		DatabaseImporter::databaseType *t = m_dbIter.value();
 		m_dbTypeIter = t->begin();
@@ -443,9 +457,7 @@ void DatabaseImportController::signetdevCmdResp(signetdevCmdRespInfo info)
 	m_signetdevCmdToken = -1;
 	m_updatePending = false;
 
-	if (m_buttonWaitDialog) {
-		m_buttonWaitDialog->done(QMessageBox::Ok);
-	}
+	m_importProgressStack->setCurrentIndex(0);
 
 	bool overwrite = m_importOverwrite[m_importIndex];
 

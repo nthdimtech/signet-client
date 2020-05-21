@@ -64,7 +64,6 @@ void KeePassImporter::start()
 	fd->setNameFilters(filters);
 	fd->setFileMode(QFileDialog::AnyFile);
 	fd->setAcceptMode(QFileDialog::AcceptOpen);
-	fd->setWindowModality(Qt::WindowModal);
 	if (!fd->exec()) {
 		done(false);
 		return;

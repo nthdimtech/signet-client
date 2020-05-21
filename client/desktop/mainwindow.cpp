@@ -2059,7 +2059,6 @@ void MainWindow::openUi()
 	fd->setNameFilters(filters);
 	fd->setFileMode(QFileDialog::AnyFile);
 	fd->setAcceptMode(QFileDialog::AcceptOpen);
-	fd->setWindowModality(Qt::WindowModal);
 	m_openFileDialog = fd;
 	connect(m_openFileDialog, SIGNAL(finished(int)), this, SLOT(openFileDialogFinished(int)));
 	m_openFileDialog->show();
@@ -2551,14 +2550,6 @@ void MainWindow::exportCSVUi()
 
 void MainWindow::importDone(bool success)
 {
-	if (m_dbImportController->getImportState() == DatabaseImportController::IMPORT_STATE_WRITE_COMPLETE) {
-		QString typeName = m_dbImportController->importer()->databaseTypeName();
-		QMessageBox *mb = SignetApplication::messageBoxError(QMessageBox::Information,
-				  typeName + " Import",
-				  typeName + " import successful",
-				  this);
-		Q_UNUSED(mb);
-	}
 	m_dbImportController->deleteLater();
 	m_dbImportController = nullptr;
 }

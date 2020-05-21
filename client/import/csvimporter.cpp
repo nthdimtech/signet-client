@@ -41,27 +41,22 @@ struct csvData {
 
 void CSVImporter::start()
 {
-	QFileDialog *fd = new QFileDialog(m_parent, "CSV Import");
+	QFileDialog fd(m_parent, "CSV Import");
 	QStringList filters;
 	filters.append("CSV archive (*.zip)");
 	filters.append("CSV file (*.csv *.txt)");
 	filters.append("*");
 	QString documentsPath = QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
-	fd->setNameFilters(filters);
-	fd->setDirectory(documentsPath);
-	fd->setFileMode(QFileDialog::AnyFile);
-	fd->setAcceptMode(QFileDialog::AcceptOpen);
-	fd->setWindowModality(Qt::WindowModal);
-	if (!fd->exec()) {
-		done(false);
-		return;
-	}
-	QStringList sl = fd->selectedFiles();
+	fd.setNameFilters(filters);
+	fd.setDirectory(documentsPath);
+	fd.setFileMode(QFileDialog::AnyFile);
+	fd.setAcceptMode(QFileDialog::AcceptOpen);
+	fd.exec();
+	QStringList sl = fd.selectedFiles();
 	if (sl.empty()) {
 		done(false);
 		return;
 	}
-	fd->deleteLater();
 
 	QList<csvData *> csvDataList;
 	QSet<QString> usedTypeNames;
@@ -176,21 +171,24 @@ void CSVImporter::start()
 	auto tempGenericModule = new esdbGenericModule(typeDesc);
 	m_db = new database();
 
-
 	for (auto csvData : csvDataList) {
 		esdbTypeModule *module = nullptr;
-
 		CSVImportConfigure *config = new CSVImportConfigure(this, usedTypeNames, csvData->basename, csvData->filename, m_parent);
+		config->setWindowModality(Qt::WindowModal);
 		config->setWindowTitle("CSV Import");
 		int rc = config->exec();
 		if (rc == QDialog::Rejected) {
+			config->deleteLater();
 			done(false);
 			return;
 		} else if (rc == CSVImportConfigure::m_skippedResponseCode) {
+			config->deleteLater();
 			continue;
 		}
 		bool isNew;
 		QString name = config->selectedType(isNew);
+		config->deleteLater();
+
 		for (auto m : m_typeModules) {
 			if (m->name() == name) {
 				module = m;

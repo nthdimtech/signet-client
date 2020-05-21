@@ -215,7 +215,6 @@ void SettingsDialog::localBackupPathBrowse()
 	QFileDialog *fd = new QFileDialog(this, "Local backup directory");
 	fd->setDirectory(dir);
 	fd->setFileMode(QFileDialog::Directory);
-	fd->setWindowModality(Qt::WindowModal);
 	if (!fd->exec()) {
 		fd->deleteLater();
 		return;
