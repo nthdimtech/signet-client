@@ -2216,33 +2216,33 @@ void MainWindow::sendFirmwareWriteCmd()
 	m_writingSize = write_size;
 }
 
-void MainWindow::firmwareFileInvalidMsg()
+void MainWindow::firmwareFileInvalidMsg(const QString &err)
 {
-	SignetApplication::messageBoxError(QMessageBox::Warning, "Update firmware", "Firmware file not valid", this);
+	SignetApplication::messageBoxError(QMessageBox::Warning, "Update firmware", QString("Invalid firmware: ").append(err), this);
 }
 
 void MainWindow::updateFirmwareHC(QByteArray &datum)
 {
 	if (datum.size() < (int)sizeof(struct hc_firmware_file_header)) {
-		firmwareFileInvalidMsg();
+		firmwareFileInvalidMsg("file too short!");
 		return;
 	}
 	struct hc_firmware_file_header *header = (struct hc_firmware_file_header *)datum.data();
 	if (header->file_prefix != HC_FIRMWARE_FILE_PREFIX) {
-		firmwareFileInvalidMsg();
+		firmwareFileInvalidMsg("not a firmware file!");
 		return;
 	}
 	if (header->file_version != HC_FIRMWARE_FILE_VERSION) {
-		firmwareFileInvalidMsg();
+		firmwareFileInvalidMsg("wrong version!");
 		return;
 	}
-	if (header->header_size <  sizeof (struct hc_firmware_file_header)) {
-		firmwareFileInvalidMsg();
+    if (header->header_size != sizeof (struct hc_firmware_file_header)) {
+		firmwareFileInvalidMsg("incorrect header size!");
 		return;
 	}
 	int expected_sz = header->A_len + header->B_len + header->header_size;
-	if (datum.size() < expected_sz) {
-		firmwareFileInvalidMsg();
+	if (datum.size() != expected_sz) {
+		firmwareFileInvalidMsg("incorrect file size!");
 		return;
 	}
 
@@ -2259,10 +2259,11 @@ void MainWindow::updateFirmwareHC(QByteArray &datum)
 		delete m_NewFirmwareHeader;
 		m_NewFirmwareBody = nullptr;
 		m_NewFirmwareHeader = nullptr;
-		firmwareFileInvalidMsg();
+		firmwareFileInvalidMsg("CRC error!");
 		return;
 	}
 	updateFirmwareHCIter(true);
+
 }
 
 void MainWindow::updateFirmwareHCIter(bool buttonWait)
@@ -2351,7 +2352,7 @@ void MainWindow::updateFirmware(QByteArray &datum)
 		beginButtonWait("Update firmware", true);
 		::signetdev_begin_update_firmware(nullptr, &m_signetdevCmdToken);
 	} else {
-		firmwareFileInvalidMsg();
+		firmwareFileInvalidMsg("wrong format!");
 	}
 }
 

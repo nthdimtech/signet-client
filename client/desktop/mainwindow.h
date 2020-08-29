@@ -236,7 +236,7 @@ private:
 	void setCentralStack(QWidget *w);
 	void updateFirmwareHC(QByteArray &datum);
 	void updateFirmware(QByteArray &datum);
-	void firmwareFileInvalidMsg();
+	void firmwareFileInvalidMsg(const QString &err);
 	void sendFirmwareWriteCmdHC();
 	int firmwareSizeHC();
 	void createFirmwareUpdateWidget();
