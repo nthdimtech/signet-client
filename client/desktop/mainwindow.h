@@ -141,7 +141,7 @@ private:
 	QList<fwSection>::iterator m_writingSectionIter;
 	unsigned int m_writingAddr;
 	unsigned int m_writingSize;
-	unsigned int m_totalWritten;
+	int m_totalWritten;
 	QList<fwSection> m_fwSections;
 	QLabel *m_firmwareUpdateStage;
 	QTimer m_resetTimer;

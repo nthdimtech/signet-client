@@ -563,6 +563,11 @@ void LoggedInWidget::websocketPageLoaded(int socketId, QString url, bool hasLogi
 	QUrl selectedUrl(url, QUrl::TolerantMode);
 	QJsonArray matches;
 
+	// TODO use them for something?
+	Q_UNUSED(hasLoginForm);
+	Q_UNUSED(hasUsernameField);
+	Q_UNUSED(hasPasswordField);
+
 	auto entryMap = typeNameToEntryMap("Accounts");
 	for (auto entry : *entryMap) {
 		QString entUrlStr = entry->getUrl();
@@ -693,6 +698,8 @@ void LoggedInWidget::websocketMessage(int socketId, QString message)
 
 void LoggedInWidget::idTaskComplete(bool error, int id, esdbEntry *entry, enum ID_TASK task, int intent)
 {
+	Q_UNUSED(id); //TODO remove?
+
 	endButtonWait();
 
 	if (!error && task == ID_TASK_READ && entry && intent == 0 /* TODO: magic number */) {

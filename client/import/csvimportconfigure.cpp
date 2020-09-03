@@ -20,16 +20,15 @@ CSVImportConfigure::CSVImportConfigure(CSVImporter *importer,
 		QString filename,
 		QWidget *parent) :
 	QDialog(parent),
-	m_usedTypeNames(usedTypeNames),
 	m_importer(importer),
-        m_dataTypeCombo(nullptr),
-        m_typeModule(nullptr),
-	m_basename(basename)
+	m_dataTypeCombo(nullptr),
+	m_typeModule(nullptr),
+	m_basename(basename),
+	m_usedTypeNames(usedTypeNames)
 {
 	QVBoxLayout *top = new QVBoxLayout();
 	QHBoxLayout *buttons = new QHBoxLayout();
 	QHBoxLayout *selection = new QHBoxLayout();
-	QHBoxLayout *selectionNew = new QHBoxLayout();
 	QHBoxLayout *prompt = new QHBoxLayout();
 
 	m_dataTypeCombo = new QComboBox();

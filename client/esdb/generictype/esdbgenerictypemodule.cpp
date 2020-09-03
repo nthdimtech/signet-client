@@ -47,6 +47,7 @@ esdbEntry *esdbGenericTypeModule::decodeEntry(int id, int revision, esdbEntry *p
 
 esdbEntry *esdbGenericTypeModule::decodeEntry(const QVector<genericField> &fields, bool doAliasMatch) const
 {
+	Q_UNUSED(doAliasMatch); // TODO remove?
 	QVector<QStringList> aliasedFields;
 	QStringList nameAliases;
 	QStringList pathAliases;

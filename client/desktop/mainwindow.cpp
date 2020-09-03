@@ -107,12 +107,15 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	m_quitting(false),
 	m_fileMenu(nullptr),
 	m_deviceMenu(nullptr),
-	m_backupRestoreSupported(false),
 	m_loggedInStack(nullptr),
-	m_buttonWaitWidget(nullptr),
 	m_connectingLabel(nullptr),
+	m_buttonWaitWidget(nullptr),
 	m_loggedIn(false),
 	m_wasConnected(false),
+	m_autoBackupCheckPerformed(false),
+	m_fwUpgradeState(0),
+	m_NewFirmwareHeader(nullptr),
+	m_NewFirmwareBody(nullptr),
 	m_deviceState(SignetApplication::STATE_INVALID),
 	m_backupWidget(nullptr),
 	m_backupProgress(nullptr),
@@ -128,13 +131,10 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	m_wipeDeviceAction(nullptr),
 	m_eraseDeviceAction(nullptr),
 	m_changePasswordAction(nullptr),
+	m_deviceType(SIGNETDEV_DEVICE_NONE),
 	m_signetdevCmdToken(-1),
 	m_startedExport(false),
-	m_NewFirmwareHeader(nullptr),
-	m_NewFirmwareBody(nullptr),
-	m_fwUpgradeState(0),
-	m_deviceType(SIGNETDEV_DEVICE_NONE),
-	m_autoBackupCheckPerformed(false)
+	m_backupRestoreSupported(false)
 {
 	SignetApplication *app = SignetApplication::get();
 	genericTypeDesc *g = new genericTypeDesc(-1);
@@ -818,7 +818,7 @@ void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QBy
 		QMap<QString, exportType>::iterator exportType;
 		for (auto x = m_exportData.begin(); x != m_exportData.end(); x++) {
 			QDateTime current = QDateTime::currentDateTime();
-			zip_fileinfo zfi = { 0 };
+			zip_fileinfo zfi = {};
 			zfi.tmz_date.tm_year = current.date().year();
 			zfi.tmz_date.tm_mon = current.date().month() - 1;
 			zfi.tmz_date.tm_mday = current.date().day();
@@ -2223,7 +2223,7 @@ void MainWindow::firmwareFileInvalidMsg()
 
 void MainWindow::updateFirmwareHC(QByteArray &datum)
 {
-	if (datum.size() < sizeof(struct hc_firmware_file_header)) {
+	if (datum.size() < (int)sizeof(struct hc_firmware_file_header)) {
 		firmwareFileInvalidMsg();
 		return;
 	}
@@ -2550,6 +2550,7 @@ void MainWindow::exportCSVUi()
 
 void MainWindow::importDone(bool success)
 {
+	Q_UNUSED(success);
 	m_dbImportController->deleteLater();
 	m_dbImportController = nullptr;
 }

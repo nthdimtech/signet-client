@@ -20,9 +20,9 @@ genericFieldEdit::genericFieldEdit(const QString &name, bool secretField, QWidge
 	m_name(name),
 	m_parent(parent),
 	m_widget(nullptr),
-	m_signetdevCmdToken(-1),
+	m_secretField(secretField),
 	m_enableHideCheckbox(true),
-	m_secretField(secretField)
+	m_signetdevCmdToken(-1)
 {
 	SignetApplication *app = SignetApplication::get();
 	QObject::connect(app, SIGNAL(signetdevCmdResp(signetdevCmdRespInfo)),
