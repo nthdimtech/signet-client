@@ -133,7 +133,7 @@ void EditEntryDialog::submitButtonPressed()
 		delete tmp;
 	}
 
-	if (blk.data.size() > ::signetdev_max_entry_data_size()) {
+	if (blk.data.size() > (int)::signetdev_max_entry_data_size()) {
 		if (m_isNew) {
 			delete m_entry;
 			m_entry = nullptr;
@@ -242,7 +242,7 @@ void EditEntryDialog::edited()
 		applyChanges(tmp);
 		tmp->toBlock(&blk);
 		delete tmp;
-		if (blk.data.size() > ::signetdev_max_entry_data_size()) {
+		if (blk.data.size() > (int)::signetdev_max_entry_data_size()) {
 			m_isOversized = true;
 			m_submitButton->setDisabled(true);
 			m_dataOversized->show();

@@ -607,7 +607,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 			m_restoreProgress->setValue(m_restoreBlock);
 			if (m_restoreBlock < ::signetdev_device_num_storage_blocks()) {
 				QByteArray block(::signetdev_device_block_size(), 0);
-				int sz = m_restoreFile->read(block.data(), block.length());
+				unsigned int sz = m_restoreFile->read(block.data(), block.length());
 				if (sz == ::signetdev_device_block_size()) {
 					::signetdev_write_block(nullptr, &m_signetdevCmdToken, m_restoreBlock, block.data());
 				} else {

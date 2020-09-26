@@ -126,14 +126,14 @@ private:
 	QWidget *m_backupWidget;
 	QProgressBar *m_backupProgress;
 	DatabaseImportController *m_dbImportController;
-	int m_backupBlock;
+	unsigned int m_backupBlock;
 	QFile *m_backupFile;
 	zipFile m_backupZipFile;
 	enum SignetApplication::device_state m_backupPrevState;
 
 	QWidget *m_restoreWidget;
 	QProgressBar *m_restoreProgress;
-	int m_restoreBlock;
+	unsigned int m_restoreBlock;
 	QFile *m_restoreFile;
 
 	QWidget *m_firmwareUpdateWidget;
