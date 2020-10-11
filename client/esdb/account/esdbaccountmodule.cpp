@@ -52,18 +52,25 @@ esdbEntry *esdbAccountModule::decodeEntry(int id, int revision, esdbEntry *prev,
 	switch(revision) {
 	case 0:
 		rev1.upgrade(rev0);
+		[[gnu::fallthrough]];
 	case 1:
 		rev2.upgrade(rev1);
+		[[gnu::fallthrough]];
 	case 2:
 		rev3.upgrade(rev2);
+		[[gnu::fallthrough]];
 	case 3:
 		rev4.upgrade(rev3);
+		[[gnu::fallthrough]];
 	case 4:
 		rev5.upgrade(rev4);
+		[[gnu::fallthrough]];
 	case 5:
 		rev6.upgrade(rev5);
+		[[gnu::fallthrough]];
 	case 6:
 		acct->upgrade(rev6);
+		[[gnu::fallthrough]];
 	case 7:
 		break;
 	default:

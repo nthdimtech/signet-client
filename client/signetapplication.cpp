@@ -54,8 +54,8 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 #else
 	QtSingleApplication("signetdev-1209-df11", argc, argv),
 #endif
-	m_signetAsyncListener(nullptr),
-	m_bootMode(HC_BOOT_UNKNOWN_MODE)
+	m_bootMode(HC_BOOT_UNKNOWN_MODE),
+	m_signetAsyncListener(nullptr)
 {
 #ifdef WITH_BROWSER_PLUGINS
 	m_nextSocketId = 0;
@@ -65,7 +65,6 @@ SignetApplication::SignetApplication(int &argc, char **argv) :
 #ifndef Q_OS_ANDROID
 	QDesktopWidget desktop;
 	int desktopHeight = desktop.geometry().height();
-	int desktopWidth = desktop.geometry().width();
 	int toolIconPx;
 	int fontPx;
 	int fontLargePx;

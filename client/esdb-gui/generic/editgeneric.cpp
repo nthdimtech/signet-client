@@ -27,8 +27,8 @@ EditGeneric::EditGeneric(generic *generic, genericTypeDesc *typeDesc, QStringLis
 	EditEntryDialog(typeDesc->name, generic, parent),
 	m_generic(generic),
 	m_typeDesc(typeDesc),
-    m_fields(generic->fields),
-	m_groupList(groupList)
+	m_groupList(groupList),
+	m_fields(generic->fields)
 {
 	setup(generic->name);
 

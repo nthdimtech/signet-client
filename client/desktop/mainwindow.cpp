@@ -107,12 +107,15 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	m_quitting(false),
 	m_fileMenu(nullptr),
 	m_deviceMenu(nullptr),
-	m_backupRestoreSupported(false),
 	m_loggedInStack(nullptr),
-	m_buttonWaitWidget(nullptr),
 	m_connectingLabel(nullptr),
+	m_buttonWaitWidget(nullptr),
 	m_loggedIn(false),
 	m_wasConnected(false),
+	m_autoBackupCheckPerformed(false),
+	m_fwUpgradeState(0),
+	m_NewFirmwareHeader(nullptr),
+	m_NewFirmwareBody(nullptr),
 	m_deviceState(SignetApplication::STATE_INVALID),
 	m_backupWidget(nullptr),
 	m_backupProgress(nullptr),
@@ -128,13 +131,10 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	m_wipeDeviceAction(nullptr),
 	m_eraseDeviceAction(nullptr),
 	m_changePasswordAction(nullptr),
+	m_deviceType(SIGNETDEV_DEVICE_NONE),
 	m_signetdevCmdToken(-1),
 	m_startedExport(false),
-	m_NewFirmwareHeader(nullptr),
-	m_NewFirmwareBody(nullptr),
-	m_fwUpgradeState(0),
-	m_deviceType(SIGNETDEV_DEVICE_NONE),
-	m_autoBackupCheckPerformed(false)
+	m_backupRestoreSupported(false)
 {
 	SignetApplication *app = SignetApplication::get();
 	genericTypeDesc *g = new genericTypeDesc(-1);
@@ -607,7 +607,7 @@ void MainWindow::signetdevCmdResp(signetdevCmdRespInfo info)
 			m_restoreProgress->setValue(m_restoreBlock);
 			if (m_restoreBlock < ::signetdev_device_num_storage_blocks()) {
 				QByteArray block(::signetdev_device_block_size(), 0);
-				int sz = m_restoreFile->read(block.data(), block.length());
+				unsigned int sz = m_restoreFile->read(block.data(), block.length());
 				if (sz == ::signetdev_device_block_size()) {
 					::signetdev_write_block(nullptr, &m_signetdevCmdToken, m_restoreBlock, block.data());
 				} else {
@@ -818,7 +818,7 @@ void MainWindow::signetdevReadAllUIdsResp(signetdevCmdRespInfo info, int id, QBy
 		QMap<QString, exportType>::iterator exportType;
 		for (auto x = m_exportData.begin(); x != m_exportData.end(); x++) {
 			QDateTime current = QDateTime::currentDateTime();
-			zip_fileinfo zfi = { 0 };
+			zip_fileinfo zfi = {};
 			zfi.tmz_date.tm_year = current.date().year();
 			zfi.tmz_date.tm_mon = current.date().month() - 1;
 			zfi.tmz_date.tm_mday = current.date().day();
@@ -2216,33 +2216,33 @@ void MainWindow::sendFirmwareWriteCmd()
 	m_writingSize = write_size;
 }
 
-void MainWindow::firmwareFileInvalidMsg()
+void MainWindow::firmwareFileInvalidMsg(const QString &err)
 {
-	SignetApplication::messageBoxError(QMessageBox::Warning, "Update firmware", "Firmware file not valid", this);
+	SignetApplication::messageBoxError(QMessageBox::Warning, "Update firmware", QString("Invalid firmware: ").append(err), this);
 }
 
 void MainWindow::updateFirmwareHC(QByteArray &datum)
 {
-	if (datum.size() < sizeof(struct hc_firmware_file_header)) {
-		firmwareFileInvalidMsg();
+	if (datum.size() < (int)sizeof(struct hc_firmware_file_header)) {
+		firmwareFileInvalidMsg("file too short!");
 		return;
 	}
 	struct hc_firmware_file_header *header = (struct hc_firmware_file_header *)datum.data();
 	if (header->file_prefix != HC_FIRMWARE_FILE_PREFIX) {
-		firmwareFileInvalidMsg();
+		firmwareFileInvalidMsg("not a firmware file!");
 		return;
 	}
 	if (header->file_version != HC_FIRMWARE_FILE_VERSION) {
-		firmwareFileInvalidMsg();
+		firmwareFileInvalidMsg("wrong version!");
 		return;
 	}
-	if (header->header_size <  sizeof (struct hc_firmware_file_header)) {
-		firmwareFileInvalidMsg();
+    if (header->header_size != sizeof (struct hc_firmware_file_header)) {
+		firmwareFileInvalidMsg("incorrect header size!");
 		return;
 	}
 	int expected_sz = header->A_len + header->B_len + header->header_size;
-	if (datum.size() < expected_sz) {
-		firmwareFileInvalidMsg();
+	if (datum.size() != expected_sz) {
+		firmwareFileInvalidMsg("incorrect file size!");
 		return;
 	}
 
@@ -2259,10 +2259,11 @@ void MainWindow::updateFirmwareHC(QByteArray &datum)
 		delete m_NewFirmwareHeader;
 		m_NewFirmwareBody = nullptr;
 		m_NewFirmwareHeader = nullptr;
-		firmwareFileInvalidMsg();
+		firmwareFileInvalidMsg("CRC error!");
 		return;
 	}
 	updateFirmwareHCIter(true);
+
 }
 
 void MainWindow::updateFirmwareHCIter(bool buttonWait)
@@ -2351,7 +2352,7 @@ void MainWindow::updateFirmware(QByteArray &datum)
 		beginButtonWait("Update firmware", true);
 		::signetdev_begin_update_firmware(nullptr, &m_signetdevCmdToken);
 	} else {
-		firmwareFileInvalidMsg();
+		firmwareFileInvalidMsg("wrong format!");
 	}
 }
 
@@ -2550,6 +2551,7 @@ void MainWindow::exportCSVUi()
 
 void MainWindow::importDone(bool success)
 {
+	Q_UNUSED(success);
 	m_dbImportController->deleteLater();
 	m_dbImportController = nullptr;
 }

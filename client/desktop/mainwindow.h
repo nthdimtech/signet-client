@@ -126,14 +126,14 @@ private:
 	QWidget *m_backupWidget;
 	QProgressBar *m_backupProgress;
 	DatabaseImportController *m_dbImportController;
-	int m_backupBlock;
+	unsigned int m_backupBlock;
 	QFile *m_backupFile;
 	zipFile m_backupZipFile;
 	enum SignetApplication::device_state m_backupPrevState;
 
 	QWidget *m_restoreWidget;
 	QProgressBar *m_restoreProgress;
-	int m_restoreBlock;
+	unsigned int m_restoreBlock;
 	QFile *m_restoreFile;
 
 	QWidget *m_firmwareUpdateWidget;
@@ -141,7 +141,7 @@ private:
 	QList<fwSection>::iterator m_writingSectionIter;
 	unsigned int m_writingAddr;
 	unsigned int m_writingSize;
-	unsigned int m_totalWritten;
+	int m_totalWritten;
 	QList<fwSection> m_fwSections;
 	QLabel *m_firmwareUpdateStage;
 	QTimer m_resetTimer;
@@ -236,7 +236,7 @@ private:
 	void setCentralStack(QWidget *w);
 	void updateFirmwareHC(QByteArray &datum);
 	void updateFirmware(QByteArray &datum);
-	void firmwareFileInvalidMsg();
+	void firmwareFileInvalidMsg(const QString &err);
 	void sendFirmwareWriteCmdHC();
 	int firmwareSizeHC();
 	void createFirmwareUpdateWidget();
