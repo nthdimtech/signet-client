@@ -5,6 +5,7 @@
 #include <QThread>
 #include <QCommandLineParser>
 #include <QPushButton>
+#include "sigwatch.h"
 
 int main(int argc, char **argv)
 {
@@ -65,6 +66,11 @@ int main(int argc, char **argv)
 #ifdef Q_OS_UNIX
 	QCommandLineOption startInTrayOption("start-in-systray", "Start application minimized in the system tray");
 	parser.addOption(startInTrayOption);
+
+	UnixSignalWatcher sigwatch;
+	sigwatch.watchForSignal(SIGINT);
+	sigwatch.watchForSignal(SIGTERM);
+	QObject::connect(&sigwatch, SIGNAL(unixSignal(int)), app, SIGNAL(signetdevQuit()));
 #endif
 	parser.process(*app);
 

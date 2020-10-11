@@ -13,3 +13,6 @@
 [submodule "qtcsv"]
 	path = qtcsv
 	url = https://github.com/iamantony/qtcsv.git
+[submodule "qt-unix-signals"]
+	path = qt-unix-signals
+	url = https://github.com/sijk/qt-unix-signals
