@@ -268,6 +268,7 @@ signals:
 	void signetdevReadCleartextPassword(signetdevCmdRespInfo info, cleartext_pass pass);
 	void signetdevEvent(int event_type);
 	void signetdevTimerEvent(int seconds_remaining);
+	void signetdevQuit();
 #ifdef WITH_BROWSER_PLUGINS
 	void websocketMessage(int socketId, QString url);
 #endif

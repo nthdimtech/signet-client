@@ -89,9 +89,11 @@ HEADERS += websockethandler.h
 
 macx|gnu_linux {
 HEADERS += import/passimporter.h \
-    import/passimportunlockdialog.h
+    import/passimportunlockdialog.h \
+    ../qt-unix-signals/sigwatch.h
 SOURCES += import/passimporter.cpp \
-    import/passimportunlockdialog.cpp
+    import/passimportunlockdialog.cpp \
+    ../qt-unix-signals/sigwatch.cpp
 }
 
 win32 {
@@ -459,6 +461,7 @@ INCLUDEPATH+=../qtcsv/include \
         ../keepassx/src \
         ../src \
         ../signet-base \
+        ../qt-unix-signals \
         esdb \
         esdb/account \
         esdb/bookmark \
