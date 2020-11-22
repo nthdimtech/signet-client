@@ -13,6 +13,7 @@
 #include "esdbmodel.h"
 #include "systemtray.h"
 #include "signetapplication.h"
+#include "localcache.h"
 #include "localsettings.h"
 #include "esdbgenericmodule.h"
 
@@ -69,6 +70,7 @@ class MainWindow : public QMainWindow
 	QString m_dbFilename;
 	QString m_backupDirectory;
 	localSettings m_settings;
+	localCache m_cache;
 	esdbTypeModule *m_genericTypeModule;
 	esdbTypeModule *m_accountTypeModule;
 	esdbTypeModule *m_bookmarkTypeModule;
@@ -187,7 +189,11 @@ private:
 #endif
 
 	void sendFirmwareWriteCmd();
+	void loadPersistentSettings();
+	void loadCachedSettings();
 	void loadSettings();
+	void savePersistentSettings();
+	void saveCachedSettings();
 	void saveSettings();
 	void settingsChanged();
 	void autoBackupCheck();

@@ -299,14 +299,14 @@ MainWindow::MainWindow(QString dbFilename, QWidget *parent) :
 	}
 
 	loadSettings();
-	if (!m_settings.windowGeometry.size()) {
+	if (!m_cache.windowGeometry.size()) {
 		QDesktopWidget* d = QApplication::desktop();
 		QRect deskRect = d->screenGeometry(d->screenNumber(QCursor::pos()));
 		adjustSize();
 		move(deskRect.width() / 2 - width() / 2 + deskRect.left(),
 		     deskRect.height() / 2 - height() / 2 + deskRect.top());
 	} else {
-		restoreGeometry(m_settings.windowGeometry);
+		restoreGeometry(m_cache.windowGeometry);
 	}
 
 	if (m_settings.browserPluginSupport) {
@@ -1030,7 +1030,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
 			::signetdev_disconnect(nullptr, &m_signetdevCmdToken);
 			return;
 		}
-		m_settings.windowGeometry = saveGeometry();
+		m_cache.windowGeometry = saveGeometry();
 		saveSettings();
 		signetdev_close_connection();
 		SignetApplication::get()->quit();
@@ -1097,7 +1097,7 @@ extern "C" {
 #include "signetdev/host/signetdev.h"
 }
 
-void MainWindow::saveSettings()
+void MainWindow::savePersistentSettings()
 {
 	QString configFileName = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) +
 				 "/signet/config.json";
@@ -1119,13 +1119,10 @@ void MainWindow::saveSettings()
 	obj.insert("removableBackupPath", QJsonValue(m_settings.removableBackupPath));
 	obj.insert("removableBackupVolume", QJsonValue(m_settings.removableBackupVolume));
 	obj.insert("removableBackupInterval", QJsonValue(m_settings.removableBackupInterval));
-	obj.insert("lastRemoveableBackup", QJsonValue(m_settings.lastRemoveableBackup.toString()));
-	obj.insert("lastUpdatePrompt", QJsonValue(m_settings.lastUpdatePrompt.toString()));
 	obj.insert("activeKeyboardLayout", QJsonValue(m_settings.activeKeyboardLayout));
 #ifndef Q_OS_MACOS
 	obj.insert("minimizeToTray", QJsonValue(m_settings.minimizeToTray));
 #endif
-	obj.insert("windowGeometry", QJsonValue(QLatin1String(m_settings.windowGeometry.toBase64())));
 
 	QJsonObject keyboardLayouts;
 	for (QMap<QString, keyboardLayout>::iterator v = m_settings.keyboardLayouts.begin();
@@ -1150,6 +1147,36 @@ void MainWindow::saveSettings()
 	QByteArray datum = doc.toJson();
 	configFile.write(datum);
 	configFile.close();
+}
+
+void MainWindow::saveCachedSettings()
+{
+	QString cacheFileName = QStandardPaths::writableLocation(QStandardPaths::CacheLocation) +
+			"/cache.json";
+	QFile cacheFile(cacheFileName);
+	if (!cacheFile.open(QFile::WriteOnly)) {
+		auto box = SignetApplication::get()->messageBoxError(QMessageBox::Warning, "Couldn't write settings",
+									"Failed to write settings file at " + cacheFileName,
+									this);
+		box->exec();
+		return;
+	}
+	QJsonDocument doc;
+	QJsonObject obj;
+	obj.insert("lastRemoveableBackup", QJsonValue(m_cache.lastRemoveableBackup.toString()));
+	obj.insert("lastUpdatePrompt", QJsonValue(m_cache.lastUpdatePrompt.toString()));
+	obj.insert("windowGeometry", QJsonValue(QLatin1String(m_cache.windowGeometry.toBase64())));
+
+	doc.setObject(obj);
+	QByteArray datum = doc.toJson();
+	cacheFile.write(datum);
+	cacheFile.close();
+}
+
+void MainWindow::saveSettings()
+{
+	savePersistentSettings();
+	saveCachedSettings();
 }
 
 QString MainWindow::backupFileBaseName()
@@ -1224,8 +1251,8 @@ void MainWindow::autoBackupCheck()
 	}
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
 	if (m_settings.removableBackups) {
-		if (!m_settings.lastRemoveableBackup.isValid() ||
-		    m_settings.lastRemoveableBackup.daysTo(currentTime) > m_settings.removableBackupInterval) {
+		if (!m_cache.lastRemoveableBackup.isValid() ||
+		    m_cache.lastRemoveableBackup.daysTo(currentTime) > m_settings.removableBackupInterval) {
 			QMessageBox *box = new QMessageBox(QMessageBox::Warning,
 							   "Backup database",
 							   "No database backups have been made to removable volume " +
@@ -1282,7 +1309,7 @@ void MainWindow::backupDatabasePromptDialogFinished(int rc)
 				}
 				if (backupPathDir.exists()) {
 					backupDevice(backupFileName);
-					m_settings.lastRemoveableBackup = currentTime;
+					m_cache.lastRemoveableBackup = currentTime;
 					saveSettings();
 				} else {
 					QMessageBox *box = new QMessageBox(QMessageBox::Warning,
@@ -1321,7 +1348,7 @@ void MainWindow::settingsChanged()
 	}
 }
 
-void MainWindow::loadSettings()
+void MainWindow::loadPersistentSettings()
 {
 	QString genericConfigPath = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation);
 	QString appConfigPath = genericConfigPath + "/signet";
@@ -1397,19 +1424,6 @@ void MainWindow::loadSettings()
 	} else {
 		m_settings.removableBackupInterval = 30;
 	}
-	QJsonValue lastRemoveableBackup = obj.value("lastRemoveableBackup");
-	if (lastRemoveableBackup.isString()) {
-		m_settings.lastRemoveableBackup = QDateTime::fromString(lastRemoveableBackup.toString());
-	} else {
-		m_settings.lastRemoveableBackup = QDateTime();
-	}
-
-	QJsonValue lastUpdatePrompt = obj.value("lastUpdatePrompt");
-	if (lastUpdatePrompt.isString()) {
-		m_settings.lastUpdatePrompt = QDateTime::fromString(lastUpdatePrompt.toString());
-	} else {
-		m_settings.lastUpdatePrompt = QDateTime();
-	}
 
 #ifdef Q_OS_MACOS
 	m_settings.minimizeToTray = false;
@@ -1427,11 +1441,6 @@ void MainWindow::loadSettings()
 		m_settings.activeKeyboardLayout = activeKeyboardLayout.toString();
 	} else {
 		m_settings.activeKeyboardLayout = "";
-	}
-
-	QJsonValue windowGeometry = obj.value("windowGeometry");
-	if (windowGeometry.isString()) {
-		m_settings.windowGeometry = QByteArray::fromBase64(windowGeometry.toString().toLatin1());
 	}
 
 	QJsonValue keyboardLayoutsV = obj.value("keyboardLayouts");
@@ -1496,29 +1505,6 @@ void MainWindow::loadSettings()
 		::signetdev_set_keymap(keyboardLayout.data(), keyboardLayout.size());
 	}
 
-	SignetApplication *app = SignetApplication::get();
-
-	QDateTime current = QDateTime::currentDateTime();
-	QDateTime release = QDateTime(app->getReleaseDate());
-	QDateTime prompt = m_settings.lastUpdatePrompt;
-
-	if ((release.daysTo(current) > app->releasePeriod()) &&
-		(!prompt.isValid() ||
-		 (prompt.daysTo(current) > 30))) {
-		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Client update check",
-						   "This client is more than " + QString::number(app->releasePeriod()) + " days old. Check for a new version?",
-						   QMessageBox::No | QMessageBox::Yes,
-						   this);
-		int rc = box->exec();
-		m_settings.lastUpdatePrompt = current;
-		saveSettings();
-		box->deleteLater();
-		if (rc == QMessageBox::Yes) {
-			QUrl url("https://nthdimtech.com/signet/downloads");
-			QDesktopServices::openUrl(url);
-		}
-	}
-
 	if (!configFile.exists()) {
 		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Machine not configured",
 						   "Would you like to configure Signet for this system now?\n\n"
@@ -1561,6 +1547,79 @@ void MainWindow::loadSettings()
 		box->setAttribute(Qt::WA_DeleteOnClose);
 		box->show();
 	}
+}
+
+void MainWindow::loadCachedSettings()
+{
+	QString appCachePath = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
+
+	QDir appCacheDir(appCachePath);
+	if (!appCacheDir.exists()) {
+		appCacheDir.mkpath(appCachePath);
+	}
+
+	QString cacheFileName = appCachePath + "/cache.json";
+
+	QFile cacheFile(cacheFileName);
+	QJsonDocument doc;
+	if (cacheFile.exists()) {
+		if (!cacheFile.open(QFile::ReadWrite)) {
+			//TODO
+		} else {
+			QByteArray datum = cacheFile.readAll();
+			doc = QJsonDocument::fromJson(datum);
+			cacheFile.close();
+		}
+	}
+	QJsonObject obj = doc.object();
+
+	QJsonValue lastRemoveableBackup = obj.value("lastRemoveableBackup");
+	if (lastRemoveableBackup.isString()) {
+		m_cache.lastRemoveableBackup = QDateTime::fromString(lastRemoveableBackup.toString());
+	} else {
+		m_cache.lastRemoveableBackup = QDateTime();
+	}
+
+	QJsonValue lastUpdatePrompt = obj.value("lastUpdatePrompt");
+	if (lastUpdatePrompt.isString()) {
+		m_cache.lastUpdatePrompt = QDateTime::fromString(lastUpdatePrompt.toString());
+	} else {
+		m_cache.lastUpdatePrompt = QDateTime();
+	}
+
+	QJsonValue windowGeometry = obj.value("windowGeometry");
+	if (windowGeometry.isString()) {
+		m_cache.windowGeometry = QByteArray::fromBase64(windowGeometry.toString().toLatin1());
+	}
+
+	SignetApplication *app = SignetApplication::get();
+
+	QDateTime current = QDateTime::currentDateTime();
+	QDateTime release = QDateTime(app->getReleaseDate());
+	QDateTime prompt = m_cache.lastUpdatePrompt;
+
+	if ((release.daysTo(current) > app->releasePeriod()) &&
+		(!prompt.isValid() ||
+		 (prompt.daysTo(current) > 30))) {
+		QMessageBox *box = new QMessageBox(QMessageBox::Information, "Client update check",
+						   "This client is more than " + QString::number(app->releasePeriod()) + " days old. Check for a new version?",
+						   QMessageBox::No | QMessageBox::Yes,
+						   this);
+		int rc = box->exec();
+		m_cache.lastUpdatePrompt = current;
+		saveSettings();
+		box->deleteLater();
+		if (rc == QMessageBox::Yes) {
+			QUrl url("https://nthdimtech.com/signet/downloads");
+			QDesktopServices::openUrl(url);
+		}
+	}
+}
+
+void MainWindow::loadSettings()
+{
+	loadPersistentSettings();
+	loadCachedSettings();
 }
 
 void MainWindow::keyboardLayoutNotConfiguredDialogFinished(int rc)

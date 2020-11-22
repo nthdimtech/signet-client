@@ -4,7 +4,6 @@
 #include <QVector>
 #include <QMap>
 #include <QString>
-#include <QDateTime>
 
 extern "C" {
 #include "signetdev/host/signetdev.h"
@@ -21,11 +20,8 @@ struct localSettings {
 	QString removableBackupPath;
 	QString removableBackupVolume;
 	int removableBackupInterval;
-	QDateTime lastRemoveableBackup;
-	QDateTime lastUpdatePrompt;
 	QMap<QString, keyboardLayout> keyboardLayouts;
 	QString activeKeyboardLayout;
-	QByteArray windowGeometry;
 	bool minimizeToTray;
 };
 
